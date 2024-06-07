@@ -25,5 +25,6 @@ android {
 
 dependencies {
     implementation project(':FtcRobotController')
+    implementation fileTree(dir: 'src/main/java/ejml', include: ['*.aar', '*.jar'], exclude: [])
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
 }
