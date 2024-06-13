@@ -23,8 +23,12 @@ android {
     }
 }
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     implementation project(':FtcRobotController')
-    implementation fileTree(dir: 'src/main/java/ejml', include: ['*.aar', '*.jar'], exclude: [])
+    implementation group: 'org.ejml', name: 'ejml-all', version: '0.43'
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
 }
