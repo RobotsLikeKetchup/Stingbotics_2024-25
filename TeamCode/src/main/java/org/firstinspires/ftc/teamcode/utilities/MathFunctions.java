@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.utilities;
 
 public class MathFunctions {
     public static int toInt(boolean Boolean) {
