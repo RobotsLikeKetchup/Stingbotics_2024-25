@@ -3,14 +3,29 @@ package org.firstinspires.ftc.teamcode;
 import org.ejml.simple.SimpleMatrix;
 
 public class MecanumKinematics {
-    //this should be tuned, but I think the inverse of 2 pi should be fine for now
+    // Converts radians to power
+    // should be tuned, temporary for now
     static final double ROTATION_SCALE = 1/(2*Math.PI);
     
-    public static double[] getPowerFromPower(double[] targetPower){
+    /*
+     * Converts from direction to power levels
+     * 
+     * Param targetPower is an array which contains the following items in order of ascending index:
+     * 0. x position of the left stick
+     * 1. y position of the left stick
+     * 2. bumper status (=1 if left, =-1 if right)
+     * 
+     * Returns an array which contains the power level to be directed to each wheel. The wheels are contained in the following order:
+     * 0. front left
+     * 1. front right
+     * 2. back left
+     * 3. back right
+     */
+    public static double[] getPowerFromDirection(double[] targetPower){
         double x, y, rotation, powerLimiter, frontLeft, frontRight, backLeft, backRight;
         x = targetPower[0];
         y = targetPower[1];
-        //either 1 or -1(1 is counterclockwise, -1 is counterclockwise
+        
         rotation = targetPower[2];
         powerLimiter = Math.max(Math.abs(x+y+rotation),1);
 
@@ -21,31 +36,35 @@ public class MecanumKinematics {
 
         return new double[]{frontLeft,frontRight,backLeft,backRight};
     }
-    public static double[] getPowerFromPowerAndDirection(double[] targetPower) { //Power is 0-1
-        double x, y, rotationDirection;
-        x = targetPower[0];
-        y = targetPower[1];
-        rotationDirection = 0;
-        //either 1 or -1(1 is counterclockwise, -1 is counterclockwise
-        if (targetPower[2] < 0) rotationDirection = -1;
-        if (targetPower[2] > 0) rotationDirection = 1;
 
-        return getPowerFromPower(new double[]{x,y,rotationDirection});
-    }
-
-    public static double[] getPowerFromVector(SimpleMatrix vector){
+    /*
+     * Converts from vector to directions, then uses getPowerFromDirections to return wheel power levels
+     * 
+     * Param vector contains
+     */
+    public static double[] getDirectionFromVector(SimpleMatrix vector){
         double powerLimiter, frontLeft, frontRight, backLeft, backRight, x, y, r;
-        //makes sure its a 3-dimensional column vector, if not, throw an error
+
+        // Makes sure the matrix has 1 column and 3 rows. If not, throws an error
         if (vector.getNumCols() != 1 || vector.getNumRows() != 3) throw new IllegalArgumentException("Must be a 3-dimensional column vector");
+
+        // Conduct math on the first two rows of the matrix
         SimpleMatrix twoDimensions = new SimpleMatrix(new double[] {vector.get(0),vector.get(1)});
-        //checks if magnitude is greater than 1, then normalize
+        /*
+         * If magnitude is greater than 1, normalize
+         * 
+         * In math-speak:
+         * If the frobenius norm is greater than 1, divide each item in the new matrix by the frobenius norm
+         */
         if (twoDimensions.normF() > 1){
             twoDimensions.divide(twoDimensions.normF());
         }
+
+        // Set directions
         x = twoDimensions.get(0);
         y = twoDimensions.get(1);
-        r=vector.get(2)*ROTATION_SCALE;
+        r = vector.get(2)*ROTATION_SCALE;
 
-        return getPowerFromPower(new double[] {x, y, r});
+        return getPowerFromDirection(new double[] {x, y, r});
     }
 }
