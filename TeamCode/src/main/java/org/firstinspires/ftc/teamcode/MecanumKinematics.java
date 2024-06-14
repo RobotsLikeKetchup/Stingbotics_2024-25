@@ -65,6 +65,16 @@ public class MecanumKinematics {
         y = twoDimensions.get(1);
         r = vector.get(2)*ROTATION_SCALE;
 
+        /*
+         * Note from Eleanor:
+         * I suggest that we instead use:
+         * return new double[] {x, y, r};
+         * 
+         * if we must nest methods, its neater if they are nested in the opmode in the following manner:
+         * getPowerFromDirection(getDirectionFromVector)
+         * 
+         * as a result, we can return the derived directions via telemetry
+         */
         return getPowerFromDirection(new double[] {x, y, r});
     }
 }
