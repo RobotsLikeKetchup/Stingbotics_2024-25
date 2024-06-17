@@ -51,10 +51,7 @@ public class MecanumKinematics {
         // Conduct math on the first two rows of the matrix
         SimpleMatrix twoDimensions = new SimpleMatrix(new double[] {vector.get(0),vector.get(1)});
         /*
-         * If magnitude is greater than 1, normalize
-         * 
-         * In math-speak:
-         * If the frobenius norm is greater than 1, divide each item in the new matrix by the frobenius norm
+         * If magnitude is greater than 1, normalize (divide matrix/vector by norm)
          */
         if (twoDimensions.normF() > 1){
             twoDimensions.divide(twoDimensions.normF());
@@ -65,16 +62,6 @@ public class MecanumKinematics {
         y = twoDimensions.get(1);
         r = vector.get(2)*ROTATION_SCALE;
 
-        /*
-         * Note from Eleanor:
-         * I suggest that we instead use:
-         * return new double[] {x, y, r};
-         * 
-         * if we must nest methods, its neater if they are nested in the opmode in the following manner:
-         * getPowerFromDirection(getDirectionFromVector)
-         * 
-         * as a result, we can return the derived directions via telemetry
-         */
-        return getPowerFromDirection(new double[] {x, y, r});
+        return new double[] {x, y, r};
     }
 }
