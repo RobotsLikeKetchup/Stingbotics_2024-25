@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.pathing;
 import org.ejml.simple.SimpleMatrix;
 import org.firstinspires.ftc.teamcode.hardware.DeadWheel;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
+import org.firstinspires.ftc.teamcode.utilities.NanoTimer;
 
 //localization
 public class Localization {
@@ -14,11 +15,12 @@ public class Localization {
     //forward distance of the perpendicular wheel from the center of rotation
     //all variables ending in '0' are variables indicating where the robot started.
     double[] pose;
+    double[] velocity = {0,0,0};
     DeadWheel parLDeadwheel, parRDeadWheel, perpDeadwheel;
     //0 -> parallel Left
     //1 -> parallel right
     //2 -> perpendicular
-    double dW01, dW11, dW21, dW02, dW12, dW22, delta1, delta2, delta0, rDeltaY, rDeltaX, rDeltaA, gDeltaY, gDeltaX, gDeltaA;
+    double dW01, dW11, dW21, dW02, dW12, dW22, delta1, delta2, delta0, rDeltaY, rDeltaX, rDeltaA;
     /*
     - last number is 1 -> prev position
     - last number is 2 -> current position
@@ -29,40 +31,44 @@ public class Localization {
     - we will use a rotation matrix when calculating the pose to convert these to field-centric values
     */
 
-    SimpleMatrix matrixPose, rotationalMatrix, curveMatrix;
+    SimpleMatrix rotationalMatrix, curveMatrix, deltaPose;
+
+    NanoTimer velocityTimer;
 
 
     //constructor
-    public Localization(Robot theRobot, double startX, double startY, double startHeading, double[] startPose){
+    public Localization(Robot theRobot, double[] startPose){
         robot = theRobot;
         pose = startPose;
-        x0 = startX;
-        y0 = startY;
-        angle0 = startHeading;
+        x0 = startPose[0];
+        y0 = startPose[1];
+        angle0 = startPose[2];
         parLDeadwheel = robot.getDeadwheel("parL");
         parRDeadWheel = robot.getDeadwheel("parR");
         perpDeadwheel = robot.getDeadwheel("per");
-        parLDeadwheel.reset();
-        parRDeadWheel.reset();
-        perpDeadwheel.reset();
-        dW01 = parLDeadwheel.getDistance();
-        dW11 = parRDeadWheel.getDistance();
-        dW21 = perpDeadwheel.getDistance();
-        matrixPose = new SimpleMatrix(pose);
+        velocityTimer = new NanoTimer();
     }
-    private void updatePose(){
-        pose[0] = matrixPose.get(0);
-        pose[1] = matrixPose.get(1);
-        pose[2] = matrixPose.get(2);
-    };
     public void setWheelDistances(float lateralDistance, float forwardDisplacement){
         latDist = lateralDistance;
         forwardDist = forwardDisplacement;
     };
     //methods
     public double[] getPose(){
-        updatePose();
         return pose;
+    }
+
+    public double[] getVelocity(){
+        return velocity;
+    }
+
+    public void init(){
+        velocityTimer.resetTimer();
+        parLDeadwheel.reset();
+        parRDeadWheel.reset();
+        perpDeadwheel.reset();
+        dW01 = parLDeadwheel.getDistance();
+        dW11 = parRDeadWheel.getDistance();
+        dW21 = perpDeadwheel.getDistance();
     };
 
     public void calcPose(){//This method should be called once during a while(opModeIsActive) loop
@@ -100,8 +106,20 @@ public class Localization {
                 {0,0,1},
             });
         }
-        matrixPose.mult(curveMatrix).mult(rotationalMatrix);
+        //multiply matrices to get global change in pose
+        deltaPose = new SimpleMatrix(new double[] {rDeltaX, rDeltaY, rDeltaA});
+        deltaPose = deltaPose.mult(curveMatrix).mult(rotationalMatrix);
 
-        updatePose();
+        //integrate
+        pose[0] = pose[0] + deltaPose.get(0);
+        pose[1] = pose[1] + deltaPose.get(1);
+        pose[2] = pose[2] + deltaPose.get(2);
+
+        //get velocities
+        velocity[0] = deltaPose.get(0)/velocityTimer.getElapsedTime();
+        velocity[1] = deltaPose.get(1)/velocityTimer.getElapsedTime();
+        velocity[2] = deltaPose.get(2)/velocityTimer.getElapsedTime();
+
+        velocityTimer.resetTimer();
     }
 }
