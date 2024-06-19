@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.utilities;
 //timer class
 public class NanoTimer {
     public long startTime;
-    NanoTimer() {
+    public NanoTimer() {
         resetTimer();
     }
     public void resetTimer(){
