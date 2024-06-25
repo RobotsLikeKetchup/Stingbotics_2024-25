@@ -10,7 +10,8 @@ public class Localization {
     //fields
     Robot robot;
     //all values in cm or radians
-    double latDist, forwardDist, x0, y0, angle0;
+    double LAT_DISTANCE, FORWARD_DISTANCE;
+    double x0, y0, angle0;
     //latDist is the lateral distance between the two parallel dead wheels
     //forward distance of the perpendicular wheel from the center of rotation
     //all variables ending in '0' are variables indicating where the robot started.
@@ -49,8 +50,8 @@ public class Localization {
         velocityTimer = new NanoTimer();
     }
     public void setWheelDistances(float lateralDistance, float forwardDisplacement){
-        latDist = lateralDistance;
-        forwardDist = forwardDisplacement;
+        LAT_DISTANCE = lateralDistance;
+        FORWARD_DISTANCE = forwardDisplacement;
     };
     //methods
     public double[] getPose(){
@@ -81,8 +82,8 @@ public class Localization {
         delta2 = dW22-dW21;
 
         //robot-relative deltas
-        rDeltaA = (delta0-delta1)/latDist;
-        rDeltaY = delta2 - (forwardDist * rDeltaA); //perpendicular(strafe) distance, MINUS arclength
+        rDeltaA = (delta0-delta1)/ LAT_DISTANCE;
+        rDeltaY = delta2 - (FORWARD_DISTANCE * rDeltaA); //perpendicular(strafe) distance, MINUS arclength
         rDeltaX = (delta0 + delta1)/2;
 
         //rotation matrix, calculated on the pose from each loop

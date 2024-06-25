@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+
+<!--
+    This is a configuration file for our robot.
+    On the driver hub, you can select it- it should have the same name as this here.
+-->
+<Robot type="FirstInspires-FTC">
+    <LynxUsbDevice
+        name="Expansion Hub Portal 1"
+        serialNumber="(embedded)" parentModuleAddress="5">
+        <LynxModule name="Expansion Hub 2" port="2">
+            <LynxEmbeddedIMU name="imu" port="0" bus="0" />
+            <TetrixMotor name="motor_fl" port="3" />
+            <TetrixMotor name="motor_fr" port="2" />
+            <TetrixMotor name="motor_bl" port="1" />
+            <TetrixMotor name="motor_br" port="0" />
+        </LynxModule>
+    </LynxUsbDevice>
+</Robot>

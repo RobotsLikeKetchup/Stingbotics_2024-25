@@ -3,28 +3,40 @@ package org.firstinspires.ftc.teamcode;
 
 // Import FTC classes
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 // Import custom-made classes/methods
 import static org.firstinspires.ftc.teamcode.utilities.MathFunctions.toInt;
+
+//This opMode uses the standardconfig configuration file.
+@TeleOp
 
 public class DriveOpMode extends OpMode {
     // Create variables
     DcMotor frontLeft,frontRight,backLeft,backRight;
     double[] motorPowers;
-    DcMotor[] driveMotors = {frontLeft, frontRight, backLeft, backRight};
+    DcMotor[] driveMotors;
 
     @Override
     // Set starting values for variables
     public void init() {
         // Map variables to motors
-        frontLeft = hardwareMap.get(DcMotor.class,"frontLeft");
-        frontRight = hardwareMap.get(DcMotor.class, "frontRight");
-        backLeft = hardwareMap.get(DcMotor.class, "backLeft");
-        backRight = hardwareMap.get(DcMotor.class, "backRight");
+        frontLeft = hardwareMap.get(DcMotor.class,"motor_fl");
+        frontRight = hardwareMap.get(DcMotor.class, "motor_fr");
+        backLeft = hardwareMap.get(DcMotor.class, "motor_bl");
+        backRight = hardwareMap.get(DcMotor.class, "motor_br");
+        driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
 
         // Set universal wheel behaviors
         for (DcMotor i : driveMotors) i.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
+        //set motor directions
+        frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
+        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // Update telemetry (for feedback)
         telemetry.addLine("Initialized!");
@@ -36,9 +48,9 @@ public class DriveOpMode extends OpMode {
         // Gets power levels for each motor, using gamepad inputs as directions
         // The third item in the array dictates which trigger is being pressed (=1 if left, =-1 if right, =0 if none or both).
         motorPowers = MecanumKinematics.getPowerFromDirection(new double[] {
-                gamepad1.left_stick_x,
+                -1 * gamepad1.left_stick_x, //multiply by negative 1 to reverse
                 gamepad1.left_stick_y,
-                toInt(gamepad1.left_bumper) - toInt(gamepad1.right_bumper)
+                toInt(gamepad1.right_bumper) - toInt(gamepad1.left_bumper)
         });
 
         // Sets power levels
