@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 // Import custom-made classes/methods
 import static org.firstinspires.ftc.teamcode.utilities.MathFunctions.toInt;
+import org.firstinspires.ftc.teamcode.hardware.Robot;
 
 //This opMode uses the standardconfig configuration file.
 @TeleOp
@@ -19,24 +20,12 @@ public class DriveOpMode extends OpMode {
     double[] motorPowers;
     DcMotor[] driveMotors;
 
+    Robot robot = new Robot();
+
     @Override
     // Set starting values for variables
     public void init() {
-        // Map variables to motors
-        frontLeft = hardwareMap.get(DcMotor.class,"motor_fl");
-        frontRight = hardwareMap.get(DcMotor.class, "motor_fr");
-        backLeft = hardwareMap.get(DcMotor.class, "motor_bl");
-        backRight = hardwareMap.get(DcMotor.class, "motor_br");
-        driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
-
-        // Set universal wheel behaviors
-        for (DcMotor i : driveMotors) i.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-
-        //set motor directions
-        frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        robot.init(hardwareMap);
 
         // Update telemetry (for feedback)
         telemetry.addLine("Initialized!");
