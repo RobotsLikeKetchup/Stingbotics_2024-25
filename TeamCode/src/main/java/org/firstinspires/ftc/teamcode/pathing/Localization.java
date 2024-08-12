@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.utilities.NanoTimer;
 public class Localization {
     //fields
     Robot robot;
-    //all values in cm or radians
+    //all values in inches or radians
     double LAT_DISTANCE, FORWARD_DISTANCE;
     double x0, y0, angle0;
     //latDist is the lateral distance between the two parallel dead wheels
