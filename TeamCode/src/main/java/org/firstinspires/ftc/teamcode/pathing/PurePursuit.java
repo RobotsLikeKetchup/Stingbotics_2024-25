@@ -3,12 +3,12 @@ package org.firstinspires.ftc.teamcode.pathing;
 import java.util.ArrayList;
 
 //this class will implement the pure pursuit pathing algorithm
-public class purePursuit {
+public class PurePursuit {
     double[][] path;
     int lastFoundIndex;
 
     Localization localization;
-    public purePursuit(double[][] pathPoints, Localization localizer) {
+    public PurePursuit(double[][] pathPoints, Localization localizer) {
         path = pathPoints;
         localization = localizer;
         lastFoundIndex = 0;
@@ -135,5 +135,9 @@ public class purePursuit {
             }
         }
         return goalPoint;
+    }
+
+    public int getLastFoundIndex() {
+        return lastFoundIndex;
     }
 }

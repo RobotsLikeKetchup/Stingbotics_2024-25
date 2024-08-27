@@ -62,7 +62,7 @@ public class Localization {
         return velocity;
     }
 
-    public void init(){
+    public void start(){
         velocityTimer.resetTimer();
         parLDeadwheel.reset();
         parRDeadWheel.reset();
