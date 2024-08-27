@@ -50,7 +50,13 @@ public class MotionProfile1D {
         } else if(currentPhase == Phase.CONSTANT_SPEED){
             currentSpeed = maxSpeed;
         } else if(currentPhase == Phase.SLOW_DOWN) {
-            currentSpeed -= maxAcceleration * (elapsedTime);
+            if(currentSpeed <= 0) {
+                currentPhase = Phase.STOPPED;
+                currentSpeed = 0;
+            }
+            else{
+                currentSpeed -= maxAcceleration * (elapsedTime);
+            }
         }
 
         lastTime = currentTime;
