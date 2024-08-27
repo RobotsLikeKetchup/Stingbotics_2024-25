@@ -18,7 +18,7 @@ public class Robot {
     //perpendicular dead wheel (measuring y-coord)
     DeadWheel per;
 
-    DcMotor[] driveMotors;
+    public DcMotor[] driveMotors;
 
     //constructor
     public Robot(DcMotor fR, DcMotor fL, DcMotor bR, DcMotor bL){

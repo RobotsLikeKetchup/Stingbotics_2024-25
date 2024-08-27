@@ -4,8 +4,6 @@ package org.firstinspires.ftc.teamcode;
 // Import FTC classes
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 // Import custom-made classes/methods
 import static org.firstinspires.ftc.teamcode.utilities.MathFunctions.toInt;
@@ -16,9 +14,7 @@ import org.firstinspires.ftc.teamcode.hardware.Robot;
 
 public class DriveOpMode extends OpMode {
     // Create variables
-    DcMotor frontLeft,frontRight,backLeft,backRight;
     double[] motorPowers;
-    DcMotor[] driveMotors;
 
     Robot robot = new Robot();
 
@@ -45,7 +41,7 @@ public class DriveOpMode extends OpMode {
         // Sets power levels
         // Works because each index corresponds with the same wheel in both arrays
         for (int i=0; i < motorPowers.length; i++) {
-            driveMotors[i].setPower(motorPowers[i]);
+            robot.driveMotors[i].setPower(motorPowers[i]);
         };
     }
 
