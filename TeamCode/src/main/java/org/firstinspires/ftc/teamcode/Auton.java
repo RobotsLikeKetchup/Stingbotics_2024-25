@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.hardware.Robot;
-import org.firstinspires.ftc.teamcode.pathing.Localization;
+import org.firstinspires.ftc.teamcode.pathing.EzraLocalizer;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.PurePursuit;
 import org.firstinspires.ftc.teamcode.utilities.MathFunctions;
@@ -24,7 +24,7 @@ public class Auton extends OpMode {
     Robot robot = new Robot();
 
     ElapsedTime timer = new ElapsedTime();
-    Localization localization = new Localization(robot, new double[] {0,0,0});
+    EzraLocalizer localization = new EzraLocalizer(robot, new double[] {0,0,0}, timer);
     double[][] path = {
             {0,0},
             {-1,4},
@@ -70,6 +70,10 @@ public class Auton extends OpMode {
         for (int i=0; i < motorPowers.length; i++) {
             robot.driveMotors[i].setPower(motorPowers[i]);
         };
+
+        if(pathing.getLastFoundIndex() >= path.length - 2) {
+            motionProfile.startSlowDown();
+        }
 
     }
 }
