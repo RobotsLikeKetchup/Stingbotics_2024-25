@@ -31,6 +31,10 @@ public class Robot {
     public Robot(){};
 
     public void init(HardwareMap hardwareMap){
+
+        //TUNE THIS
+        double inPerTick = 1;
+
         // Map variables to motors
         frontLeft = hardwareMap.get(DcMotor.class,"motor_fl");
         frontRight = hardwareMap.get(DcMotor.class, "motor_fr");
@@ -46,6 +50,11 @@ public class Robot {
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        //set deadwheel encoders
+        parL = new DeadWheel(inPerTick, frontRight);
+        parR = new DeadWheel(inPerTick, backLeft);
+        per = new DeadWheel(inPerTick, backRight);
     };
 
     //methods

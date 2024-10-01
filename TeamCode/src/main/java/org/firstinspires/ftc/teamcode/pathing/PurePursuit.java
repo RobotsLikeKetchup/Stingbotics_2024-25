@@ -7,8 +7,12 @@ public class PurePursuit {
     double[][] path;
     int lastFoundIndex;
 
-    Localization localization;
-    public PurePursuit(double[][] pathPoints, Localization localizer) {
+    double distanceFromEnd;
+
+    double[] robotPosition;
+
+    StingLocalizer localization;
+    public PurePursuit(double[][] pathPoints, StingLocalizer localizer) {
         path = pathPoints;
         localization = localizer;
         lastFoundIndex = 0;
@@ -92,7 +96,7 @@ public class PurePursuit {
 
     public double[] findPointOnPath(){
 
-        double[] robotPosition = localization.getPose();
+        robotPosition = localization.getPose();
         //distance to "look ahead" for the pure pursuit algorithm
         double lookAheadDistance = 1.5;
         double discriminant, x1, y1, x2, y2;
@@ -139,5 +143,11 @@ public class PurePursuit {
 
     public int getLastFoundIndex() {
         return lastFoundIndex;
+    }
+
+    public double getDistanceFromEnd(){
+        distanceFromEnd = twoPointDistance(robotPosition, path[path.length - 1]);
+
+        return distanceFromEnd;
     }
 }

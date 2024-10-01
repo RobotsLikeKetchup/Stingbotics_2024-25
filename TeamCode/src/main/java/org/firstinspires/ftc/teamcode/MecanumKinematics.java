@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import org.ejml.simple.SimpleMatrix;
-
 public class MecanumKinematics {
     // Converts radians to power
     // should be tuned, temporary for now
@@ -37,31 +35,4 @@ public class MecanumKinematics {
         return new double[]{frontLeft,frontRight,backLeft,backRight};
     }
 
-    /*
-     * Converts from vector to directions, then uses getPowerFromDirections to return wheel power levels
-     * 
-     * Param vector contains
-     */
-    public static double[] getDirectionFromVector(SimpleMatrix vector){
-        double powerLimiter, frontLeft, frontRight, backLeft, backRight, x, y, r;
-
-        // Makes sure the matrix has 1 column and 3 rows. If not, throws an error
-        if (vector.getNumCols() != 1 || vector.getNumRows() != 3) throw new IllegalArgumentException("Must be a 3-dimensional column vector");
-
-        // Conduct math on the first two rows of the matrix
-        SimpleMatrix twoDimensions = new SimpleMatrix(new double[] {vector.get(0),vector.get(1)});
-        /*
-         * If magnitude is greater than 1, normalize (divide matrix/vector by norm)
-         */
-        if (twoDimensions.normF() > 1){
-            twoDimensions.divide(twoDimensions.normF());
-        }
-
-        // Set directions
-        x = twoDimensions.get(0);
-        y = twoDimensions.get(1);
-        r = vector.get(2)*ROTATION_SCALE;
-
-        return new double[] {x, y, r};
-    }
 }

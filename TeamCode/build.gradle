@@ -25,10 +25,16 @@ android {
 
 repositories {
     mavenCentral()
+    maven {
+        url = 'https://maven.brott.dev/'
+    }
 }
 
 dependencies {
     implementation project(':FtcRobotController')
-    implementation group: 'org.ejml', name: 'ejml-all', version: '0.43'
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
+    implementation "com.acmerobotics.roadrunner:ftc:0.1.14"
+    implementation "com.acmerobotics.roadrunner:core:1.0.0"
+    implementation "com.acmerobotics.roadrunner:actions:1.0.0"
+    implementation "com.acmerobotics.dashboard:dashboard:0.4.16"
 }

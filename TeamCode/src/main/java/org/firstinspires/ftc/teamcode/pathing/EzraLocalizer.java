@@ -1,12 +1,12 @@
 package org.firstinspires.ftc.teamcode.pathing;
 
-import org.ejml.simple.SimpleMatrix;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.teamcode.hardware.DeadWheel;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
-import org.firstinspires.ftc.teamcode.utilities.NanoTimer;
+import org.firstinspires.ftc.teamcode.utilities.MathFunctions;
 
-//localization
-public class Localization {
+public class EzraLocalizer implements StingLocalizer{
     //fields
     Robot robot;
     //all values in inches or radians
@@ -15,7 +15,8 @@ public class Localization {
     //latDist is the lateral distance between the two parallel dead wheels
     //forward distance of the perpendicular wheel from the center of rotation
     //all variables ending in '0' are variables indicating where the robot started.
-    double[] pose;
+    double[] pose, deltaPose;
+    double[][] rotationalMatrix, curveMatrix;
     double[] velocity = {0,0,0};
     DeadWheel parLDeadwheel, parRDeadWheel, perpDeadwheel;
     //0 -> parallel Left
@@ -32,27 +33,29 @@ public class Localization {
     - we will use a rotation matrix when calculating the pose to convert these to field-centric values
     */
 
-    SimpleMatrix rotationalMatrix, curveMatrix, deltaPose;
-
-    NanoTimer velocityTimer;
-
+    double startTime;
+    ElapsedTime velocityTimer;
 
     //constructor
-    public Localization(Robot theRobot, double[] startPose){
+    public EzraLocalizer(Robot theRobot, double[] startPose, ElapsedTime timer){
         robot = theRobot;
         pose = startPose;
         x0 = startPose[0];
         y0 = startPose[1];
         angle0 = startPose[2];
+        velocityTimer = timer;
+    }
+
+    public void init() {
         parLDeadwheel = robot.getDeadwheel("parL");
         parRDeadWheel = robot.getDeadwheel("parR");
         perpDeadwheel = robot.getDeadwheel("per");
-        velocityTimer = new NanoTimer();
     }
-    public void setWheelDistances(float lateralDistance, float forwardDisplacement){
+
+    public void setWheelDistances(double lateralDistance, double forwardDisplacement){
         LAT_DISTANCE = lateralDistance;
         FORWARD_DISTANCE = forwardDisplacement;
-    };
+    }
     //methods
     public double[] getPose(){
         return pose;
@@ -63,20 +66,20 @@ public class Localization {
     }
 
     public void start(){
-        velocityTimer.resetTimer();
+        startTime = velocityTimer.seconds();
         parLDeadwheel.reset();
         parRDeadWheel.reset();
         perpDeadwheel.reset();
-        dW01 = parLDeadwheel.getDistance();
-        dW11 = parRDeadWheel.getDistance();
-        dW21 = perpDeadwheel.getDistance();
-    };
+        dW01 = parLDeadwheel.getDistanceFromInPerTick();
+        dW11 = parRDeadWheel.getDistanceFromInPerTick();
+        dW21 = perpDeadwheel.getDistanceFromInPerTick();
+    }
 
     public void calcPose(){//This method should be called once during a while(opModeIsActive) loop
         //encoder deltas
-        dW02 = parLDeadwheel.getDistance();
-        dW12 = parRDeadWheel.getDistance();
-        dW22 = perpDeadwheel.getDistance();
+        dW02 = parLDeadwheel.getDistanceFromInPerTick();
+        dW12 = parRDeadWheel.getDistanceFromInPerTick();
+        dW22 = perpDeadwheel.getDistanceFromInPerTick();
         delta0 = dW02-dW01;
         delta1 = dW12-dW11;
         delta2 = dW22-dW21;
@@ -87,40 +90,40 @@ public class Localization {
         rDeltaX = (delta0 + delta1)/2;
 
         //rotation matrix, calculated on the pose from each loop
-        rotationalMatrix = new SimpleMatrix(new double[][]{
-                {Math.cos(pose[0]), -1 * Math.sin(pose[0]), 0},
-                {Math.sin(pose[0]), Math.cos(pose[0]), 0},
+        rotationalMatrix = new double[][]{
+                {Math.cos(rDeltaA), -1 * Math.sin(rDeltaA), 0},
+                {Math.sin(rDeltaA), Math.cos(rDeltaA), 0},
                 {0, 0, 1}
-        });
+        };
         //if the change in heading is close enough to zero, make the curveMatrix an identity matrix
         if (rDeltaA < 0.05 && rDeltaA > -0.05){
-            curveMatrix = SimpleMatrix.identity(3);
+            curveMatrix = new double[][] {{1,0,0},{0,1,0},{0,0,1}};
         } else {
             /*
-            * Pose exponential method for calculating change in position, assuming constant curvature of robot path
-            * not gonna go through the really complex math here, but ask Umed(me) for more info
-            * this takes change in robot heading, rather than the heading itself
+             * Pose exponential method for calculating change in position, assuming constant curvature of robot path
+             * not gonna go through the really complex math here, but ask Umed(me) for more info
+             * this takes change in robot heading, rather than the heading itself
              */
-            curveMatrix = new SimpleMatrix(new double[][] {
-                {Math.sin(rDeltaA)/rDeltaA, (Math.cos(rDeltaA)-1)/rDeltaA, 0},
-                {(1-Math.cos(rDeltaA))/rDeltaA, Math.sin(rDeltaA)/rDeltaA, 0},
-                {0,0,1},
-            });
+            curveMatrix = new double[][] {
+                    {Math.sin(rDeltaA)/rDeltaA, (Math.cos(rDeltaA)-1)/rDeltaA, 0},
+                    {(1-Math.cos(rDeltaA))/rDeltaA, Math.sin(rDeltaA)/rDeltaA, 0},
+                    {0,0,1},
+            };
         }
         //multiply matrices to get global change in pose
-        deltaPose = new SimpleMatrix(new double[] {rDeltaX, rDeltaY, rDeltaA});
-        deltaPose = deltaPose.mult(curveMatrix).mult(rotationalMatrix);
+        deltaPose = new double[] {rDeltaX, rDeltaY, rDeltaA};
+        deltaPose = MathFunctions.VectorMatrixMultiplication3d(MathFunctions.VectorMatrixMultiplication3d(deltaPose,curveMatrix),rotationalMatrix);
 
         //integrate
-        pose[0] = pose[0] + deltaPose.get(0);
-        pose[1] = pose[1] + deltaPose.get(1);
-        pose[2] = pose[2] + deltaPose.get(2);
+        pose[0] = pose[0] + deltaPose[0];
+        pose[1] = pose[1] + deltaPose[1];
+        pose[2] = pose[2] + deltaPose[2];
 
         //get velocities
-        velocity[0] = deltaPose.get(0)/velocityTimer.getElapsedTime();
-        velocity[1] = deltaPose.get(1)/velocityTimer.getElapsedTime();
-        velocity[2] = deltaPose.get(2)/velocityTimer.getElapsedTime();
+        velocity[0] = deltaPose[0]/velocityTimer.seconds() - startTime;
+        velocity[1] = deltaPose[1]/velocityTimer.seconds() - startTime;
+        velocity[2] = deltaPose[2]/velocityTimer.seconds() - startTime;
 
-        velocityTimer.resetTimer();
+        startTime = velocityTimer.seconds();
     }
 }
