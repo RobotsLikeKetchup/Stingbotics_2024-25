@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.pathing;
 
+import org.ejml.simple.SimpleMatrix;
 import org.firstinspires.ftc.teamcode.hardware.DeadWheel;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 
@@ -17,7 +18,7 @@ public class Localization {
     //0 -> parallel Left
     //1 -> parallel right
     //2 -> perpendicular
-    double dW01, dW11, dW21, dW02, dW12, dW22, delta1, delta2, delta0, deltaY, deltaX, deltaA;
+    double dW01, dW11, dW21, dW02, dW12, dW22, delta1, delta2, delta0, rDeltaY, rDeltaX, rDeltaA, gDeltaY, gDeltaX, gDeltaA;
     /*
     - last number is 1 -> prev position
     - last number is 2 -> current position
@@ -27,6 +28,9 @@ public class Localization {
     - These are essentially the change using a robot-centric coordinate system, in alignment with the robots heading
     - we will use a rotation matrix when calculating the pose to convert these to field-centric values
     */
+
+    SimpleMatrix matrixPose, rotationalMatrix, curveMatrix;
+
 
     //constructor
     public Localization(Robot theRobot, double startX, double startY, double startHeading){
@@ -46,11 +50,13 @@ public class Localization {
         dW01 = dW0.getDistance();
         dW11 = dW1.getDistance();
         dW21 = dW2.getDistance();
+        updatePose();
     }
     private void updatePose(){
         pose[0] = fieldX;
         pose[1] = fieldY;
         pose[2] = fieldTheta;
+        matrixPose = new SimpleMatrix(pose);
     };
     public void setWheelDistances(float lateralDistance, float forwardDisplacement){
         latDist = lateralDistance;
@@ -63,6 +69,7 @@ public class Localization {
     };
 
     public void calcPose(){//This method should be called once during a while(opModeIsActive) loop
+        //encoder deltas
         dW02 = dW0.getDistance();
         dW12 = dW1.getDistance();
         dW22 = dW2.getDistance();
@@ -70,11 +77,22 @@ public class Localization {
         delta1 = dW12-dW11;
         delta2 = dW22-dW21;
 
-        /*
-        I could put in the actual calculations now, but I want to
-        make some math classes for matrices and vectors, so that the math
-        behind the calculations is clear for future programmers
-         */
+        //robot-relative deltas
+        rDeltaA = (delta0-delta1)/latDist;
+        rDeltaY = delta2 - (forwardDist * rDeltaA); //perpendicular(strafe) distance, MINUS arclength
+        rDeltaX = (delta0 + delta1)/2;
+
+        rotationalMatrix = new SimpleMatrix(new double[][] {
+                {Math.cos(pose[0]), -1*Math.sin(pose[0]), 0},
+                {Math.sin(pose[0]), Math.cos(pose[0]), 0},
+                {0,0,1}
+        });
+        /*curveMatrix = new SimpleMatrix(new double[][] {
+                {},
+                {},
+                {0,0,1},
+        }); */
+        
 
         updatePose();
     }
