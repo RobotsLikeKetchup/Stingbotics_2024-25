@@ -55,12 +55,29 @@ public class DriveOpMode extends OpMode {
         for (int i=0; i < motorPowers.length; i++) {
             robot.driveMotors[i].setPower(motorPowers[i]);
         };
+
+        robot.armRotate.setPower(gamepad1.x ? 0.4 : (gamepad1.b ? -0.4 : 0));
+
+        if(gamepad1.x){
+            if(!(robot.armExtend.getCurrentPosition() <= 10)) {
+                robot.armExtend.setPower(0.8);
+            }
+        } else if(gamepad1.b){
+            if(!(robot.armExtend.getCurrentPosition() >= 1000)) {
+                robot.armExtend.setPower(-0.8);
+            } //change value to max encoder position of arm
+        } else {
+            robot.armExtend.setPower(0);
+        }
+
+
         telemetry.addData("X pos",localizer.getPose()[0]);
         telemetry.addData("y pos",localizer.getPose()[1]);
         telemetry.addData("Angle pos",localizer.getPose()[2]);
         telemetry.addData("Encoder 1", robot.getDeadwheel("parR").getTicks());
         telemetry.addData("Encoder 1", robot.getDeadwheel("parL").getTicks());
         telemetry.addData("Encoder 1", robot.getDeadwheel("per").getTicks());
+        telemetry.addData("Extension arm position", robot.armExtend.getCurrentPosition());
         telemetry.update();
     }
 

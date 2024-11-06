@@ -8,10 +8,10 @@ import org.firstinspires.ftc.teamcode.hardware.DeadWheel;
 
 public class Robot {
     //fields
-    DcMotor frontRight;
-    DcMotor frontLeft;
-    DcMotor backRight;
-    DcMotor backLeft;
+    public DcMotor frontRight, armRotate, armExtend;
+    public DcMotor frontLeft;
+    public DcMotor backRight;
+    public DcMotor backLeft;
     //parallel dead wheels (measuring x-coord and heading)
     DeadWheel parL;
     DeadWheel parR;
@@ -40,6 +40,10 @@ public class Robot {
         frontRight = hardwareMap.get(DcMotor.class, "motor_fr");
         backLeft = hardwareMap.get(DcMotor.class, "motor_bl");
         backRight = hardwareMap.get(DcMotor.class, "motor_br");
+
+        armRotate = hardwareMap.get(DcMotor.class, "armRotate");
+        armExtend = hardwareMap.get(DcMotor.class, "armExtend");
+
         driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
 
         // Set universal wheel behaviors
@@ -55,6 +59,10 @@ public class Robot {
         parL = new DeadWheel(inPerTick, frontRight);
         parR = new DeadWheel(inPerTick, backLeft);
         per = new DeadWheel(inPerTick, backRight);
+
+        armRotate.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        armExtend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        armExtend.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     };
 
     //methods
