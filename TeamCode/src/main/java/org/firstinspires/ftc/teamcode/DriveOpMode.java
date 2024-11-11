@@ -14,6 +14,7 @@ import org.firstinspires.ftc.teamcode.pathing.EzraLocalizer;
 //This opMode uses the standardconfig configuration file.
 @TeleOp
 
+
 public class DriveOpMode extends OpMode {
     // Create variables
     double[] motorPowers;
@@ -54,15 +55,15 @@ public class DriveOpMode extends OpMode {
         // Works because each index corresponds with the same wheel in both arrays
         for (int i=0; i < motorPowers.length; i++) {
             robot.driveMotors[i].setPower(motorPowers[i]);
-        };
+        }
 
-        robot.armRotate.setPower(gamepad1.x ? 0.4 : (gamepad1.b ? -0.4 : 0));
+        robot.armRotate.setPower(gamepad1.b ? 0.4 : (gamepad1.x ? -0.4 : 0));
 
-        if(gamepad1.x){
+        if(gamepad1.y){
             if(!(robot.armExtend.getCurrentPosition() <= 10)) {
                 robot.armExtend.setPower(0.8);
             }
-        } else if(gamepad1.b){
+        } else if(gamepad1.a){
             if(!(robot.armExtend.getCurrentPosition() >= 1000)) {
                 robot.armExtend.setPower(-0.8);
             } //change value to max encoder position of arm
