@@ -53,7 +53,7 @@ public class DriveOpMode extends OpMode {
                 gamepad1.left_stick_x,
                 gamepad1.left_stick_y,
                 toInt(gamepad1.right_bumper) - toInt(gamepad1.left_bumper)
-        });
+        }, 0.7);
 
         // Sets power levels
         // Works because each index corresponds with the same wheel in both arrays
@@ -105,13 +105,16 @@ public class DriveOpMode extends OpMode {
             robot.intakeElbow.setPosition(10);//test out to find correct position
         }
 
-        telemetry.addData("X pos",localizer.getPose()[0]);
+        /* telemetry.addData("X pos",localizer.getPose()[0]);
         telemetry.addData("y pos",localizer.getPose()[1]);
         telemetry.addData("Angle pos",localizer.getPose()[2]);
         telemetry.addData("Encoder 1", robot.getDeadwheel("parR").getTicks());
         telemetry.addData("Encoder 1", robot.getDeadwheel("parL").getTicks());
-        telemetry.addData("Encoder 1", robot.getDeadwheel("per").getTicks());
+        telemetry.addData("Encoder 1", robot.getDeadwheel("per").getTicks()); */
         telemetry.addData("Extension arm position", robot.armExtend.getCurrentPosition());
+
+        telemetry.addData("left trigger", gamepad1.left_trigger);
+        telemetry.addData("right trigger", gamepad1.right_trigger);
         telemetry.update();
 
         leftTriggerPrevValue = gamepad1.left_trigger;

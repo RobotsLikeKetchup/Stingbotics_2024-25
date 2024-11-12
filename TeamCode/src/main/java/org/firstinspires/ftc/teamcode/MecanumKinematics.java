@@ -19,13 +19,13 @@ public class MecanumKinematics {
      * 2. back left
      * 3. back right
      */
-    public static double[] getPowerFromDirection(double[] targetPower){
+    public static double[] getPowerFromDirection(double[] targetPower, double maxPower){
         double x, y, rotation, powerLimiter, frontLeft, frontRight, backLeft, backRight;
         x = targetPower[0] * 1.1;
         y = targetPower[1];
         
         rotation = targetPower[2];
-        powerLimiter = Math.max(Math.abs(x) + Math.abs(y) + Math.abs(rotation), 0.9);
+        powerLimiter = Math.max(Math.abs(x) + Math.abs(y) + Math.abs(rotation), maxPower);
 
         frontLeft = (y+x- rotation)/powerLimiter;
         frontRight = (y-x+ rotation)/powerLimiter;

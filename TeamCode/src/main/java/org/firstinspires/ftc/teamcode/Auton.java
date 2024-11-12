@@ -42,6 +42,8 @@ public class Auton extends OpMode {
 
     double velocityCoeff, currentVelocity;
 
+    enum STAGES {START};
+
     @Override
     public void init() {
         robot.init(hardwareMap);
@@ -65,7 +67,7 @@ public class Auton extends OpMode {
 
         velocityCoeff = velocityControl.loop(motionProfile.getTargetSpeed(), Math.hypot(localization.getVelocity()[0], localization.getVelocity()[1]));
 
-        motorPowers = MecanumKinematics.getPowerFromDirection(MathFunctions.scaleArray(velocityCoeff,direction));
+        motorPowers = MecanumKinematics.getPowerFromDirection(MathFunctions.scaleArray(velocityCoeff,direction), 0.7);
 
         for (int i=0; i < motorPowers.length; i++) {
             robot.driveMotors[i].setPower(motorPowers[i]);
