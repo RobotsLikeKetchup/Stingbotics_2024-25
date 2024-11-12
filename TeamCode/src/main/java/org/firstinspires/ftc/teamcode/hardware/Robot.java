@@ -1,8 +1,10 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.hardware.DeadWheel;
 
@@ -12,6 +14,10 @@ public class Robot {
     public DcMotor frontLeft;
     public DcMotor backRight;
     public DcMotor backLeft;
+
+    public CRServo intakeRoller;
+    public Servo intakeElbow;
+
     //parallel dead wheels (measuring x-coord and heading)
     DeadWheel parL;
     DeadWheel parR;
@@ -43,6 +49,9 @@ public class Robot {
 
         armRotate = hardwareMap.get(DcMotor.class, "armRotate");
         armExtend = hardwareMap.get(DcMotor.class, "armExtend");
+
+        intakeRoller = hardwareMap.get(CRServo.class, "intakeRoller");
+        intakeElbow = hardwareMap.get(Servo.class, "intakeElbow");
 
         driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
 

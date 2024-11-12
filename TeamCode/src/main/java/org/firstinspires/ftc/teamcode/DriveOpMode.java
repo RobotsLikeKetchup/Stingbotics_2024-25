@@ -25,6 +25,10 @@ public class DriveOpMode extends OpMode {
 
     EzraLocalizer localizer = new EzraLocalizer(robot,new double[] {0,0,0},timer);
 
+    enum IntakeState {IN, OUT, OFF};
+    IntakeState currentIntakeState = IntakeState.OFF;
+    double leftTriggerPrevValue, rightTriggerPrevValue = 0;
+
     @Override
     // Set starting values for variables
     public void init() {
@@ -71,6 +75,35 @@ public class DriveOpMode extends OpMode {
             robot.armExtend.setPower(0);
         }
 
+        // Servo Controller            RT is in , LT is out
+
+        if(gamepad1.right_trigger >= 0.5 && rightTriggerPrevValue < 0.5) {
+            if (robot.intakeRoller.getPower() <= 0){
+                robot.intakeRoller.setPower(1);
+                IntakeState currentIntakeState = IntakeState.IN;
+            } else {
+                robot.intakeRoller.setPower(0);
+                IntakeState currentIntakeState = IntakeState.OFF;
+            }
+
+        }
+
+        if(gamepad1.left_trigger >= 0.5 && leftTriggerPrevValue < 0.5) {if (robot.intakeRoller.getPower() <= 0) {
+                robot.intakeRoller.setPower(-1);
+                IntakeState currentIntakeState = IntakeState.OUT;
+
+            } else {
+                robot.intakeRoller.setPower(0);
+                IntakeState currentIntakeState = IntakeState.OFF;
+            }
+        }
+
+        if(gamepad1.dpad_down) {
+            robot.intakeElbow.setPosition(-10);//test out to find correct position
+        }
+        if(gamepad1.dpad_up) {
+            robot.intakeElbow.setPosition(10);//test out to find correct position
+        }
 
         telemetry.addData("X pos",localizer.getPose()[0]);
         telemetry.addData("y pos",localizer.getPose()[1]);
@@ -80,6 +113,9 @@ public class DriveOpMode extends OpMode {
         telemetry.addData("Encoder 1", robot.getDeadwheel("per").getTicks());
         telemetry.addData("Extension arm position", robot.armExtend.getCurrentPosition());
         telemetry.update();
+
+        leftTriggerPrevValue = gamepad1.left_trigger;
+        rightTriggerPrevValue = gamepad1.right_trigger;
     }
 
 }
