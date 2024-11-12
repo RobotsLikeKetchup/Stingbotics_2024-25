@@ -46,7 +46,7 @@ public class DriveOpMode extends OpMode {
         // Gets power levels for each motor, using gamepad inputs as directions
         // The third item in the array dictates which trigger is being pressed (=1 if left, =-1 if right, =0 if none or both).
         motorPowers = MecanumKinematics.getPowerFromDirection(new double[] {
-                -1 * gamepad1.left_stick_x, //multiply by negative 1 to reverse
+                gamepad1.left_stick_x,
                 gamepad1.left_stick_y,
                 toInt(gamepad1.right_bumper) - toInt(gamepad1.left_bumper)
         });
@@ -57,10 +57,10 @@ public class DriveOpMode extends OpMode {
             robot.driveMotors[i].setPower(motorPowers[i]);
         }
 
-        robot.armRotate.setPower(gamepad1.b ? 0.4 : (gamepad1.x ? -0.4 : 0));
+        robot.armRotate.setPower(gamepad1.b ? 0.8 : (gamepad1.x ? -0.8 : 0));
 
         if(gamepad1.y){
-            if(!(robot.armExtend.getCurrentPosition() <= 10)) {
+            if(robot.armExtend.getCurrentPosition() >= 10) {
                 robot.armExtend.setPower(0.8);
             }
         } else if(gamepad1.a){

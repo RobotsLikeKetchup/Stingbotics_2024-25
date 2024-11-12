@@ -47,7 +47,10 @@ public class Robot {
         driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
 
         // Set universal wheel behaviors
-        for (DcMotor i : driveMotors) i.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        for (DcMotor i : driveMotors) {
+            i.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            i.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        };
 
         //set motor directions
         frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -63,7 +66,7 @@ public class Robot {
         armRotate.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         armExtend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         armExtend.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-    };
+    }
 
     //methods
     public void setDeadwheels(DeadWheel p1, DeadWheel p2, DeadWheel pr){
