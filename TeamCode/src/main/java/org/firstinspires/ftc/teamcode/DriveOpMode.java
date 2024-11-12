@@ -63,13 +63,13 @@ public class DriveOpMode extends OpMode {
 
         robot.armRotate.setPower(gamepad1.b ? 0.8 : (gamepad1.x ? -0.8 : 0));
 
-        if(gamepad1.y){
+        if(gamepad1.a){
             if(robot.armExtend.getCurrentPosition() >= 10) {
-                robot.armExtend.setPower(0.8);
-            }
-        } else if(gamepad1.a){
-            if(!(robot.armExtend.getCurrentPosition() >= 1000)) {
                 robot.armExtend.setPower(-0.8);
+            }
+        } else if(gamepad1.y){
+            if(robot.armExtend.getCurrentPosition() <= 5900) {
+                robot.armExtend.setPower(0.8);
             } //change value to max encoder position of arm
         } else {
             robot.armExtend.setPower(0);
