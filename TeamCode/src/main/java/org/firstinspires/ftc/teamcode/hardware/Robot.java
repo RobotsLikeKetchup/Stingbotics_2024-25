@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import org.firstinspires.ftc.teamcode.hardware.DeadWheel;
 
@@ -23,6 +24,8 @@ public class Robot {
     DeadWheel parR;
     //perpendicular dead wheel (measuring y-coord)
     DeadWheel per;
+
+    public TouchSensor slideLimitSwitch;
 
     public DcMotor[] driveMotors;
 
@@ -53,6 +56,8 @@ public class Robot {
         intakeRoller = hardwareMap.get(CRServo.class, "intakeRoller");
         intakeElbow = hardwareMap.get(Servo.class, "intakeElbow");
 
+        slideLimitSwitch = hardwareMap.get(TouchSensor.class, "slideLimitSwitch");
+
         driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
 
         // Set universal wheel behaviors
@@ -68,9 +73,9 @@ public class Robot {
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //set deadwheel encoders
-        parL = new DeadWheel(inPerTick, frontRight);
-        parR = new DeadWheel(inPerTick, backLeft);
-        per = new DeadWheel(inPerTick, backRight);
+        parL = new DeadWheel(inPerTick, backRight);
+        parR = new DeadWheel(inPerTick, frontRight);
+        per = new DeadWheel(inPerTick, backLeft);
 
         armRotate.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         armExtend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

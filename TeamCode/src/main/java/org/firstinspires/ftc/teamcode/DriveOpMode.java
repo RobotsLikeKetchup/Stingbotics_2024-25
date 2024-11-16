@@ -4,6 +4,8 @@ package org.firstinspires.ftc.teamcode;
 // Import FTC classes
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 // Import custom-made classes/methods
@@ -19,6 +21,8 @@ public class DriveOpMode extends OpMode {
     // Create variables
     double[] motorPowers;
 
+    double slidePower = 0;
+
     Robot robot = new Robot();
 
     ElapsedTime timer= new ElapsedTime();
@@ -27,7 +31,9 @@ public class DriveOpMode extends OpMode {
 
     enum IntakeState {IN, OUT, OFF};
     IntakeState currentIntakeState = IntakeState.OFF;
-    double leftTriggerPrevValue, rightTriggerPrevValue = 0;
+
+    Gamepad previousGamepad1 = new Gamepad();
+    Gamepad currentGamepad1 = new Gamepad();
 
     @Override
     // Set starting values for variables
@@ -44,9 +50,19 @@ public class DriveOpMode extends OpMode {
         telemetry.update();
     }
 
+    /*@Override
+    public void start() {
+
+    }*/
+
     @Override
     public void loop() {
+        //all this stuff MUST be at the beginning of the opMode
         localizer.calcPose();
+        previousGamepad1.copy(currentGamepad1);
+        currentGamepad1.copy(gamepad1);
+
+
         // Gets power levels for each motor, using gamepad inputs as directions
         // The third item in the array dictates which trigger is being pressed (=1 if left, =-1 if right, =0 if none or both).
         motorPowers = MecanumKinematics.getPowerFromDirection(new double[] {
@@ -61,64 +77,80 @@ public class DriveOpMode extends OpMode {
             robot.driveMotors[i].setPower(motorPowers[i]);
         }
 
-        robot.armRotate.setPower(gamepad1.b ? 0.8 : (gamepad1.x ? -0.8 : 0));
 
-        if(gamepad1.a){
+        //rotating arm
+        robot.armRotate.setPower(currentGamepad1.b ? 0.8 : (currentGamepad1.x ? -0.8 : 0));
+
+        //linear slide
+        if(currentGamepad1.a){
             if(robot.armExtend.getCurrentPosition() >= 10) {
-                robot.armExtend.setPower(-0.8);
+                slidePower = -0.8;
             }
-        } else if(gamepad1.y){
+        } else if(currentGamepad1.y){
             if(robot.armExtend.getCurrentPosition() <= 5900) {
-                robot.armExtend.setPower(0.8);
+                slidePower = 0.8;
             } //change value to max encoder position of arm
         } else {
-            robot.armExtend.setPower(0);
+            slidePower = 0;
         }
 
         // Servo Controller            RT is in , LT is out
 
-        if(gamepad1.right_trigger >= 0.5 && rightTriggerPrevValue < 0.5) {
-            if (robot.intakeRoller.getPower() <= 0){
-                robot.intakeRoller.setPower(1);
-                IntakeState currentIntakeState = IntakeState.IN;
+        if(currentGamepad1.right_trigger >= 0.4 && previousGamepad1.right_trigger <= 0.4) {
+            telemetry.addLine("Right Trigger Released");
+            if (currentIntakeState == IntakeState.OFF || currentIntakeState == IntakeState.OUT){
+                currentIntakeState = IntakeState.IN;
             } else {
-                robot.intakeRoller.setPower(0);
-                IntakeState currentIntakeState = IntakeState.OFF;
-            }
-
-        }
-
-        if(gamepad1.left_trigger >= 0.5 && leftTriggerPrevValue < 0.5) {if (robot.intakeRoller.getPower() <= 0) {
-                robot.intakeRoller.setPower(-1);
-                IntakeState currentIntakeState = IntakeState.OUT;
-
-            } else {
-                robot.intakeRoller.setPower(0);
-                IntakeState currentIntakeState = IntakeState.OFF;
+                currentIntakeState = IntakeState.OFF;
             }
         }
 
-        if(gamepad1.dpad_down) {
-            robot.intakeElbow.setPosition(-10);//test out to find correct position
+        if(currentGamepad1.left_trigger >= 0.4 && previousGamepad1.left_trigger <= 0.4) {
+            telemetry.addLine("Left Trigger Released");
+            if (currentIntakeState == IntakeState.OFF || currentIntakeState == IntakeState.IN) {
+                currentIntakeState = IntakeState.OUT;
+            } else {
+                currentIntakeState = IntakeState.OFF;
+            }
         }
-        if(gamepad1.dpad_up) {
-            robot.intakeElbow.setPosition(10);//test out to find correct position
+
+        if(currentIntakeState == IntakeState.OFF) {robot.intakeRoller.setPower(0);}
+        else if (currentIntakeState == IntakeState.IN) {robot.intakeRoller.setPower(1);}
+        else {robot.intakeRoller.setPower(-1);}
+
+        if(currentGamepad1.dpad_down) {
+            robot.intakeElbow.setPosition(-0.2);//test out to find correct position
+        }
+        if(currentGamepad1.dpad_up) {
+            robot.intakeElbow.setPosition(0.2);//test out to find correct position
         }
 
         /* telemetry.addData("X pos",localizer.getPose()[0]);
         telemetry.addData("y pos",localizer.getPose()[1]);
-        telemetry.addData("Angle pos",localizer.getPose()[2]);
+        telemetry.addData("Angle pos",localizer.getPose()[2]); */
         telemetry.addData("Encoder 1", robot.getDeadwheel("parR").getTicks());
-        telemetry.addData("Encoder 1", robot.getDeadwheel("parL").getTicks());
-        telemetry.addData("Encoder 1", robot.getDeadwheel("per").getTicks()); */
+        telemetry.addData("Encoder 2", robot.getDeadwheel("parL").getTicks());
+        telemetry.addData("Encoder 3", robot.getDeadwheel("per").getTicks());
         telemetry.addData("Extension arm position", robot.armExtend.getCurrentPosition());
 
         telemetry.addData("left trigger", gamepad1.left_trigger);
         telemetry.addData("right trigger", gamepad1.right_trigger);
-        telemetry.update();
+        telemetry.addData("intake state", currentIntakeState);
 
-        leftTriggerPrevValue = gamepad1.left_trigger;
-        rightTriggerPrevValue = gamepad1.right_trigger;
+
+
+        //These things MUST be at the end of each loop. DO NOT MOVE
+
+        if(robot.slideLimitSwitch.isPressed()) {
+            if (!currentGamepad1.y){slidePower = 0;}
+            robot.armExtend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            robot.armExtend.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            telemetry.addLine("Limit Switch Prressed!");
+        }
+
+        robot.armExtend.setPower(slidePower);
+
+        telemetry.update();
     }
 
 }
