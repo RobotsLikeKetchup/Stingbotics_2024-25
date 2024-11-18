@@ -117,7 +117,7 @@ public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLoca
         //converting the complex number format that roadrunner uses into an angle in radians
         double angle = Math.atan2(pose.component2().real, pose.component2().imag);
 
-        return new double[] {pose.component1().x, pose.component1().y, pose.component2().real};
+        return new double[] {pose.component1().x, pose.component1().y, angle};
     }
 
     public double[] getVelocity() {

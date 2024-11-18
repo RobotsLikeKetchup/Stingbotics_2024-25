@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -8,6 +9,7 @@ import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.EzraLocalizer;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.PurePursuit;
+import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.MathFunctions;
 import org.firstinspires.ftc.teamcode.utilities.MovementFunctions;
 import org.firstinspires.ftc.teamcode.utilities.PID;
@@ -24,15 +26,15 @@ public class Auton extends OpMode {
     Robot robot = new Robot();
 
     ElapsedTime timer = new ElapsedTime();
-    EzraLocalizer localization = new EzraLocalizer(robot, new double[] {0,0,0}, timer);
+    RoadrunnerThreeWheelLocalizer localization;
     double[][] path = {
             {0,0},
-            {-1,4},
-            {-3,8},
-            {5, 10}
+            {0, 20},
+            {-24,20},
+            {-38, 17}
     };
 
-    PurePursuit pathing = new PurePursuit(path, localization);
+    PurePursuit pathing;
 
     double[] goalPoint, motorPowers, direction;
 
@@ -46,7 +48,11 @@ public class Auton extends OpMode {
 
     @Override
     public void init() {
+        localization = new RoadrunnerThreeWheelLocalizer(hardwareMap, 0.072018);
+
         robot.init(hardwareMap);
+
+        robot.intakeElbow.setPosition(0.75);
 
         // Update telemetry (for feedback)
         telemetry.addLine("Initialized!");
@@ -55,13 +61,14 @@ public class Auton extends OpMode {
 
     @Override
     public void start() {
-        localization.start();
         motionProfile.startSpeedUp();
+        localization.pose = new Pose2d(0 ,0, Math.PI / 2);
+        pathing = new PurePursuit(path, localization);
     }
 
     @Override
     public void loop() {
-        localization.calcPose();
+        localization.updatePoseEstimate();
         goalPoint = pathing.findPointOnPath();
         direction = MovementFunctions.createMovementVector(localization.getPose(), goalPoint);
 
@@ -76,6 +83,11 @@ public class Auton extends OpMode {
         if(pathing.getLastFoundIndex() >= path.length - 2) {
             motionProfile.startSlowDown();
         }
+
+        if (motionProfile.currentPhase == MotionProfile1D.Phase.STOPPED) {
+            robot.intakeRoller.setPower(-1);
+        }
+
 
     }
 }

@@ -4,14 +4,14 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 //this motion profile ONLY generates for 1d speed, NOT velocity or position
 public class MotionProfile1D {
-    enum Phase {
+    public enum Phase {
         STOPPED,
         SPEED_UP,
         CONSTANT_SPEED,
         SLOW_DOWN
     }
 
-    Phase currentPhase = Phase.STOPPED;
+    public Phase currentPhase = Phase.STOPPED;
 
     double maxSpeed, maxAcceleration, currentSpeed, lastTime, currentTime, elapsedTime;
 

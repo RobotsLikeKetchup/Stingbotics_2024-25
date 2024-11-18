@@ -27,8 +27,8 @@ public class MecanumKinematics {
         rotation = targetPower[2];
         powerLimiter = Math.max(Math.abs(x) + Math.abs(y) + Math.abs(rotation), maxPower);
 
-        frontLeft = (y+x- rotation)/powerLimiter;
-        frontRight = (y-x+ rotation)/powerLimiter;
+        frontLeft = 1.1*(y+x- rotation)/powerLimiter;
+        frontRight = 1.1*(y-x+ rotation)/powerLimiter;
         backLeft= (y-x- rotation)/powerLimiter;
         backRight= (y+x+ rotation)/powerLimiter;
 
