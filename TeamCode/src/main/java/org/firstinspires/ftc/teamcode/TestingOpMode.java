@@ -10,6 +10,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 
+import java.util.Arrays;
+
 @TeleOp
 public class TestingOpMode extends OpMode {
     double[] motorPowers;
@@ -35,6 +37,7 @@ public class TestingOpMode extends OpMode {
 
     @Override
     public void loop() {
+        localization.updatePoseEstimate();
         motorPowers = MecanumKinematics.getPowerFromDirection(new double[] {
                 gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x),
                 gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
@@ -63,7 +66,9 @@ public class TestingOpMode extends OpMode {
         telemetry.addData("right stick x", gamepad1.right_stick_x);
         telemetry.addData("right stick y", gamepad1.right_stick_y);
 
-        telemetry.addData("Pose", localization.getPose());
+        telemetry.addLine("Pose" + Arrays.toString(localization.getPose()));
+
+        telemetry.addLine("Encoder Positions: " + Arrays.toString(new double[]{robot.backRight.getCurrentPosition(), robot.frontRight.getCurrentPosition(), robot.backLeft.getCurrentPosition()}));
 
 
         //telemetry.addData("encoder value", encoderValue);

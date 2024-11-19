@@ -99,7 +99,6 @@ public class PurePursuit {
         robotPosition = localization.getPose();
         //distance to "look ahead" for the pure pursuit algorithm
         double lookAheadDistance = 1.5;
-        double discriminant, x1, y1, x2, y2;
         boolean intersectionFound = false;
 
         double[] goalPoint = new double[2];
