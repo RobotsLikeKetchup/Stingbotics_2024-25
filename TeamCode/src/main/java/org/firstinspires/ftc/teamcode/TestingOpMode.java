@@ -10,6 +10,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 
+import java.util.Arrays;
+
 @TeleOp
 public class TestingOpMode extends OpMode {
     double[] motorPowers;
@@ -35,6 +37,7 @@ public class TestingOpMode extends OpMode {
 
     @Override
     public void loop() {
+        localization.updatePoseEstimate();
         motorPowers = MecanumKinematics.getPowerFromDirection(new double[] {
                 gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x),
                 gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
@@ -46,10 +49,12 @@ public class TestingOpMode extends OpMode {
         }
 
 
-        if(gamepad1.a){robot.backLeft.setPower(0.8);} else {robot.backLeft.setPower(0);}
-        if(gamepad1.b){robot.backRight.setPower(0.8);} else {robot.backRight.setPower(0);}
-        if(gamepad1.x){robot.frontLeft.setPower(0.8);} else {robot.frontLeft.setPower(0);}
-        if(gamepad1.y){robot.frontRight.setPower(0.8);} else {robot.frontRight.setPower(0);}
+        //if(gamepad1.a){robot.backLeft.setPower(0.8);} else {robot.backLeft.setPower(0);}
+        //if(gamepad1.b){robot.backRight.setPower(0.8);} else {robot.backRight.setPower(0);}
+       // if(gamepad1.x){robot.frontLeft.setPower(0.8);} else {robot.frontLeft.setPower(0);}
+        //if(gamepad1.y){robot.frontRight.setPower(0.8);} else {robot.frontRight.setPower(0);}
+
+        robot.armRotate.setPower(gamepad1.b ? 0.8 : (gamepad1.x ? -0.8 : 0));
 
 
         if(gamepad1.dpad_down) {
@@ -63,7 +68,13 @@ public class TestingOpMode extends OpMode {
         telemetry.addData("right stick x", gamepad1.right_stick_x);
         telemetry.addData("right stick y", gamepad1.right_stick_y);
 
+        //telemetry.addLine("Pose" + Arrays.toString(localization.getPose()));
+
+        telemetry.addLine("Encoder Positions: " + Arrays.toString(new double[]{robot.backRight.getCurrentPosition(), robot.frontRight.getCurrentPosition(), robot.backLeft.getCurrentPosition()}));
+
+        telemetry.addData("Claw position", robot.intakeClaw.getPosition());
         telemetry.addData("Pose", localization.getPose());
+        telemetry.addData("Arm Rotation", robot.armRotate.getCurrentPosition());
 
 
         //telemetry.addData("encoder value", encoderValue);

@@ -14,14 +14,11 @@ import com.acmerobotics.roadrunner.ftc.OverflowEncoder;
 import com.acmerobotics.roadrunner.ftc.PositionVelocityPair;
 import com.acmerobotics.roadrunner.ftc.RawEncoder;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.pathing.StingLocalizer;
 
-/*
-* This is my modified version of the roadrunner localizer.
-* I copied the code but changed it so that it fits our own code
-*/
 
 
 @Config
@@ -55,6 +52,9 @@ public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLoca
 
         // TODO: reverse encoder directions if needed
         //   par0.setDirection(DcMotorSimple.Direction.REVERSE);
+        par0.setDirection(DcMotorSimple.Direction.REVERSE);
+        perp.setDirection(DcMotorSimple.Direction.REVERSE);
+
 
         this.inPerTick = inPerTick;
 
