@@ -49,10 +49,12 @@ public class TestingOpMode extends OpMode {
         }
 
 
-        if(gamepad1.a){robot.backLeft.setPower(0.8);} else {robot.backLeft.setPower(0);}
-        if(gamepad1.b){robot.backRight.setPower(0.8);} else {robot.backRight.setPower(0);}
-        if(gamepad1.x){robot.frontLeft.setPower(0.8);} else {robot.frontLeft.setPower(0);}
-        if(gamepad1.y){robot.frontRight.setPower(0.8);} else {robot.frontRight.setPower(0);}
+        //if(gamepad1.a){robot.backLeft.setPower(0.8);} else {robot.backLeft.setPower(0);}
+        //if(gamepad1.b){robot.backRight.setPower(0.8);} else {robot.backRight.setPower(0);}
+       // if(gamepad1.x){robot.frontLeft.setPower(0.8);} else {robot.frontLeft.setPower(0);}
+        //if(gamepad1.y){robot.frontRight.setPower(0.8);} else {robot.frontRight.setPower(0);}
+
+        robot.armRotate.setPower(gamepad1.b ? 0.8 : (gamepad1.x ? -0.8 : 0));
 
 
         if(gamepad1.dpad_down) {
@@ -66,9 +68,13 @@ public class TestingOpMode extends OpMode {
         telemetry.addData("right stick x", gamepad1.right_stick_x);
         telemetry.addData("right stick y", gamepad1.right_stick_y);
 
-        telemetry.addLine("Pose" + Arrays.toString(localization.getPose()));
+        //telemetry.addLine("Pose" + Arrays.toString(localization.getPose()));
 
         telemetry.addLine("Encoder Positions: " + Arrays.toString(new double[]{robot.backRight.getCurrentPosition(), robot.frontRight.getCurrentPosition(), robot.backLeft.getCurrentPosition()}));
+
+        telemetry.addData("Claw position", robot.intakeClaw.getPosition());
+        telemetry.addData("Pose", localization.getPose());
+        telemetry.addData("Arm Rotation", robot.armRotate.getCurrentPosition());
 
 
         //telemetry.addData("encoder value", encoderValue);

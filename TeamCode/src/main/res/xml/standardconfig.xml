@@ -7,13 +7,16 @@
 <Robot type="FirstInspires-FTC">
     <LynxUsbDevice
         name="Expansion Hub Portal 1"
-        serialNumber="(embedded)" parentModuleAddress="5">
-        <LynxModule name="Expansion Hub 2" port="2">
+        serialNumber="(embedded)" parentModuleAddress="2">
+        <LynxModule name="Control Hub" port="5">
             <LynxEmbeddedIMU name="imu" port="0" bus="0" />
-            <TetrixMotor name="motor_fl" port="3" />
-            <TetrixMotor name="motor_fr" port="2" />
-            <TetrixMotor name="motor_bl" port="1" />
-            <TetrixMotor name="motor_br" port="0" />
+            <goBILDA5202SeriesMotor name="motor_fl" port="3" />
+            <goBILDA5202SeriesMotor name="motor_fr" port="2" />
+            <goBILDA5202SeriesMotor name="motor_bl" port="1" />
+            <goBILDA5202SeriesMotor name="motor_br" port="0" />
+        </LynxModule>
+        <LynxModule name="Secondary Hub" port="3">
+
         </LynxModule>
     </LynxUsbDevice>
 </Robot>

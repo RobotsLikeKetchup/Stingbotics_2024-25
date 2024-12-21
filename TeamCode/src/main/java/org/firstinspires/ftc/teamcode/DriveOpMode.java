@@ -38,6 +38,9 @@ public class DriveOpMode extends OpMode {
     Gamepad previousGamepad1 = new Gamepad();
     Gamepad currentGamepad1 = new Gamepad();
 
+    Gamepad previousGamepad2 = new Gamepad();
+    Gamepad currentGamepad2 = new Gamepad();
+
     @Override
     // Set starting values for variables
     public void init() {
@@ -64,6 +67,8 @@ public class DriveOpMode extends OpMode {
         localizer.calcPose();
         previousGamepad1.copy(currentGamepad1);
         currentGamepad1.copy(gamepad1);
+        previousGamepad2.copy(currentGamepad2);
+        currentGamepad2.copy(gamepad2);
 
 
         // Gets power levels for each motor, using gamepad inputs as directions
@@ -72,7 +77,7 @@ public class DriveOpMode extends OpMode {
                 gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x),
                 gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
                 toInt(gamepad1.right_bumper) - toInt(gamepad1.left_bumper)
-        }, 0.7);
+        }, 1);
 
         // Sets power levels
         // Works because each index corresponds with the same wheel in both arrays
@@ -82,7 +87,11 @@ public class DriveOpMode extends OpMode {
 
 
         //rotating arm
-        robot.armRotate.setPower(currentGamepad1.b ? 0.8 : (currentGamepad1.x ? -0.8 : 0));
+        robot.armRotate.setPower(currentGamepad1.b ? 1 : (currentGamepad1.x ? -1 : 0));
+
+        /*if(gamepad1.b){robot.armRotate.setTargetPosition(-2404);};
+        if(gamepad1.x){robot.armRotate.setTargetPosition(480);};*/
+
 
         //linear slide
         if(currentGamepad1.a){
@@ -115,20 +124,28 @@ public class DriveOpMode extends OpMode {
             }
         }
 
-        if(currentIntakeState == IntakeState.OFF) {robot.intakeRoller.setPower(0);}
-        else if (currentIntakeState == IntakeState.IN) {robot.intakeRoller.setPower(1);}
-        else {robot.intakeRoller.setPower(-1);}
+        if(currentIntakeState == IntakeState.OFF) {
+            robot.intakeRoller.setPower(0);
+        }
+        else if (currentIntakeState == IntakeState.IN) {
+            robot.intakeRoller.setPower(1);
+            robot.intakeClaw.setPosition(0.9); //change to measured value
+        }
+        else {
+            robot.intakeRoller.setPower(-1);
+            robot.intakeClaw.setPosition(0.1); //change to measured value
+        }
 
         if(currentGamepad1.dpad_down) {
-            robot.intakeElbow.setPosition(0.5);//test out to find correct position
+            robot.intakeElbow.setPosition(0.08);//test out to find correct position
         }
         if(currentGamepad1.dpad_up) {
-            robot.intakeElbow.setPosition(0.75);//test out to find correct position
+            robot.intakeElbow.setPosition(0.5);//test out to find correct position
         }
 
 
         //hang
-        if(currentGamepad1.dpad_left && !previousGamepad1.dpad_left) {
+        if(currentGamepad2.x && !previousGamepad2.x) {
             if(currentHangState == HangState.UP) {
                 currentHangState = HangState.DOWN;
             } else {

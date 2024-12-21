@@ -17,7 +17,7 @@ public class Robot {
     public DcMotor backLeft;
 
     public CRServo intakeRoller;
-    public Servo intakeElbow;
+    public Servo intakeElbow, intakeClaw;
 
     //parallel dead wheels (measuring x-coord and heading)
     DeadWheel parL;
@@ -55,6 +55,7 @@ public class Robot {
 
         intakeRoller = hardwareMap.get(CRServo.class, "intakeRoller");
         intakeElbow = hardwareMap.get(Servo.class, "intakeElbow");
+        intakeClaw =  hardwareMap.get(Servo.class, "intakeClaw");
 
         slideLimitSwitch = hardwareMap.get(TouchSensor.class, "slideLimitSwitch");
 
@@ -65,6 +66,7 @@ public class Robot {
             i.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             i.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         };
+        armRotate.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         //set motor directions
         frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
