@@ -8,6 +8,10 @@ Start by cloning the repo onto your computer- type `git clone https://github.com
 
 If you need help coding or want to know how git works, make sure to ask on of our club leaders on discord, email, or in person!
 
+## Requirements
+To use this Android Studio project, you will need Android Studio Ladybug (2024.2) or later.
+>>>>>>> upstream/master
+
 **Below is the FTC standard README** 
 
 ## Getting Help
@@ -36,6 +40,25 @@ Samples Folder: &nbsp;&nbsp; [/FtcRobotController/src/main/java/org/firstinspire
 The readme.md file located in the [/TeamCode/src/main/java/org/firstinspires/ftc/teamcode](TeamCode/src/main/java/org/firstinspires/ftc/teamcode) folder contains an explanation of the sample naming convention, and instructions on how to copy them to your own project space.
 
 # Release Information
+
+## Version 10.1.1 (20241102-092223)
+
+### Breaking Changes
+
+* Support for Android Studio Ladybug.  Requires Android Studio Ladybug.  
+
+### Known Issues
+
+* Android Studio Ladybug's bundled JDK is version 21.  JDK 21 has deprecated support for Java 1.8, and Ladybug will warn on this deprecation.
+  OnBotJava only supports Java 1.8, therefore, in order to ensure that software developed using Android Studio will 
+  run within the OnBotJava environment, the targetCompatibility and sourceCompatibility versions for the SDK have been left at VERSION_1_8.
+  FIRST has decided that until it can devote the resources to migrating OnBotJava to a newer version of Java, the deprecation is the 
+  lesser of two non-optimal situations.
+
+### Enhancements
+
+* Added `toString()` method to Pose2D
+* Added `toString()` method to SparkFunOTOS.Pose2D
 
 ## Version 10.1 (20240919-122750)
 
