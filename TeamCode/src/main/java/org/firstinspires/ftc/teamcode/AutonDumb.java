@@ -1,12 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.roadrunner.Pose2d;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.hardware.Robot;
-import org.firstinspires.ftc.teamcode.pathing.EzraLocalizer;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.PurePursuit;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
@@ -16,7 +15,7 @@ import org.firstinspires.ftc.teamcode.utilities.PID;
 
 
 @Autonomous
-public class Auton extends OpMode {
+public class AutonDumb extends OpMode {
     enum Steps {
         ACCELERATION,
         DRIVE,
@@ -49,7 +48,6 @@ public class Auton extends OpMode {
 
     @Override
     public void init() {
-        localization = new RoadrunnerThreeWheelLocalizer(hardwareMap, 0.072018);
 
         robot.init(hardwareMap);
 
@@ -62,32 +60,17 @@ public class Auton extends OpMode {
 
     @Override
     public void start() {
-        motionProfile.startSpeedUp();
-        localization.pose = new Pose2d(0 ,0, Math.PI / 2);
-        pathing = new PurePursuit(path, localization);
     }
 
     @Override
     public void loop() {
-        localization.updatePoseEstimate();
-        goalPoint = pathing.findPointOnPath();
-        direction = MovementFunctions.createMovementVector(localization.getPose(), goalPoint);
 
-        velocityCoeff = velocityControl.loop(motionProfile.getTargetSpeed(), Math.hypot(localization.getVelocity()[0], localization.getVelocity()[1]));
-
-        motorPowers = MecanumKinematics.getPowerFromDirection(MathFunctions.scaleArray(velocityCoeff,direction), 0.7);
+        motorPowers = MecanumKinematics.getPowerFromDirection(new double[] {-1,0,0}, 0.7);
 
         for (int i=0; i < motorPowers.length; i++) {
             robot.driveMotors[i].setPower(motorPowers[i]);
         };
 
-        if(pathing.getLastFoundIndex() >= path.length - 2) {
-            motionProfile.startSlowDown();
-        }
-
-        if (motionProfile.currentPhase == MotionProfile1D.Phase.STOPPED) {
-            robot.intakeRoller.setPower(-1);
-        }
 
 
     }

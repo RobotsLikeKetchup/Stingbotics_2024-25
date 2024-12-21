@@ -18,10 +18,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.pathing.StingLocalizer;
 
-/*
-* This is my modified version of the roadrunner localizer.
-* I copied the code but changed it so that it fits our own code
-*/
 
 
 @Config
