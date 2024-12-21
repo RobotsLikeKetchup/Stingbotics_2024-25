@@ -26,7 +26,8 @@ public class Robot {
     DeadWheel per;
 
     public TouchSensor slideLimitSwitch;
-
+    public TouchSensor frontArmLimitSwitch;
+    public TouchSensor backArmLimitSwitch;
     public DcMotor[] driveMotors;
 
     //constructor
@@ -57,6 +58,8 @@ public class Robot {
         intakeElbow = hardwareMap.get(Servo.class, "intakeElbow");
 
         slideLimitSwitch = hardwareMap.get(TouchSensor.class, "slideLimitSwitch");
+        frontArmLimitSwitch = hardwareMap.get(TouchSensor.class, "frontArmLimitSwitch");
+        backArmLimitSwitch = hardwareMap.get(TouchSensor.class, "backArmLimitSwitch");
 
         driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
 

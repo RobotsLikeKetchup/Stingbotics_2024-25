@@ -31,9 +31,15 @@ public class DriveOpMode extends OpMode {
 
     enum IntakeState {IN, OUT, OFF};
     enum HangState{UP, DOWN};
+    enum ArmState{UP, DOWN};
+    enum ElbowState{UP,DOWN};
     IntakeState currentIntakeState = IntakeState.OFF;
 
     HangState currentHangState = HangState.DOWN;
+
+    ArmState currentArmState = ArmState.DOWN;
+
+    ElbowState currentElbowState = ElbowState.UP;
 
     Gamepad previousGamepad1 = new Gamepad();
     Gamepad currentGamepad1 = new Gamepad();
@@ -167,6 +173,18 @@ public class DriveOpMode extends OpMode {
         }
 
         robot.armExtend.setPower(slidePower);
+
+        if(robot.frontArmLimitSwitch.isPressed()) {
+            robot.armRotate.setPower(0);
+            telemetry.addLine("front limit switch pressed");
+            ArmState currentArmState = ArmState.DOWN;
+        }
+
+        if(robot.backArmLimitSwitch.isPressed()){
+            robot.armRotate.setPower(0);
+            telemetry.addLine("back limit switch pressed");
+            ArmState currentArmState = ArmState.UP;
+        }
 
         telemetry.update();
     }
