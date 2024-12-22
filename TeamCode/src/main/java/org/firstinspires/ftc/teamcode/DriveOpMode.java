@@ -31,13 +31,13 @@ public class DriveOpMode extends OpMode {
 
     enum IntakeState {IN, OUT, OFF};
     enum HangState{UP, DOWN};
-    enum ArmState{UP, DOWN};
+    enum ArmState{UP, DOWN, MIDDLE};
     enum ElbowState{UP,DOWN};
     IntakeState currentIntakeState = IntakeState.OFF;
 
     HangState currentHangState = HangState.DOWN;
 
-    ArmState currentArmState = ArmState.DOWN;
+    ArmState currentArmState = ArmState.MIDDLE;
 
     ElbowState currentElbowState = ElbowState.UP;
 
@@ -76,6 +76,20 @@ public class DriveOpMode extends OpMode {
         previousGamepad2.copy(currentGamepad2);
         currentGamepad2.copy(gamepad2);
 
+        if(robot.frontArmLimitSwitch.isPressed()) {
+            telemetry.addLine("front limit switch pressed");
+            currentArmState = ArmState.DOWN;
+        } else if(robot.backArmLimitSwitch.isPressed()){
+            telemetry.addLine("back limit switch pressed");
+            currentArmState = ArmState.UP;
+        }
+        /*else {
+            currentArmState = ArmState.MIDDLE;
+        }*/
+        telemetry.addData("arm position", currentArmState);
+
+        //now everything else
+
 
         // Gets power levels for each motor, using gamepad inputs as directions
         // The third item in the array dictates which trigger is being pressed (=1 if left, =-1 if right, =0 if none or both).
@@ -83,7 +97,8 @@ public class DriveOpMode extends OpMode {
                 gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x),
                 gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
                 toInt(gamepad1.right_bumper) - toInt(gamepad1.left_bumper)
-        }, 1);
+        }, 1, (currentArmState==ArmState.DOWN ? 1.2 : 1), //this all just correcting for our shitty weight distribution
+                true);
 
         // Sets power levels
         // Works because each index corresponds with the same wheel in both arrays
@@ -93,7 +108,7 @@ public class DriveOpMode extends OpMode {
 
 
         //rotating arm
-        robot.armRotate.setPower(currentGamepad1.b ? 1 : (currentGamepad1.x ? -1 : 0));
+        robot.armRotate.setPower(currentGamepad1.b && !(currentArmState == ArmState.DOWN) ? 1 : (currentGamepad1.x && !(currentArmState == ArmState.UP) ? -1 : 0));
 
         /*if(gamepad1.b){robot.armRotate.setTargetPosition(-2404);};
         if(gamepad1.x){robot.armRotate.setTargetPosition(480);};*/
@@ -191,17 +206,6 @@ public class DriveOpMode extends OpMode {
 
         robot.armExtend.setPower(slidePower);
 
-        if(robot.frontArmLimitSwitch.isPressed()) {
-            robot.armRotate.setPower(0);
-            telemetry.addLine("front limit switch pressed");
-            ArmState currentArmState = ArmState.DOWN;
-        }
-
-        if(robot.backArmLimitSwitch.isPressed()){
-            robot.armRotate.setPower(0);
-            telemetry.addLine("back limit switch pressed");
-            ArmState currentArmState = ArmState.UP;
-        }
 
         telemetry.update();
     }

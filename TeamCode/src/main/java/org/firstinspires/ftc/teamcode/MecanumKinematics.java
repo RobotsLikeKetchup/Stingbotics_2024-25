@@ -35,4 +35,31 @@ public class MecanumKinematics {
         return new double[]{frontLeft,frontRight,backLeft,backRight};
     }
 
+
+    //for weight distribution correction
+    public static double[] getPowerFromDirection(double[] targetPower, double maxPower, double weightCorrection, boolean front){
+
+        double x, y, rotation, powerLimiter, frontLeft, frontRight, backLeft, backRight, frontCorrection, backCorrection;
+        x = targetPower[0] * 1.1;
+        y = targetPower[1];
+
+        rotation = targetPower[2];
+        powerLimiter = Math.max(Math.abs(x) + Math.abs(y) + Math.abs(rotation), maxPower);
+
+        if(front){
+            frontCorrection = weightCorrection;
+            backCorrection = 1;
+        } else {
+            backCorrection = weightCorrection;
+            frontCorrection = 1;
+        }
+
+        frontLeft = frontCorrection * (y+x- rotation)/powerLimiter;
+        frontRight = frontCorrection * (y-x+ rotation)/powerLimiter;
+        backLeft= backCorrection * (y-x- rotation)/powerLimiter;
+        backRight= backCorrection * (y+x+ rotation)/powerLimiter;
+
+        return new double[]{frontLeft,frontRight,backLeft,backRight};
+    }
+
 }
