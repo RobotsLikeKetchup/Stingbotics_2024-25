@@ -38,7 +38,9 @@ public class DriveOpMode extends OpMode {
     HangState currentHangState = HangState.DOWN;
 
     ArmState currentArmState = ArmState.MIDDLE;
-
+    ArmState weightCorrectionArmState = ArmState.MIDDLE;
+    int upArmVal;
+    int downArmVal;
     ElbowState currentElbowState = ElbowState.UP;
 
     Gamepad previousGamepad1 = new Gamepad();
@@ -79,13 +81,17 @@ public class DriveOpMode extends OpMode {
         if(robot.frontArmLimitSwitch.isPressed()) {
             telemetry.addLine("front limit switch pressed");
             currentArmState = ArmState.DOWN;
+            downArmVal = robot.armRotate.getCurrentPosition();
+            weightCorrectionArmState = ArmState.DOWN;
         } else if(robot.backArmLimitSwitch.isPressed()){
             telemetry.addLine("back limit switch pressed");
             currentArmState = ArmState.UP;
+            upArmVal = robot.armRotate.getCurrentPosition();
+            weightCorrectionArmState = ArmState.UP;
         }
-        /*else {
+        else {
             currentArmState = ArmState.MIDDLE;
-        }*/
+        }
         telemetry.addData("arm position", currentArmState);
 
         //now everything else
@@ -97,7 +103,7 @@ public class DriveOpMode extends OpMode {
                 gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x),
                 gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
                 toInt(gamepad1.right_bumper) - toInt(gamepad1.left_bumper)
-        }, 1, (currentArmState==ArmState.DOWN ? 1.2 : 1), //this all just correcting for our shitty weight distribution
+        }, 1, (weightCorrectionArmState==ArmState.UP ? 1.5 : 1), //this all just correcting for our shitty weight distribution
                 true);
 
         // Sets power levels
@@ -110,8 +116,8 @@ public class DriveOpMode extends OpMode {
         //rotating arm
         robot.armRotate.setPower(currentGamepad1.b && !(currentArmState == ArmState.DOWN) ? 1 : (currentGamepad1.x && !(currentArmState == ArmState.UP) ? -1 : 0));
 
-        /*if(gamepad1.b){robot.armRotate.setTargetPosition(-2404);};
-        if(gamepad1.x){robot.armRotate.setTargetPosition(480);};*/
+        //if(gamepad1.b){robot.armRotate.setTargetPosition(-2404);};
+        //if(gamepad1.x){robot.armRotate.setTargetPosition(480);};
 
 
         //linear slide
@@ -158,10 +164,19 @@ public class DriveOpMode extends OpMode {
         }
 
         if(currentGamepad1.dpad_down) {
-            robot.intakeElbow.setPosition(0.08);//test out to find correct position
+            currentElbowState = ElbowState.DOWN;
         }
         if(currentGamepad1.dpad_up) {
+            currentElbowState = ElbowState.UP;
+        }
+        if(currentElbowState == ElbowState.UP) {
             robot.intakeElbow.setPosition(0.5);//test out to find correct position
+        } else {
+            if(currentArmState == ArmState.DOWN) {
+                robot.intakeElbow.setPosition(0.1 - (0.0001 * robot.armExtend.getCurrentPosition()));
+            } else {
+                robot.intakeElbow.setPosition(0.08);//test out to find correct position
+            }
         }
 
 
@@ -192,6 +207,7 @@ public class DriveOpMode extends OpMode {
         telemetry.addData("left trigger", gamepad1.left_trigger);
         telemetry.addData("right trigger", gamepad1.right_trigger);
         telemetry.addData("intake state", currentIntakeState);
+        telemetry.addData("arm state", currentArmState);
 
 
 

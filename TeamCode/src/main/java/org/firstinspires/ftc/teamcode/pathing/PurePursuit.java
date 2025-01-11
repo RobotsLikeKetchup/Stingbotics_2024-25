@@ -28,7 +28,7 @@ public class PurePursuit {
     }
 
     double twoPointDistance(double[] point1, double[] point2){
-        return Math.sqrt(Math.pow(point2[0]-point1[0], 2) + Math.pow(point2[1] - point1[0],2));
+        return Math.sqrt(Math.pow(point2[0]-point1[0], 2) + Math.pow(point2[1] - point1[1],2));
     }
 
 
@@ -71,20 +71,14 @@ public class PurePursuit {
             double[] solution1 = {solutionX1 + currentX, solutionY1 + currentY};
             double[] solution2 = {solutionX2 + currentX, solutionY2 + currentY};
 
-            //get minimum and maximum values of the path segment
-            double minX = Math.min(x1, x2);
-            double minY = Math.min(y1,y2);
-            double maxX = Math.max(x1,x2);
-            double maxY = Math.max(y1,y2);
-
             //check if the solutions are within bounds of the path
-            if(((minX <= solution1[0] && solution1[0] <= maxX) && (minY <= solution1[1] && solution1[1] <= maxY)) || ((minX <= solution2[0] && solution2[0] <= maxX) && (minY <= solution2[1] && solution2[1] <= maxY))) {
+            if(withinBounds(solution1, pt1, pt2) || withinBounds(solution2, pt1, pt2)) {
 
                 //now check which solutions are correct
-                if((minX <= solution1[0] && solution1[0] <= maxX) && (minY <= solution1[1] && solution1[1] <= maxY)) {
+                if(withinBounds(solution1, pt1, pt2)) {
                     solutions.add(solution1);
                 }
-                if((minX <= solution2[0] && solution2[0] <= maxX) && (minY <= solution2[1] && solution2[1] <= maxY)){
+                if(withinBounds(solution2, pt1, pt2)){
                     solutions.add(solution2);
                 }
             }
@@ -92,6 +86,19 @@ public class PurePursuit {
 
         //converts the ArrayList to an array, to make it easier to work with
         return solutions.toArray(new double[solutions.size()][]);
+    }
+
+    boolean withinBounds(double[] point, double[] bound1, double[] bound2) {
+        double maxX = Math.max(bound1[0], bound2[0]);
+        double maxY = Math.max(bound1[1], bound2[1]);
+        double minX = Math.min(bound1[0], bound2[0]);
+        double minY = Math.min(bound1[1], bound2[1]);
+
+        if((minX <= point[0] && point[0] <= maxX) && (minY <= point[1] && point[1] <= maxY)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public double[] findPointOnPath(){
