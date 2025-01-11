@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import static org.firstinspires.ftc.teamcode.utilities.MathFunctions.toInt;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.EzraLocalizer;
+import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 
 //This opMode uses the standardconfig configuration file.
 @TeleOp
@@ -48,6 +49,8 @@ public class DriveOpMode extends OpMode {
 
     Gamepad previousGamepad2 = new Gamepad();
     Gamepad currentGamepad2 = new Gamepad();
+
+    MotionProfile1D rampFunction = new MotionProfile1D(1, 0.4, timer);
 
     @Override
     // Set starting values for variables
@@ -96,6 +99,11 @@ public class DriveOpMode extends OpMode {
 
         //now everything else
 
+        //ramp  function: if sebastian has just started moving, start the motion profile.
+        if ((Math.abs(currentGamepad1.left_stick_x) > 0.05 || Math.abs(currentGamepad1.left_stick_y) > 0.05) && !(Math.abs(previousGamepad1.left_stick_x) > 0.05 || Math.abs(previousGamepad1.left_stick_y) > 0.05)) {
+            rampFunction.reset();
+        }
+
 
         // Gets power levels for each motor, using gamepad inputs as directions
         // The third item in the array dictates which trigger is being pressed (=1 if left, =-1 if right, =0 if none or both).
@@ -103,7 +111,7 @@ public class DriveOpMode extends OpMode {
                 gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x),
                 gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
                 toInt(gamepad1.right_bumper) - toInt(gamepad1.left_bumper)
-        }, 1, (weightCorrectionArmState==ArmState.UP ? 1.5 : 1), //this all just correcting for our shitty weight distribution
+        }, rampFunction.getTargetSpeed(), (weightCorrectionArmState==ArmState.UP ? 1.5 : 1), //this all just correcting for our shitty weight distribution
                 true);
 
         // Sets power levels
@@ -217,7 +225,7 @@ public class DriveOpMode extends OpMode {
             if (!currentGamepad1.y){slidePower = 0;}
             robot.armExtend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             robot.armExtend.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            telemetry.addLine("Limit Switch Prressed!");
+            telemetry.addLine("Limit Switch Pressed!");
         }
 
         robot.armExtend.setPower(slidePower);

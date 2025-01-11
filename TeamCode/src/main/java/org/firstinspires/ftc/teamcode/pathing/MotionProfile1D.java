@@ -62,4 +62,9 @@ public class MotionProfile1D {
         lastTime = currentTime;
         return currentSpeed;
     }
+
+    public void reset(){
+        currentSpeed = 0;
+        startSpeedUp();
+    }
 }
