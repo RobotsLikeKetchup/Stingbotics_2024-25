@@ -21,19 +21,24 @@ import org.firstinspires.ftc.teamcode.pathing.StingLocalizer;
 
 
 
+//This is the roadrunner three deadwheel localizer, I just adapted it for our code.
+//It does the math to see where the robot is any any point, based on deadwheel inputs
+//It is a lot more robust to issues like bad deadwheel placement and encoder readings overflowing
+//So until I am skilled enough to code my own and have enough time to test it, this is what we got.
+
 @Config
 public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLocalizer {
     public static class Params {
-        public double par0YTicks = 0.0; // y position of the first parallel encoder (in tick units)
-        public double par1YTicks = 1.0; // y position of the second parallel encoder (in tick units)
-        public double perpXTicks = 0.0; // x position of the perpendicular encoder (in tick units)
+        public double par0YTicks = -934.7663101281455; // y position of the first parallel encoder (in tick units)
+        public double par1YTicks = 1024.9217812046631; // y position of the second parallel encoder (in tick units)
+        public double perpXTicks = 12.547695985644761; // x position of the perpendicular encoder (in tick units)
     }
 
     public static Params PARAMS = new Params();
 
     public final Encoder par0, par1, perp;
 
-    public double inPerTick;
+    public double inPerTick =  0.00409623;
 
     private int lastPar0Pos, lastPar1Pos, lastPerpPos;
     private boolean initialized;
@@ -42,21 +47,20 @@ public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLoca
 
     public PoseVelocity2d velocity;
 
-    public RoadrunnerThreeWheelLocalizer(HardwareMap hardwareMap, double inPerTick) {
+    public RoadrunnerThreeWheelLocalizer(HardwareMap hardwareMap) {
         // TODO: make sure your config has **motors** with these names (or change them)
         //   the encoders should be plugged into the slot matching the named motor
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
-        par0 = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "motor_br")));
-        par1 = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "motor_fr")));
-        perp = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "motor_bl")));
+        par0 = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "motor_fl")));
+        par1 = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "motor_bl")));
+        perp = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "motor_br")));
 
         // TODO: reverse encoder directions if needed
         //   par0.setDirection(DcMotorSimple.Direction.REVERSE);
         par0.setDirection(DcMotorSimple.Direction.REVERSE);
-        perp.setDirection(DcMotorSimple.Direction.REVERSE);
+        perp.setDirection(DcMotorSimple.Direction.FORWARD);
+        par1.setDirection(DcMotorSimple.Direction.FORWARD);
 
-
-        this.inPerTick = inPerTick;
 
         FlightRecorder.write("THREE_DEAD_WHEEL_PARAMS", PARAMS);
     }

@@ -14,6 +14,8 @@ import org.firstinspires.ftc.teamcode.utilities.MovementFunctions;
 import org.firstinspires.ftc.teamcode.utilities.PID;
 
 
+
+//this is pretty much just for if our autonomous breaks for some reason and we want to just have the robot drive to the side and park
 @Autonomous
 public class AutonDumb extends OpMode {
     enum Steps {

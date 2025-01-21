@@ -13,7 +13,7 @@ public class MotionProfile1D {
 
     public Phase currentPhase = Phase.STOPPED;
 
-    double maxSpeed, maxAcceleration, currentSpeed, lastTime, currentTime, elapsedTime;
+    double maxSpeed, maxAcceleration, currentSpeed, lastTime, currentTime, elapsedTime, startSpeed;
 
     ElapsedTime timer;
 
@@ -22,11 +22,21 @@ public class MotionProfile1D {
         this.maxSpeed = maxSpeed;
         this.timer = timer;
         currentSpeed = 0;
+        startSpeed = 0;
+    }
+
+    public MotionProfile1D(double startSpeed, double maxSpeed, double maxAcceleration, ElapsedTime timer){
+        this.maxAcceleration = maxAcceleration;
+        this.maxSpeed = maxSpeed;
+        this.timer = timer;
+        this.startSpeed = startSpeed;
+        currentSpeed = 0;
     }
 
     public void startSpeedUp() {
         currentPhase = Phase.SPEED_UP;
         lastTime = timer.seconds();
+        currentSpeed = startSpeed;
     }
 
     public void startSlowDown() {
@@ -55,7 +65,7 @@ public class MotionProfile1D {
                 currentSpeed = 0;
             }
             else{
-                currentSpeed -= maxAcceleration * (elapsedTime);
+                currentSpeed = currentSpeed - (maxAcceleration * (elapsedTime));
             }
         }
 

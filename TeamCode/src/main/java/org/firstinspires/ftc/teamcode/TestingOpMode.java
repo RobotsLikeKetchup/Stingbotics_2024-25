@@ -26,7 +26,7 @@ public class TestingOpMode extends OpMode {
         robot.init(hardwareMap);
 
 
-        localization = new RoadrunnerThreeWheelLocalizer(hardwareMap, 0.072018);
+        localization = new RoadrunnerThreeWheelLocalizer(hardwareMap);
         localization.pose = new Pose2d(0 ,0, Math.PI / 2);
 
         robot.init(hardwareMap);
@@ -77,6 +77,9 @@ public class TestingOpMode extends OpMode {
         telemetry.addData("Arm Rotation", robot.armRotate.getCurrentPosition());
 
 
+        telemetry.addData("x", localization.getPose()[0]);
+        telemetry.addData("y", localization.getPose()[1]);
+        telemetry.addData("angle", Math.toDegrees(localization.getPose()[2]));
         //telemetry.addData("encoder value", encoderValue);
         telemetry.update();
     }

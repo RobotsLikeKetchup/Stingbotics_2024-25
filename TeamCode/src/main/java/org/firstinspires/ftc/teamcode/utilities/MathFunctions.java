@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.utilities;
 
 public class MathFunctions {
+    //turns a boolean into an int
     public static int toInt(boolean Boolean) {
         return Boolean ? 1:0;
     }

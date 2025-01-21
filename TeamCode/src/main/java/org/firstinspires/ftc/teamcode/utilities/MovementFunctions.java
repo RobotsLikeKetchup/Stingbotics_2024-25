@@ -8,14 +8,17 @@ public class MovementFunctions {
         double relativeX = targetPoint[0] - robotPose[0];
         double relativeY = targetPoint[1] - robotPose[1];
 
-        double absoluteAngle = Math.atan2(relativeX,relativeY);
+        double absoluteAngle = Math.atan2(relativeY,relativeX);
 
         double relativeAngle = MathFunctions.angleWrap(absoluteAngle - robotPose[2]);
 
+        double divisor = Math.max(Math.abs(relativeX), Math.abs(relativeY));
+
         return new double[] {
-                Math.cos(relativeAngle),
                 Math.sin(relativeAngle),
+                Math.cos(relativeAngle),
                 relativeAngle
         };
     }
+
 }

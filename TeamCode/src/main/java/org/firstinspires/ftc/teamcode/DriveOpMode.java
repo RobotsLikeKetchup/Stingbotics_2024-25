@@ -1,7 +1,7 @@
 // Import FTC package
 package org.firstinspires.ftc.teamcode;
-
 // Import FTC classes
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 //This opMode uses the standardconfig configuration file.
 @TeleOp
 
-
+@Config
 public class DriveOpMode extends OpMode {
     // Create variables
     double[] motorPowers;
@@ -50,10 +50,12 @@ public class DriveOpMode extends OpMode {
     Gamepad previousGamepad2 = new Gamepad();
     Gamepad currentGamepad2 = new Gamepad();
 
-    MotionProfile1D rampFunction = new MotionProfile1D(1, 0.4, timer);
+    MotionProfile1D rampFunction = new MotionProfile1D(0.8,1, 0.4, timer);
 
+    public static double UP_WEIGHT_CORRECTION = 0.65;
+    public static double DOWN_WEIGHT_CORRECTION = 1;
     @Override
-    // Set starting values for variables
+    // Set starting values for variable
     public void init() {
         robot.init(hardwareMap);
         localizer.setWheelDistances(16.5,8);
@@ -74,13 +76,16 @@ public class DriveOpMode extends OpMode {
 
     @Override
     public void loop() {
-        //all this stuff MUST be at the beginning of the opMode
+        //all this stuff MUST be at the beginning of the loop
         localizer.calcPose();
         previousGamepad1.copy(currentGamepad1);
         currentGamepad1.copy(gamepad1);
         previousGamepad2.copy(currentGamepad2);
         currentGamepad2.copy(gamepad2);
 
+
+        //the limit switch stuff should be at the start of the loop cause if it is not, then you run the risk of
+        //the robot powering the arm for a little bit even like a milisecond which makes the arm go too far and break stuff
         if(robot.frontArmLimitSwitch.isPressed()) {
             telemetry.addLine("front limit switch pressed");
             currentArmState = ArmState.DOWN;
@@ -111,8 +116,14 @@ public class DriveOpMode extends OpMode {
                 gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x),
                 gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
                 toInt(gamepad1.right_bumper) - toInt(gamepad1.left_bumper)
-        }, rampFunction.getTargetSpeed(), (weightCorrectionArmState==ArmState.UP ? 1.5 : 1), //this all just correcting for our shitty weight distribution
-                true);
+            },
+            rampFunction.getTargetSpeed(),
+            (weightCorrectionArmState==ArmState.UP ? UP_WEIGHT_CORRECTION : DOWN_WEIGHT_CORRECTION), //this all just correcting for our shitty weight distribution
+            true
+        );
+
+        telemetry.addData("gamepadx", currentGamepad1.left_stick_x);
+        telemetry.addData("gamepady", currentGamepad1.left_stick_y);
 
         // Sets power levels
         // Works because each index corresponds with the same wheel in both arrays
@@ -140,7 +151,7 @@ public class DriveOpMode extends OpMode {
         }
 
         // Servo Controller            RT is in , LT is out
-
+        //this implements a simple toggle system
         if(currentGamepad1.right_trigger >= 0.4 && previousGamepad1.right_trigger <= 0.4) {
             telemetry.addLine("Right Trigger Released");
             if (currentIntakeState == IntakeState.OFF || currentIntakeState == IntakeState.OUT){
@@ -159,6 +170,7 @@ public class DriveOpMode extends OpMode {
             }
         }
 
+        //there is both a roller and a claw on the robot to pick up game pieces in different ways
         if(currentIntakeState == IntakeState.OFF) {
             robot.intakeRoller.setPower(0);
         }
@@ -171,6 +183,7 @@ public class DriveOpMode extends OpMode {
             robot.intakeClaw.setPosition(0.1); //change to measured value
         }
 
+        //moves the elbow
         if(currentGamepad1.dpad_down) {
             currentElbowState = ElbowState.DOWN;
         }
@@ -181,14 +194,16 @@ public class DriveOpMode extends OpMode {
             robot.intakeElbow.setPosition(0.5);//test out to find correct position
         } else {
             if(currentArmState == ArmState.DOWN) {
-                robot.intakeElbow.setPosition(0.1 - (0.0001 * robot.armExtend.getCurrentPosition()));
+                //this is so that when the arm is in the down position, the roller can grab stuff at the exact right angle
+                robot.intakeElbow.setPosition(0.135 + (0.000068 * robot.armExtend.getCurrentPosition())); //fine-tune this
             } else {
-                robot.intakeElbow.setPosition(0.08);//test out to find correct position
+                robot.intakeElbow.setPosition(0.2);//test out to find correct position
             }
         }
 
-
+// umed maru: those who code
         //hang
+        //this is a toggle
         if(currentGamepad2.x && !previousGamepad2.x) {
             if(currentHangState == HangState.UP) {
                 currentHangState = HangState.DOWN;
@@ -202,10 +217,7 @@ public class DriveOpMode extends OpMode {
         }
 
 
-        /* telemetry.addData("X pos",localizer.getPose()[0]);
-        telemetry.addData("y pos",localizer.getPose()[1]);
-        telemetry.addData("Angle pos",localizer.getPose()[2]); */
-        telemetry.addData("Encoder 1", robot.getDeadwheel("parR").getTicks());
+        /*telemetry.addData("Encoder 1", robot.getDeadwheel("parR").getTicks());
         telemetry.addData("Encoder 2", robot.getDeadwheel("parL").getTicks());
         telemetry.addData("Encoder 3", robot.getDeadwheel("per").getTicks());
         telemetry.addData("Extension arm position", robot.armExtend.getCurrentPosition());
@@ -214,8 +226,12 @@ public class DriveOpMode extends OpMode {
 
         telemetry.addData("left trigger", gamepad1.left_trigger);
         telemetry.addData("right trigger", gamepad1.right_trigger);
-        telemetry.addData("intake state", currentIntakeState);
+        telemetry.addData("intake state", currentIntakeState); */
         telemetry.addData("arm state", currentArmState);
+        telemetry.addData("frontLeft", robot.frontLeft.getPower());
+        telemetry.addData("backLeft", robot.backLeft.getPower());
+        telemetry.addData("frontRight", robot.frontRight.getPower());
+        telemetry.addData("backRight", robot.backRight.getPower());
 
 
 

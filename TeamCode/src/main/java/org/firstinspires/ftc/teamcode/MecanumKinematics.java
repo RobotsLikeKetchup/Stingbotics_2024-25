@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import org.firstinspires.ftc.teamcode.utilities.MathFunctions;
+
 public class MecanumKinematics {
     // Converts radians to power
     // should be tuned, temporary for now
@@ -25,6 +27,8 @@ public class MecanumKinematics {
         y = targetPower[1];
         
         rotation = targetPower[2];
+
+        //limits power so it isn't larger than either the
         powerLimiter = Math.max(Math.abs(x) + Math.abs(y) + Math.abs(rotation), maxPower);
 
         frontLeft = (y+x- rotation)/powerLimiter;
@@ -43,9 +47,6 @@ public class MecanumKinematics {
         x = targetPower[0] * 1.1;
         y = targetPower[1];
 
-        rotation = targetPower[2];
-        powerLimiter = Math.max(Math.abs(x) + Math.abs(y) + Math.abs(rotation), maxPower);
-
         if(front){
             frontCorrection = weightCorrection;
             backCorrection = 1;
@@ -54,12 +55,17 @@ public class MecanumKinematics {
             frontCorrection = 1;
         }
 
-        frontLeft = frontCorrection * (y+x- rotation)/powerLimiter;
-        frontRight = frontCorrection * (y-x+ rotation)/powerLimiter;
-        backLeft= backCorrection * (y-x- rotation)/powerLimiter;
-        backRight= backCorrection * (y+x+ rotation)/powerLimiter;
+        rotation = targetPower[2];
+        powerLimiter = Math.max((front ? frontCorrection : backCorrection) * (Math.abs(x) + Math.abs(y) + Math.abs(rotation)), 1);
 
-        return new double[]{frontLeft,frontRight,backLeft,backRight};
+
+        frontLeft = (frontCorrection * (y+x- rotation))/powerLimiter;
+        frontRight = (frontCorrection * (y-x+ rotation))/powerLimiter;
+        backLeft= (backCorrection * (y-x- rotation))/powerLimiter;
+        backRight= (backCorrection * (y+x+ rotation))/powerLimiter;
+
+        double[] power = new double[]{frontLeft,frontRight,backLeft,backRight};
+        return MathFunctions.scaleArray(maxPower, power);
     }
 
 }
