@@ -47,7 +47,7 @@ public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLoca
 
     public PoseVelocity2d velocity;
 
-    public RoadrunnerThreeWheelLocalizer(HardwareMap hardwareMap) {
+    public RoadrunnerThreeWheelLocalizer(HardwareMap hardwareMap, Pose2d pose) {
         // TODO: make sure your config has **motors** with these names (or change them)
         //   the encoders should be plugged into the slot matching the named motor
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
@@ -62,6 +62,7 @@ public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLoca
         par1.setDirection(DcMotorSimple.Direction.FORWARD);
 
 
+        this.pose = pose;
         FlightRecorder.write("THREE_DEAD_WHEEL_PARAMS", PARAMS);
     }
 

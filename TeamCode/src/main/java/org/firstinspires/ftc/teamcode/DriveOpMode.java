@@ -1,6 +1,7 @@
 // Import FTC package
 package org.firstinspires.ftc.teamcode;
 // Import FTC classes
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -13,6 +14,7 @@ import static org.firstinspires.ftc.teamcode.utilities.MathFunctions.toInt;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.EzraLocalizer;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
+import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 
 //This opMode uses the standardconfig configuration file.
 @TeleOp
@@ -28,7 +30,7 @@ public class DriveOpMode extends OpMode {
 
     ElapsedTime timer= new ElapsedTime();
 
-    EzraLocalizer localizer = new EzraLocalizer(robot,new double[] {0,0,0},timer);
+    RoadrunnerThreeWheelLocalizer localizer;
 
     enum IntakeState {IN, OUT, OFF};
     enum HangState{UP, DOWN};
@@ -52,32 +54,40 @@ public class DriveOpMode extends OpMode {
 
     MotionProfile1D rampFunction = new MotionProfile1D(0.8,1, 0.4, timer);
 
+
+    //config variables
     public static double UP_WEIGHT_CORRECTION = 0.65;
     public static double DOWN_WEIGHT_CORRECTION = 1;
+
+    public static double ELBOW_INTERCEPT = 0.265;
+    public static double ELBOW_SLOPE = 0.000055;
+
+    FtcDashboard dashboard;
+
     @Override
     // Set starting values for variable
     public void init() {
         robot.init(hardwareMap);
-        localizer.setWheelDistances(16.5,8);
-        localizer.init();
+        //localizer = new RoadrunnerThreeWheelLocalizer(hardwareMap);
+
+        dashboard = FtcDashboard.getInstance();
 
         // Update telemetry (for feedback)
         telemetry.addLine("Initialized!");
-        telemetry.addData("X pos",localizer.getPose()[0]);
-        telemetry.addData("y pos",localizer.getPose()[1]);
-        telemetry.addData("Angle pos",localizer.getPose()[2]);
+        //telemetry.addData("X pos",localizer.getPose()[0]);
+        //telemetry.addData("y pos",localizer.getPose()[1]);
+        //telemetry.addData("Angle pos",localizer.getPose()[2]);
         telemetry.update();
     }
 
     /*@Override
     public void start() {
-
-    }*/
+        localization.pose
+    } */
 
     @Override
     public void loop() {
         //all this stuff MUST be at the beginning of the loop
-        localizer.calcPose();
         previousGamepad1.copy(currentGamepad1);
         currentGamepad1.copy(gamepad1);
         previousGamepad2.copy(currentGamepad2);
@@ -141,11 +151,18 @@ public class DriveOpMode extends OpMode {
 
         //linear slide
         if(currentGamepad1.a){
-            slidePower = -0.8;
+            slidePower = -1;
         } else if(currentGamepad1.y){
-            if(robot.armExtend.getCurrentPosition() <= 5900) {
-                slidePower = 0.8;
-            } //change value to max encoder position of arm
+            //to prevent the robot from extending past the 42 inch limit specified by the rules
+            if(currentArmState == ArmState.DOWN) {
+                if (robot.armExtend.getCurrentPosition() <= 3000) {
+                    slidePower = 1;
+                } //change value to max encoder position of arm
+            } else {
+                if (robot.armExtend.getCurrentPosition() <= 5900) {
+                    slidePower = 1;
+                } //change value to max encoder position of arm
+            }
         } else {
             slidePower = 0;
         }
@@ -191,42 +208,24 @@ public class DriveOpMode extends OpMode {
             currentElbowState = ElbowState.UP;
         }
         if(currentElbowState == ElbowState.UP) {
-            robot.intakeElbow.setPosition(0.5);//test out to find correct position
+            robot.intakeElbow.setPosition(0.7);//test out to find correct position
         } else {
             if(currentArmState == ArmState.DOWN) {
                 //this is so that when the arm is in the down position, the roller can grab stuff at the exact right angle
-                robot.intakeElbow.setPosition(0.135 + (0.000068 * robot.armExtend.getCurrentPosition())); //fine-tune this
+                robot.intakeElbow.setPosition(ELBOW_INTERCEPT + (ELBOW_SLOPE * robot.armExtend.getCurrentPosition())); //fine-tune this
             } else {
-                robot.intakeElbow.setPosition(0.2);//test out to find correct position
+                robot.intakeElbow.setPosition(ELBOW_INTERCEPT);//test out to find correct position
             }
         }
 
-// umed maru: those who code
-        //hang
-        //this is a toggle
-        if(currentGamepad2.x && !previousGamepad2.x) {
-            if(currentHangState == HangState.UP) {
-                currentHangState = HangState.DOWN;
-            } else {
-                currentHangState = HangState.UP;
-            }
-        }
-        if(currentHangState == HangState.UP){
-            slidePower = -0.8;
-            robot.armRotate.setPower(-0.8);
-        }
-
-
-        /*telemetry.addData("Encoder 1", robot.getDeadwheel("parR").getTicks());
+        telemetry.addData("Encoder 1", robot.getDeadwheel("parR").getTicks());
         telemetry.addData("Encoder 2", robot.getDeadwheel("parL").getTicks());
         telemetry.addData("Encoder 3", robot.getDeadwheel("per").getTicks());
         telemetry.addData("Extension arm position", robot.armExtend.getCurrentPosition());
         telemetry.addData("Rotation arm position", robot.armRotate.getCurrentPosition());
 
 
-        telemetry.addData("left trigger", gamepad1.left_trigger);
-        telemetry.addData("right trigger", gamepad1.right_trigger);
-        telemetry.addData("intake state", currentIntakeState); */
+        telemetry.addData("intake state", currentIntakeState);
         telemetry.addData("arm state", currentArmState);
         telemetry.addData("frontLeft", robot.frontLeft.getPower());
         telemetry.addData("backLeft", robot.backLeft.getPower());

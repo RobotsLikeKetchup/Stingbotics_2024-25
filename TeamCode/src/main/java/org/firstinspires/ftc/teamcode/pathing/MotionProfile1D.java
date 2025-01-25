@@ -60,7 +60,7 @@ public class MotionProfile1D {
         } else if(currentPhase == Phase.CONSTANT_SPEED){
             currentSpeed = maxSpeed;
         } else if(currentPhase == Phase.SLOW_DOWN) {
-            if(currentSpeed <= 0) {
+            if(currentSpeed < 0) {
                 currentPhase = Phase.STOPPED;
                 currentSpeed = 0;
             }

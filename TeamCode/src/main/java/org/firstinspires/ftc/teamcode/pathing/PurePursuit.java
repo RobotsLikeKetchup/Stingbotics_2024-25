@@ -9,6 +9,9 @@ public class PurePursuit {
 
     double distanceFromEnd;
 
+    //distance to "look ahead" for the pure pursuit algorithm
+    double lookAhead = 20;
+
     double[] robotPosition;
 
     StingLocalizer localization;
@@ -104,8 +107,6 @@ public class PurePursuit {
     public double[] findPointOnPath(){
 
         robotPosition = localization.getPose();
-        //distance to "look ahead" for the pure pursuit algorithm
-        double lookAheadDistance = 7;
         boolean intersectionFound = false;
 
         double[] goalPoint = new double[2];
@@ -120,7 +121,7 @@ public class PurePursuit {
                 double[] point1 = path[i];
                 double[] point2 = path[i + 1];
 
-                double[][] solutions = intersection(robotPosition, point1, point2, lookAheadDistance);
+                double[][] solutions = intersection(robotPosition, point1, point2, lookAhead);
 
                 if (solutions.length > 0) { // solution found!
                     intersectionFound = true;

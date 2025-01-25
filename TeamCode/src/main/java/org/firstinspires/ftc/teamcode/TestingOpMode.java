@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode;
 
 import static org.firstinspires.ftc.teamcode.utilities.MathFunctions.toInt;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -12,6 +14,7 @@ import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLoc
 
 import java.util.Arrays;
 
+
 @TeleOp
 public class TestingOpMode extends OpMode {
     double[] motorPowers;
@@ -21,13 +24,19 @@ public class TestingOpMode extends OpMode {
 
     ElapsedTime timer= new ElapsedTime();
 
+    FtcDashboard dashboard;
+
+    final double robotWidth = 15;
+    final double r = (robotWidth/2) * Math.sqrt(2);
+
     @Override
     public void init() {
         robot.init(hardwareMap);
 
+        dashboard = FtcDashboard.getInstance();
 
-        localization = new RoadrunnerThreeWheelLocalizer(hardwareMap);
-        localization.pose = new Pose2d(0 ,0, Math.PI / 2);
+
+        localization = new RoadrunnerThreeWheelLocalizer(hardwareMap, new Pose2d(0 ,0, Math.PI / 2));
 
         robot.init(hardwareMap);
 
@@ -47,6 +56,8 @@ public class TestingOpMode extends OpMode {
         for (int i=0; i < motorPowers.length; i++) {
             robot.driveMotors[i].setPower(motorPowers[i]);
         }
+
+        double[] pose = localization.getPose();
 
 
         //if(gamepad1.a){robot.backLeft.setPower(0.8);} else {robot.backLeft.setPower(0);}
@@ -82,6 +93,25 @@ public class TestingOpMode extends OpMode {
         telemetry.addData("angle", Math.toDegrees(localization.getPose()[2]));
         //telemetry.addData("encoder value", encoderValue);
         telemetry.update();
+
+        //Draw on the field view of FTC Dashboard
+        TelemetryPacket packet = new TelemetryPacket(false);
+        packet.fieldOverlay()
+                .setFill("blue")
+                .fillPolygon(new double[] {
+                        pose[0] - (r * Math.sin(pose[2]+(Math.PI/4))),
+                        pose[0] - (r * Math.sin(pose[2]-(Math.PI/4))),
+                        pose[0] - (r * Math.sin(pose[2]-(3*Math.PI/4))),
+                        pose[0] - (r * Math.sin(pose[2]+(3*Math.PI/4)))
+                }, new double[] {
+                        pose[1] - (r*Math.cos(pose[2]+(Math.PI/4))),
+                        pose[1] - (r*Math.cos(pose[2]-(Math.PI/4))),
+                        pose[1] - (r*Math.cos(pose[2]-(3*Math.PI/4))),
+                        pose[1] - (r*Math.cos(pose[2]+(3*Math.PI/4)))
+                }); //all the stuff above are the points, rotated based on the robot's angle
+
+
+        dashboard.sendTelemetryPacket(packet);
     }
 
 }

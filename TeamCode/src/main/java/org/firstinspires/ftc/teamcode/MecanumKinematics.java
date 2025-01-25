@@ -23,18 +23,18 @@ public class MecanumKinematics {
      */
     public static double[] getPowerFromDirection(double[] targetPower, double maxPower){
         double x, y, rotation, powerLimiter, frontLeft, frontRight, backLeft, backRight;
-        x = targetPower[0] * 1.1;
+        x = targetPower[0] * 1.1; //1.1 is to counteract imperfect strafing from both path followers and drivers
         y = targetPower[1];
         
         rotation = targetPower[2];
 
         //limits power so it isn't larger than either the
-        powerLimiter = Math.max(Math.abs(x) + Math.abs(y) + Math.abs(rotation), maxPower);
+        powerLimiter = Math.max(Math.abs(x) + Math.abs(y) + Math.abs(rotation), 1);
 
-        frontLeft = (y+x- rotation)/powerLimiter;
-        frontRight = (y-x+ rotation)/powerLimiter;
-        backLeft= (y-x- rotation)/powerLimiter;
-        backRight= (y+x+ rotation)/powerLimiter;
+        frontLeft = maxPower * (y+x- rotation)/powerLimiter;
+        frontRight = maxPower * (y-x+ rotation)/powerLimiter;
+        backLeft= maxPower * (y-x- rotation)/powerLimiter;
+        backRight= maxPower * (y+x+ rotation)/powerLimiter;
 
         return new double[]{frontLeft,frontRight,backLeft,backRight};
     }
