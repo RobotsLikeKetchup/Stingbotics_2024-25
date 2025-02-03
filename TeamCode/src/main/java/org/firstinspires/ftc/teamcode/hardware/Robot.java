@@ -1,13 +1,24 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import androidx.annotation.NonNull;
+
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.SequentialAction;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.hardware.DeadWheel;
+import org.firstinspires.ftc.teamcode.MecanumKinematics;
+import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
+import org.firstinspires.ftc.teamcode.pathing.PurePursuit;
+import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
+import org.firstinspires.ftc.teamcode.utilities.MovementFunctions;
 
 public class Robot {
     //fields
@@ -30,6 +41,10 @@ public class Robot {
     public TouchSensor backArmLimitSwitch;
     public DcMotor[] driveMotors;
 
+    public RoadrunnerThreeWheelLocalizer localization;
+
+    ElapsedTime timer;
+
     //constructor
     public Robot(DcMotor fR, DcMotor fL, DcMotor bR, DcMotor bL){
         frontRight = fR;
@@ -40,10 +55,14 @@ public class Robot {
 
     public Robot(){};
 
-    public void init(HardwareMap hardwareMap){
+    public void init(HardwareMap hardwareMap, ElapsedTime timer){
+
+        localization = new RoadrunnerThreeWheelLocalizer(hardwareMap, new Pose2d(0 ,0, Math.PI / 2));
+
+        this.timer=timer;
 
         //TUNE THIS
-        double inPerTick = 1;
+        double inPerTick = 0.0004;
 
         // Map variables to motors
         frontLeft = hardwareMap.get(DcMotor.class,"motor_fl");
@@ -112,6 +131,168 @@ public class Robot {
                 break;
         }
         return out;
+    }
+
+    //Actions!
+    public class followPath implements Action {
+        boolean initialized = false;
+        double[][] path;
+        MotionProfile1D motionProfile = new MotionProfile1D(0.8, 0.4, timer);
+        double velocityCoeff;
+        double[] goalPoint, direction, motorPowers;
+        PurePursuit pathing;
+        double[] pose;
+        double optimalAngle;
+        boolean optimalAngleFieldReferenceFrame;
+
+        public followPath(double[][] path, double optimalAngle, boolean optimalAngleFieldReferenceFrame) {
+            this.path = path;
+            pathing = new PurePursuit(path, localization);
+            this.optimalAngle = optimalAngle;
+            this.optimalAngleFieldReferenceFrame = optimalAngleFieldReferenceFrame;
+        }
+
+        //this is essentially what the action does. It will run until it returns false.
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            if(!initialized) {
+                motionProfile.startSpeedUp();
+                initialized = true;
+                telemetryPacket.addLine("initialized!");
+            }
+            pose = localization.getPose();
+
+            goalPoint = pathing.findPointOnPath();
+            if(optimalAngleFieldReferenceFrame) {
+                direction = MovementFunctions.createMovementVector(pose, goalPoint);
+                direction[2] = MovementFunctions.proportionalAngleCorrection(optimalAngle, pose[2]);
+            } else {
+                direction = MovementFunctions.createMovementVector(pose, goalPoint, optimalAngle);
+            }
+
+            //uses a PID to make sure the velocity stays consistent
+            //velocityCoeff = velocityControl.loop(motionProfile.getTargetSpeed(), Math.hypot(localization.getVelocity()[0], localization.getVelocity()[1]));
+
+            velocityCoeff = motionProfile.getTargetSpeed();
+            motorPowers = MecanumKinematics.getPowerFromDirection(direction, velocityCoeff);
+
+            for (int i = 0; i < motorPowers.length; i++) {
+                driveMotors[i].setPower(-motorPowers[i]);//negative is temporary until I figure out what is making the robot go backward
+            }
+
+            if ((pathing.getDistanceFromEnd() <= 10) && (motionProfile.currentPhase == MotionProfile1D.Phase.CONSTANT_SPEED || motionProfile.currentPhase == MotionProfile1D.Phase.SPEED_UP)) {
+                motionProfile.startSlowDown();
+            }
+
+            telemetryPacket.put("Motion Profile Phase", motionProfile.currentPhase);
+            telemetryPacket.put("Speed", velocityCoeff);
+
+            if (motionProfile.currentPhase == MotionProfile1D.Phase.STOPPED) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+    }
+
+    public Action followPath(double[][] path, double optimalAngle, boolean optimalAngleFieldReferenceFrame) {
+        return new followPath(path, optimalAngle, optimalAngleFieldReferenceFrame);
+    }
+
+    public class clipArmUp implements Action {
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            intakeElbow.setPosition(0.2);
+            if(!backArmLimitSwitch.isPressed()) {
+                armRotate.setPower(-0.8);
+            } else {
+                armRotate.setPower(0);
+            }
+            if(armExtend.getCurrentPosition() <= 4400) {
+                armExtend.setPower(1);
+            } else {
+                armExtend.setPower(0);
+            }
+            if(backArmLimitSwitch.isPressed() && (armExtend.getCurrentPosition() >= 4400)) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+    }
+
+    Action clipArmUp() {
+        return new clipArmUp();
+    }
+
+    public class clipArmDown implements Action {
+        boolean initialized = false;
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            if(!initialized) {
+                armExtend.setPower(-0.5);
+                initialized = true;
+            }
+
+            if(armExtend.getCurrentPosition() <= 3000) {
+                armExtend.setPower(0);
+                return false;
+            } else {
+                return true;
+            }
+        }
+    }
+
+    Action clipArmDown() {
+        return new clipArmDown();
+    }
+
+    public class openClaw implements Action {
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            intakeClaw.setPosition(0.1);
+            return false;
+        }
+    }
+
+    public Action openClaw() {
+        return new openClaw();
+    }
+
+    public class resetArm implements Action {
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            if(!frontArmLimitSwitch.isPressed()) {
+                armRotate.setPower(1);
+            } else {
+                armRotate.setPower(0);
+            }
+            if(!slideLimitSwitch.isPressed()) {
+                armExtend.setPower(1);
+            } else {
+                armExtend.setPower(0);
+            }
+            if(slideLimitSwitch.isPressed() && frontArmLimitSwitch.isPressed()) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+    }
+
+    public Action resetArm() {
+        return new resetArm();
+    }
+
+    public Action clip() {
+        return new SequentialAction(
+                clipArmUp(),
+                clipArmDown(),
+                openClaw(),
+                resetArm()
+        );
     }
 }
 

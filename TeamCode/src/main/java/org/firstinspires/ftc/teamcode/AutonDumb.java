@@ -51,7 +51,7 @@ public class AutonDumb extends OpMode {
     @Override
     public void init() {
 
-        robot.init(hardwareMap);
+        robot.init(hardwareMap, timer);
 
         robot.intakeElbow.setPosition(0.75);
 

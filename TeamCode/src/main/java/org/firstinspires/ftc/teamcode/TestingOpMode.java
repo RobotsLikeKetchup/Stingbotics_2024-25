@@ -31,14 +31,13 @@ public class TestingOpMode extends OpMode {
 
     @Override
     public void init() {
-        robot.init(hardwareMap);
 
         dashboard = FtcDashboard.getInstance();
 
 
         localization = new RoadrunnerThreeWheelLocalizer(hardwareMap, new Pose2d(0 ,0, Math.PI / 2));
 
-        robot.init(hardwareMap);
+        robot.init(hardwareMap, timer);
 
         telemetry.addLine("initialized!");
         telemetry.update();

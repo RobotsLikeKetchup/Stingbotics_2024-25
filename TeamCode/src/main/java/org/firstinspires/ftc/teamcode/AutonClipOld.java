@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.utilities.PID;
 
 
 @Autonomous
-public class Auton extends OpMode {
+public class AutonClipOld extends OpMode {
     enum Steps {
         ACCELERATION,
         DRIVE,
@@ -30,6 +30,7 @@ public class Auton extends OpMode {
     ElapsedTime timer = new ElapsedTime();
     RoadrunnerThreeWheelLocalizer localization;
     double[][] path = {
+            {0,0},
             {0,-28}
     };
 
@@ -44,7 +45,7 @@ public class Auton extends OpMode {
 
     PID velocityControl = new PID(0.01, 0, 0, timer);
 
-    MotionProfile1D motionProfile = new MotionProfile1D(1, 0.2, timer);
+    MotionProfile1D motionProfile = new MotionProfile1D(0.8, 0.4, timer);
 
     double velocityCoeff;
 
@@ -67,7 +68,7 @@ public class Auton extends OpMode {
     public void init() {
         localization = new RoadrunnerThreeWheelLocalizer(hardwareMap, new Pose2d(0 ,0, Math.PI / 2));
 
-        robot.init(hardwareMap);
+        robot.init(hardwareMap, timer);
 
         robot.intakeElbow.setPosition(0.80);
         robot.intakeClaw.setPosition(0.9);
@@ -106,9 +107,9 @@ public class Auton extends OpMode {
             if (direction[2] <= 0.1 && direction[2] >= -.1) {
                 direction[2] = 0;
             } else if (direction[2] > 0.1) {
-                direction[2] = 0.5;
+                direction[2] = -0.8;
             } else if (direction[2] < -0.1) {
-                direction[2] = -0.5;
+                direction[2] = 0.8;
             }
 
             //uses a PID to make sure the velocity stays consistent
@@ -122,7 +123,7 @@ public class Auton extends OpMode {
             }
             ;
 
-            if ((currentPathing.getDistanceFromEnd() <= 8) && (motionProfile.currentPhase == MotionProfile1D.Phase.CONSTANT_SPEED || motionProfile.currentPhase == MotionProfile1D.Phase.SPEED_UP)) {
+            if ((currentPathing.getDistanceFromEnd() <= 10) && (motionProfile.currentPhase == MotionProfile1D.Phase.CONSTANT_SPEED || motionProfile.currentPhase == MotionProfile1D.Phase.SPEED_UP)) {
                 motionProfile.startSlowDown();
                 endingPath = true;
             }
@@ -138,23 +139,23 @@ public class Auton extends OpMode {
         if(currentStage == Stages.ARM_UP) {
             robot.intakeElbow.setPosition(0.2);
             if(!robot.backArmLimitSwitch.isPressed()) {
-                robot.armRotate.setPower(-0.7);
+                robot.armRotate.setPower(-0.8);
             } else {
                 robot.armRotate.setPower(0);
             }
-            if(robot.armExtend.getCurrentPosition() <= 4900) {
+            if(robot.armExtend.getCurrentPosition() <= 4400) {
                 robot.armExtend.setPower(1);
             } else {
                 robot.armExtend.setPower(0);
             }
-            if(robot.backArmLimitSwitch.isPressed() && (robot.armExtend.getCurrentPosition() >= 4900)) {
+            if(robot.backArmLimitSwitch.isPressed() && (robot.armExtend.getCurrentPosition() >= 4400)) {
                 currentStage = Stages.ARM_DOWN;
             }
         } else if(currentStage == Stages.ARM_DOWN) {
-            if(robot.armExtend.getCurrentPosition() <= 3600) {
+            if(robot.armExtend.getCurrentPosition() <= 3000) {
                 currentStage = Stages.RELEASE;
             } else {
-                robot.armExtend.setPower(-0.8);
+                robot.armExtend.setPower(-0.5);
             }
         } else if(currentStage == Stages.RELEASE) {
             if(robot.slideLimitSwitch.isPressed()) {robot.armExtend.setPower(0);};
@@ -167,8 +168,8 @@ public class Auton extends OpMode {
             } else {
                 robot.armRotate.setPower(0);
                 pathNumber++;
-                motionProfile.startSpeedUp();
-                currentStage = Stages.DRIVING;
+                //motionProfile.startSpeedUp();
+                //currentStage = Stages.DRIVING;
             }
         }
 

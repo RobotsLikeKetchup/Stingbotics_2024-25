@@ -59,7 +59,7 @@ public class DriveOpMode extends OpMode {
     public static double UP_WEIGHT_CORRECTION = 0.65;
     public static double DOWN_WEIGHT_CORRECTION = 1;
 
-    public static double ELBOW_INTERCEPT = 0.265;
+    public static double ELBOW_INTERCEPT = 0.3;
     public static double ELBOW_SLOPE = 0.000055;
 
     FtcDashboard dashboard;
@@ -67,7 +67,7 @@ public class DriveOpMode extends OpMode {
     @Override
     // Set starting values for variable
     public void init() {
-        robot.init(hardwareMap);
+        robot.init(hardwareMap, timer);
         //localizer = new RoadrunnerThreeWheelLocalizer(hardwareMap);
 
         dashboard = FtcDashboard.getInstance();
@@ -241,6 +241,11 @@ public class DriveOpMode extends OpMode {
             robot.armExtend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             robot.armExtend.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             telemetry.addLine("Limit Switch Pressed!");
+        }
+        if(currentArmState == ArmState.DOWN && robot.armExtend.getCurrentPosition() >=3000){
+            if(!currentGamepad1.a){
+                slidePower=0;
+            }
         }
 
         robot.armExtend.setPower(slidePower);

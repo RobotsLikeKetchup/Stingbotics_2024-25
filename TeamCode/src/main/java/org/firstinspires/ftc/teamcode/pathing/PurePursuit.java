@@ -1,24 +1,41 @@
 package org.firstinspires.ftc.teamcode.pathing;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+
 import java.util.ArrayList;
 
 //this class will implement the pure pursuit pathing algorithm
 public class PurePursuit {
+    boolean intersectionFound;
     double[][] path;
-    int lastFoundIndex;
+    int lastFoundIndex=1;
 
     double distanceFromEnd;
 
     //distance to "look ahead" for the pure pursuit algorithm
     double lookAhead = 20;
 
+    FtcDashboard dashboard;
+    boolean telemetry;
+
     double[] robotPosition;
+    public double discriminantPublic;
+    public double secondTerm;
 
     StingLocalizer localization;
     public PurePursuit(double[][] pathPoints, StingLocalizer localizer) {
         path = pathPoints;
         localization = localizer;
         lastFoundIndex = 0;
+        telemetry = false;
+    }
+    public PurePursuit(double[][] pathPoints, StingLocalizer localizer, FtcDashboard dashboard) {
+        path = pathPoints;
+        localization = localizer;
+        lastFoundIndex = 0;
+        this.dashboard=dashboard;
+        telemetry= true;
     }
 
     // this method returns -1 if the number is <0, and 1 if anything else(including 0). it is for calculating line-circle intersection
@@ -62,6 +79,17 @@ public class PurePursuit {
         double determinant = (x1*y2)-(x2*y1);
 
         double discriminant = (Math.pow(lookAheadDistance, 2) * Math.pow(differenceRadius, 2)) - Math.pow(determinant, 2);
+
+        if(telemetry) {
+            TelemetryPacket packet = new TelemetryPacket();
+            packet.put("det",determinant);
+            packet.put("x1", x1);
+            packet.put("x2", x2);
+            packet.put("y1", y1);
+            packet.put("y2", y2);
+            dashboard.sendTelemetryPacket(packet);
+        }
+
 
         //do the math for line-circle intersection if there exist solutions
         if (discriminant >= 0) {
@@ -107,8 +135,6 @@ public class PurePursuit {
     public double[] findPointOnPath(){
 
         robotPosition = localization.getPose();
-        boolean intersectionFound = false;
-
         double[] goalPoint = new double[2];
 
 
@@ -145,6 +171,13 @@ public class PurePursuit {
 
                 } else { //no solution found!
                     intersectionFound = false;
+                }
+            }
+            if(!intersectionFound) {
+                if(lastFoundIndex + 2 == path.length) { //if the robot is on its final line segment, go straight to the finish!
+                    goalPoint[0] = path[lastFoundIndex+1][0];
+                    goalPoint[1] = path[lastFoundIndex+1][1];
+                } else {
                     goalPoint[0] = path[lastFoundIndex][0];
                     goalPoint[1] = path[lastFoundIndex][1];
                 }
@@ -158,8 +191,15 @@ public class PurePursuit {
     }
 
     public double getDistanceFromEnd(){
-        distanceFromEnd = twoPointDistance(robotPosition, path[path.length - 1]);
-
+        //if(lastFoundIndex+2 == path.length) {
+            distanceFromEnd = twoPointDistance(robotPosition, path[path.length - 1]);
+        /*} else {
+            distanceFromEnd = twoPointDistance(robotPosition, path[lastFoundIndex]);
+            for(int i=lastFoundIndex+1; i<path.length-1; i++){
+                distanceFromEnd = distanceFromEnd + twoPointDistance(path[i-1], path[i]);
+            }
+        }*/
         return distanceFromEnd;
     }
+    public boolean intersectionFound() {return intersectionFound;}
 }

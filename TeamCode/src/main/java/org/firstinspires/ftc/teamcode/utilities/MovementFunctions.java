@@ -2,6 +2,9 @@ package org.firstinspires.ftc.teamcode.utilities;
 
 public class MovementFunctions {
 
+    //this is to convert the robot's angle to turn to into a power, so the bigger the error, the larger the power
+    final static double ANGLE_POWER_CONVERTER = 0.8/Math.PI;
+
     //creates a "direction" for the robot to go in.
     //also returns an optimal angle to go to but that's optional depending on usage
     public static double[] createMovementVector(double[] robotPose, double[] targetPoint) {
@@ -17,7 +20,7 @@ public class MovementFunctions {
         return new double[] {
                 Math.sin(relativeAngle),
                 Math.cos(relativeAngle),
-                relativeAngle
+                ANGLE_POWER_CONVERTER * relativeAngle
         };
     }
 
@@ -34,8 +37,12 @@ public class MovementFunctions {
         return new double[] {
                 Math.sin(relativeAngle),
                 Math.cos(relativeAngle),
-                relativeAngle + optimalAngle
+                ANGLE_POWER_CONVERTER * (relativeAngle + optimalAngle)
         };
+    }
+
+    public static double proportionalAngleCorrection(double optimalAngle, double robotAngle) {
+        return ANGLE_POWER_CONVERTER * MathFunctions.angleWrap(optimalAngle - robotAngle);
     }
 
 }
