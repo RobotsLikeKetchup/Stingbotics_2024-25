@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 // Import FTC classes
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -63,6 +64,7 @@ public class DriveOpMode extends OpMode {
     public static double ELBOW_SLOPE = 0.000055;
 
     FtcDashboard dashboard;
+    TelemetryPacket packet;
 
     @Override
     // Set starting values for variable
@@ -71,6 +73,7 @@ public class DriveOpMode extends OpMode {
         //localizer = new RoadrunnerThreeWheelLocalizer(hardwareMap);
 
         dashboard = FtcDashboard.getInstance();
+        packet = new TelemetryPacket();
 
         // Update telemetry (for feedback)
         telemetry.addLine("Initialized!");
@@ -145,8 +148,11 @@ public class DriveOpMode extends OpMode {
         //rotating arm
         robot.armRotate.setPower(currentGamepad1.b && !(currentArmState == ArmState.DOWN) ? 1 : (currentGamepad1.x && !(currentArmState == ArmState.UP) ? -1 : 0));
 
-        //if(gamepad1.b){robot.armRotate.setTargetPosition(-2404);};
-        //if(gamepad1.x){robot.armRotate.setTargetPosition(480);};
+        /*if(currentGamepad1.b) {
+            currentArmState = ArmState.DOWN;
+        } if(currentGamepad1.a) {
+            currentArmState=ArmState.UP;
+        } */
 
 
         //linear slide
@@ -198,6 +204,7 @@ public class DriveOpMode extends OpMode {
         else {
             robot.intakeRoller.setPower(-1);
             robot.intakeClaw.setPosition(0.1); //change to measured value
+            robot.openClaw().run(packet);
         }
 
         //moves the elbow
