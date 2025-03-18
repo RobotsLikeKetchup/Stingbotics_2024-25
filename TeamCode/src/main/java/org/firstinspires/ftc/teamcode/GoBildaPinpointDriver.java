@@ -600,12 +600,10 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
      * normalized heading is wrapped from -180°, to 180°.
      */
     public double getHeading(AngleUnit angleUnit){
-        return angleUnit.fromRadians(hOrientation);
+        return angleUnit.fromRadians((hOrientation + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
     }
 
     /**
-     *
-     * @param unnormalizedAngleUnit
      * @return the unnormalized estimated H (heading) position of the robot in specified unit
      * unnormalized heading is not constrained from -180° to 180°. It will continue counting
      * multiple rotations.
