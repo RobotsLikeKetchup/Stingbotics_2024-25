@@ -261,10 +261,13 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
      * @param oldValue the reading from the previous cycle
      * @param newValue the new reading
      * @param threshold the maximum change between this reading and the previous one
+     * @param bulkUpdate true if we are updating the loopTime variable. If not it should be false.
      * @return newValue if the position is good, oldValue otherwise
      */
-    private Float isPositionCorrupt(float oldValue, float newValue, int threshold){
-        boolean isCorrupt = Float.isNaN(newValue) || Math.abs(newValue - oldValue) > threshold;
+    private Float isPositionCorrupt(float oldValue, float newValue, int threshold, boolean bulkUpdate){
+        boolean noData = bulkUpdate && (loopTime < 1);
+
+        boolean isCorrupt = noData || Float.isNaN(newValue) || Math.abs(newValue - oldValue) > threshold;
 
         if(!isCorrupt){
             return newValue;
@@ -283,6 +286,7 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
      */
     private Float isVelocityCorrupt(float oldValue, float newValue, int threshold){
         boolean isCorrupt = Float.isNaN(newValue) || Math.abs(newValue) > threshold;
+        boolean noData = (loopTime <= 1);
 
         if(!isCorrupt){
             return newValue;
@@ -324,9 +328,9 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
          * Check to see if any of the floats we have received from the device are NaN or are too large
          * if they are, we return the previously read value and alert the user via the DeviceStatus Enum.
          */
-        xPosition    = isPositionCorrupt(oldPosX, xPosition, positionThreshold);
-        yPosition    = isPositionCorrupt(oldPosY, yPosition, positionThreshold);
-        hOrientation = isPositionCorrupt(oldPosH, hOrientation, headingThreshold);
+        xPosition    = isPositionCorrupt(oldPosX, xPosition, positionThreshold, true);
+        yPosition    = isPositionCorrupt(oldPosY, yPosition, positionThreshold, true);
+        hOrientation = isPositionCorrupt(oldPosH, hOrientation, headingThreshold, true);
         xVelocity    = isVelocityCorrupt(oldVelX, xVelocity, velocityThreshold);
         yVelocity    = isVelocityCorrupt(oldVelY, yVelocity, velocityThreshold);
         hVelocity    = isVelocityCorrupt(oldVelH, hVelocity, headingVelocityThreshold);
@@ -347,7 +351,7 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
 
             hOrientation = byteArrayToFloat(deviceClient.read(Register.H_ORIENTATION.bVal, 4), ByteOrder.LITTLE_ENDIAN);
 
-            hOrientation = isPositionCorrupt(oldPosH, hOrientation, headingThreshold);
+            hOrientation = isPositionCorrupt(oldPosH, hOrientation, headingThreshold, false);
 
             if (deviceStatus == DeviceStatus.FAULT_BAD_READ.status){
                 deviceStatus = DeviceStatus.READY.status;
@@ -369,7 +373,6 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
         writeFloat(Register.Y_POD_OFFSET, (float) yOffset);
     }
 
-
     /**
      * Sets the odometry pod positions relative to the point that the odometry computer tracks around.<br><br>
      * The most common tracking position is the center of the robot. <br> <br>
@@ -390,7 +393,6 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
      * Device takes a large number of samples, and uses those as the gyroscope zero-offset. This takes approximately 0.25 seconds.
      */
     public void recalibrateIMU(){writeInt(Register.DEVICE_CONTROL,1<<0);}
-
 
     /**
      * Resets the current position to 0,0,0 and recalibrates the Odometry Computer's internal IMU. <br><br>
@@ -507,6 +509,10 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
      */
     public int getDeviceVersion(){return readInt(Register.DEVICE_VERSION); }
 
+    /**
+     * @return a scalar that the IMU measured heading is multiplied by. This is tuned for each unit
+     * and should not need adjusted.
+     */
     public float getYawScalar(){return readFloat(Register.YAW_SCALAR); }
 
     /**
@@ -697,9 +703,6 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
                 AngleUnit.RADIANS,
                 ((hVelocity + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI);
     }
-
-
-
 }
 
 

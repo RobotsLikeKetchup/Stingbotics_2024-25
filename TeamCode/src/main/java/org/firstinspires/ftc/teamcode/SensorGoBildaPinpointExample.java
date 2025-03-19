@@ -59,7 +59,7 @@ For support, contact tech@gobilda.com
 -Ethan Doak
  */
 
-@TeleOp(name="Odometry with Drive", group="Linear OpMode")
+@TeleOp(name="goBILDA Pinpoint Example", group="Linear OpMode")
 //@Disabled
 
 public class SensorGoBildaPinpointExample extends LinearOpMode {
@@ -141,7 +141,7 @@ public class SensorGoBildaPinpointExample extends LinearOpMode {
             Optionally, you can update only the heading of the device. This takes less time to read, but will not
             pull any other data. Only the heading (which you can pull with getHeading() or in getPosition().
              */
-            //odo.update(GoBildaPinpointDriver.readData.ONLY_UPDATE_HEADING);
+            //odo.update(GoBildaPinpointDriver.ReadData.ONLY_UPDATE_HEADING);
 
 
             if (gamepad1.a){
