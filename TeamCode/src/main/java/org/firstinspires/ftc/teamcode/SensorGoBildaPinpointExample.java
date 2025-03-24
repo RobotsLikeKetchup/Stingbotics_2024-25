@@ -120,7 +120,7 @@ public class SensorGoBildaPinpointExample extends LinearOpMode {
         telemetry.addData("X offset", odo.getXOffset(DistanceUnit.MM));
         telemetry.addData("Y offset", odo.getYOffset(DistanceUnit.MM));
         telemetry.addData("Device Version Number:", odo.getDeviceVersion());
-        telemetry.addData("Device Scalar", odo.getYawScalar());
+        telemetry.addData("Heading Scalar", odo.getYawScalar());
         telemetry.update();
 
         // Wait for the game to start (driver presses START)

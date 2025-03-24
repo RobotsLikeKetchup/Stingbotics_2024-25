@@ -182,16 +182,15 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
     private float byteArrayToFloat(byte[] byteArray, ByteOrder byteOrder){
         return ByteBuffer.wrap(byteArray).order(byteOrder).getFloat();
     }
+
     /**
      * Reads a float from a register
      * @param reg the register to read
      * @return the float value stored in that register
      */
-
     private float readFloat(Register reg){
         return byteArrayToFloat(deviceClient.read(reg.bVal,4),ByteOrder.LITTLE_ENDIAN);
     }
-
 
     /**
      * Converts a float to a byte array
@@ -496,6 +495,39 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
         writeByteArray(Register.Y_POSITION,(floatToByteArray((float) pos.getY(DistanceUnit.MM),ByteOrder.LITTLE_ENDIAN)));
         writeByteArray(Register.H_ORIENTATION,(floatToByteArray((float) pos.getHeading(AngleUnit.RADIANS),ByteOrder.LITTLE_ENDIAN)));
         return pos;
+    }
+
+    /**
+     * Send a position that the Pinpoint should use to track your robot relative to.
+     * You can use this to update the estimated position of your robot with new external
+     * sensor data, or to run a robot in field coordinates.
+     * @param posX the new X position you'd like the Pinpoint to track your robot relive to.
+     * @param distanceUnit the unit for posX
+     */
+    public void setPosX(double posX, DistanceUnit distanceUnit){
+        writeByteArray(Register.X_POSITION,(floatToByteArray((float) distanceUnit.toMm(posX), ByteOrder.LITTLE_ENDIAN)));
+    }
+
+    /**
+     * Send a position that the Pinpoint should use to track your robot relative to.
+     * You can use this to update the estimated position of your robot with new external
+     * sensor data, or to run a robot in field coordinates.
+     * @param posY the new Y position you'd like the Pinpoint to track your robot relive to.
+     * @param distanceUnit the unit for posY
+     */
+    public void setPosY(double posY, DistanceUnit distanceUnit){
+        writeByteArray(Register.Y_POSITION,(floatToByteArray((float) distanceUnit.toMm(posY), ByteOrder.LITTLE_ENDIAN)));
+    }
+
+    /**
+     * Send a heading that the Pinpoint should use to track your robot relative to.
+     * You can use this to update the estimated position of your robot with new external
+     * sensor data, or to run a robot in field coordinates.
+     * @param heading the new heading you'd like the Pinpoint to track your robot relive to.
+     * @param angleUnit Radians or Degrees
+     */
+    public void setHeading(double heading, AngleUnit angleUnit){
+        writeByteArray(Register.H_ORIENTATION,(floatToByteArray((float) angleUnit.toRadians(heading), ByteOrder.LITTLE_ENDIAN)));
     }
 
     /**
