@@ -143,7 +143,7 @@ public class DriveOpMode extends OpMode {
         for (int i=0; i < motorPowers.length; i++) {
             robot.driveMotors[i].setPower(motorPowers[i]);
         }
-
+0
 
         //rotating arm
         robot.armRotate.setPower(currentGamepad1.b && !(currentArmState == ArmState.DOWN) ? 1 : (currentGamepad1.x && !(currentArmState == ArmState.UP) ? -1 : 0));
@@ -219,7 +219,7 @@ public class DriveOpMode extends OpMode {
         } else {
             if(currentArmState == ArmState.DOWN) {
                 //this is so that when the arm is in the down position, the roller can grab stuff at the exact right angle
-                robot.intakeElbow.setPosition(ELBOW_INTERCEPT + (ELBOW_SLOPE * robot.armExtend.getCurrentPosition())); //fine-tune this
+                robot.intakeElbow.setPosition(ELBOW_INTERCEPT + (ELBOW_SLOPE * robot.armExtend.getCurrentPosition()))  ; //fine-tune this
             } else {
                 robot.intakeElbow.setPosition(ELBOW_INTERCEPT);//test out to find correct position
             }
