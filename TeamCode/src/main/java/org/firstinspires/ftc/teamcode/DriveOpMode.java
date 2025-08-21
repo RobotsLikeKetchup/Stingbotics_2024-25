@@ -24,28 +24,12 @@ import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLoc
 public class DriveOpMode extends OpMode {
     // Create variables
     double[] motorPowers;
-
-    double slidePower = 0;
-
+//ur nt shkspr vro
     Robot robot = new Robot();
 
     ElapsedTime timer= new ElapsedTime();
 
     RoadrunnerThreeWheelLocalizer localizer;
-
-    enum IntakeState {IN, OUT, OFF};
-    enum HangState{UP, DOWN};
-    enum ArmState{UP, DOWN, MIDDLE};
-    enum ElbowState{UP,DOWN};
-    IntakeState currentIntakeState = IntakeState.OFF;
-
-    HangState currentHangState = HangState.DOWN;
-
-    ArmState currentArmState = ArmState.MIDDLE;
-    ArmState weightCorrectionArmState = ArmState.MIDDLE;
-    int upArmVal;
-    int downArmVal;
-    ElbowState currentElbowState = ElbowState.UP;
 
     Gamepad previousGamepad1 = new Gamepad();
     Gamepad currentGamepad1 = new Gamepad();
@@ -97,26 +81,6 @@ public class DriveOpMode extends OpMode {
         currentGamepad2.copy(gamepad2);
 
 
-        //the limit switch stuff should be at the start of the loop cause if it is not, then you run the risk of
-        //the robot powering the arm for a little bit even like a milisecond which makes the arm go too far and break stuff
-        if(robot.frontArmLimitSwitch.isPressed()) {
-            telemetry.addLine("front limit switch pressed");
-            currentArmState = ArmState.DOWN;
-            downArmVal = robot.armRotate.getCurrentPosition();
-            weightCorrectionArmState = ArmState.DOWN;
-        } else if(robot.backArmLimitSwitch.isPressed()){
-            telemetry.addLine("back limit switch pressed");
-            currentArmState = ArmState.UP;
-            upArmVal = robot.armRotate.getCurrentPosition();
-            weightCorrectionArmState = ArmState.UP;
-        }
-        else {
-            currentArmState = ArmState.MIDDLE;
-        }
-        telemetry.addData("arm position", currentArmState);
-
-        //now everything else
-
         //ramp  function: if sebastian has just started moving, start the motion profile.
         if ((Math.abs(currentGamepad1.left_stick_x) > 0.05 || Math.abs(currentGamepad1.left_stick_y) > 0.05) && !(Math.abs(previousGamepad1.left_stick_x) > 0.05 || Math.abs(previousGamepad1.left_stick_y) > 0.05)) {
             rampFunction.reset();
@@ -130,8 +94,7 @@ public class DriveOpMode extends OpMode {
                 gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
                 toInt(gamepad1.right_bumper) - toInt(gamepad1.left_bumper)
             },
-            rampFunction.getTargetSpeed(),
-            (weightCorrectionArmState==ArmState.UP ? UP_WEIGHT_CORRECTION : DOWN_WEIGHT_CORRECTION), //this all just correcting for our shitty weight distribution
+            rampFunction.getTargetSpeed(), 1, //this all just correcting for our shitty weight distribution
             true
         );
 
@@ -143,119 +106,23 @@ public class DriveOpMode extends OpMode {
         for (int i=0; i < motorPowers.length; i++) {
             robot.driveMotors[i].setPower(motorPowers[i]);
         }
-0
 
-        //rotating arm
-        robot.armRotate.setPower(currentGamepad1.b && !(currentArmState == ArmState.DOWN) ? 1 : (currentGamepad1.x && !(currentArmState == ArmState.UP) ? -1 : 0));
-
-        /*if(currentGamepad1.b) {
-            currentArmState = ArmState.DOWN;
-        } if(currentGamepad1.a) {
-            currentArmState=ArmState.UP;
-        } */
-
-
-        //linear slide
-        if(currentGamepad1.a){
-            slidePower = -1;
-        } else if(currentGamepad1.y){
-            //to prevent the robot from extending past the 42 inch limit specified by the rules
-            if(currentArmState == ArmState.DOWN) {
-                if (robot.armExtend.getCurrentPosition() <= 3000) {
-                    slidePower = 1;
-                } //change value to max encoder position of arm
-            } else {
-                if (robot.armExtend.getCurrentPosition() <= 5900) {
-                    slidePower = 1;
-                } //change value to max encoder position of arm
-            }
-        } else {
-            slidePower = 0;
-        }
 
         // Servo Controller            RT is in , LT is out
         //this implements a simple toggle system
-        if(currentGamepad1.right_trigger >= 0.4 && previousGamepad1.right_trigger <= 0.4) {
-            telemetry.addLine("Right Trigger Released");
-            if (currentIntakeState == IntakeState.OFF || currentIntakeState == IntakeState.OUT){
-                currentIntakeState = IntakeState.IN;
-            } else {
-                currentIntakeState = IntakeState.OFF;
-            }
-        }
 
-        if(currentGamepad1.left_trigger >= 0.4 && previousGamepad1.left_trigger <= 0.4) {
-            telemetry.addLine("Left Trigger Released");
-            if (currentIntakeState == IntakeState.OFF || currentIntakeState == IntakeState.IN) {
-                currentIntakeState = IntakeState.OUT;
-            } else {
-                currentIntakeState = IntakeState.OFF;
-            }
-        }
-
-        //there is both a roller and a claw on the robot to pick up game pieces in different ways
-        if(currentIntakeState == IntakeState.OFF) {
-            robot.intakeRoller.setPower(0);
-        }
-        else if (currentIntakeState == IntakeState.IN) {
-            robot.intakeRoller.setPower(1);
-            robot.intakeClaw.setPosition(0.9); //change to measured value
-        }
-        else {
-            robot.intakeRoller.setPower(-1);
-            robot.intakeClaw.setPosition(0.1); //change to measured value
-            robot.openClaw().run(packet);
-        }
-
-        //moves the elbow
-        if(currentGamepad1.dpad_down) {
-            currentElbowState = ElbowState.DOWN;
-        }
-        if(currentGamepad1.dpad_up) {
-            currentElbowState = ElbowState.UP;
-        }
-        if(currentElbowState == ElbowState.UP) {
-            robot.intakeElbow.setPosition(0.7);//test out to find correct position
-        } else {
-            if(currentArmState == ArmState.DOWN) {
-                //this is so that when the arm is in the down position, the roller can grab stuff at the exact right angle
-                robot.intakeElbow.setPosition(ELBOW_INTERCEPT + (ELBOW_SLOPE * robot.armExtend.getCurrentPosition()))  ; //fine-tune this
-            } else {
-                robot.intakeElbow.setPosition(ELBOW_INTERCEPT);//test out to find correct position
-            }
-        }
 
         telemetry.addData("Encoder 1", robot.getDeadwheel("parR").getTicks());
         telemetry.addData("Encoder 2", robot.getDeadwheel("parL").getTicks());
         telemetry.addData("Encoder 3", robot.getDeadwheel("per").getTicks());
-        telemetry.addData("Extension arm position", robot.armExtend.getCurrentPosition());
-        telemetry.addData("Rotation arm position", robot.armRotate.getCurrentPosition());
 
-
-        telemetry.addData("intake state", currentIntakeState);
-        telemetry.addData("arm state", currentArmState);
         telemetry.addData("frontLeft", robot.frontLeft.getPower());
         telemetry.addData("backLeft", robot.backLeft.getPower());
         telemetry.addData("frontRight", robot.frontRight.getPower());
         telemetry.addData("backRight", robot.backRight.getPower());
 
 
-
         //These things MUST be at the end of each loop. DO NOT MOVE
-
-        if(robot.slideLimitSwitch.isPressed()) {
-            if (!currentGamepad1.y){slidePower = 0;}
-            robot.armExtend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            robot.armExtend.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            telemetry.addLine("Limit Switch Pressed!");
-        }
-        if(currentArmState == ArmState.DOWN && robot.armExtend.getCurrentPosition() >=3000){
-            if(!currentGamepad1.a){
-                slidePower=0;
-            }
-        }
-
-        robot.armExtend.setPower(slidePower);
 
 
         telemetry.update();

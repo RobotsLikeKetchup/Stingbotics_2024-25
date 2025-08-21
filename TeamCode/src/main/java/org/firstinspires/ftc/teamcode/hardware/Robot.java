@@ -261,38 +261,7 @@ public class Robot {
         return new openClaw();
     }
 
-    public class resetArm implements Action {
-        @Override
-        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-            if(!frontArmLimitSwitch.isPressed()) {
-                armRotate.setPower(1);
-            } else {
-                armRotate.setPower(0);
-            }
-            if(!slideLimitSwitch.isPressed()) {
-                armExtend.setPower(1);
-            } else {
-                armExtend.setPower(0);
-            }
-            if(slideLimitSwitch.isPressed() && frontArmLimitSwitch.isPressed()) {
-                return false;
-            } else {
-                return true;
-            }
-        }
-    }
 
-    public Action resetArm() {
-        return new resetArm();
-    }
 
-    public Action clip() {
-        return new SequentialAction(
-                clipArmUp(),
-                clipArmDown(),
-                openClaw(),
-                resetArm()
-        );
-    }
 }
 
