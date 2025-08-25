@@ -31,12 +31,13 @@ public class MecanumKinematics {
         //limits power so it isn't larger than either the
         powerLimiter = Math.max(Math.abs(x) + Math.abs(y) + Math.abs(rotation), 1);
 
-        frontLeft = (y-x- rotation)/powerLimiter;
-        frontRight = (y+x+ rotation)/powerLimiter;
-        backLeft= (y+x- rotation)/powerLimiter;
-        backRight= (y-x+ rotation)/powerLimiter;
+        frontLeft = (-y-x- rotation)/powerLimiter;
+        frontRight = (-y+x+ rotation)/powerLimiter;
+        backLeft= (-y+x- rotation)/powerLimiter;
+        backRight= (-y-x+ rotation)/powerLimiter;
 
-        return new double[]{frontLeft,frontRight,backLeft,backRight};
+        double[] power = new double[]{frontLeft,frontRight,backLeft,backRight};
+        return MathFunctions.scaleArray(maxPower, power);
     }
 
 
@@ -59,10 +60,10 @@ public class MecanumKinematics {
         powerLimiter = Math.max((front ? frontCorrection : backCorrection) * (Math.abs(x) + Math.abs(y) + Math.abs(rotation)), 1);
 
 
-        frontLeft = (frontCorrection * (y-x- rotation))/powerLimiter;
-        frontRight = (frontCorrection * (y+x+ rotation))/powerLimiter;
-        backLeft= (backCorrection * (y+x- rotation))/powerLimiter;
-        backRight= (backCorrection * (y-x+ rotation))/powerLimiter;
+        frontLeft = (frontCorrection * (-y-x- rotation))/powerLimiter;
+        frontRight = (frontCorrection * (-y+x+ rotation))/powerLimiter;
+        backLeft= (backCorrection * (-y+x- rotation))/powerLimiter;
+        backRight= (backCorrection * (-y-x+ rotation))/powerLimiter;
 
         double[] power = new double[]{frontLeft,frontRight,backLeft,backRight};
         return MathFunctions.scaleArray(maxPower, power);

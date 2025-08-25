@@ -7,91 +7,51 @@ import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.hardware.Robot;
-import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
-import org.firstinspires.ftc.teamcode.pathing.PurePursuit;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
-import org.firstinspires.ftc.teamcode.utilities.MovementFunctions;
-import org.firstinspires.ftc.teamcode.utilities.PID;
 
 
 @Autonomous
-public class AutonTesting extends OpMode {
-    enum Steps {
-        ACCELERATION,
-        DRIVE,
-        DECELERATION
-    };
-
-    // Create variables
+public class AutonBucket extends OpMode {
     Robot robot = new Robot();
-
     ElapsedTime timer = new ElapsedTime();
     RoadrunnerThreeWheelLocalizer localization;
-    double[][] path = {
-            {0,0},
-            {0,20},
-            {20,20},
-            {20,0}
-    };
-
-
-    double[] pose = {0,0, Math.PI/2};
-
-    PID velocityControl = new PID(0.01, 0, 0, timer);
-
-    MotionProfile1D motionProfile = new MotionProfile1D(0.8, 0.4, timer);
-
-    double velocityCoeff;
-
-    MultipleTelemetry telemetryA;
-
-    enum Stages {DRIVING, ARM_UP, ARM_DOWN, RELEASE, COMPLETE};
-
-    Stages currentStage = Stages.DRIVING;
-
-    //the robot width and r are just used for drawing the robot on FTC Dashboard
-    final double robotWidth = 15;
-    final double r = (robotWidth/2) * Math.sqrt(2);
-
-    int pathNumber = 1;
-    boolean endingPath = false;
-
     FtcDashboard dashboard;
+    MultipleTelemetry telemetryA;
     boolean actionRunning = true;
+
+    double[][] path1 = {
+            {0,0},
+            {-2,-23}
+    };
 
     Action autoAction;
 
     @Override
     public void init() {
+        robot.init(hardwareMap,timer);
         localization = new RoadrunnerThreeWheelLocalizer(hardwareMap, new Pose2d(0 ,0, Math.PI / 2));
 
-        robot.init(hardwareMap, timer);
-
-        robot.intakeElbow.setPosition(0.3);
-        robot.intakeClaw.setPosition(0.9);
+        robot.intakeElbow.setPosition(0.2);
+        robot.intakeRoller.setPower(1);
 
         dashboard = FtcDashboard.getInstance();
         //this sends stuff to both Driver Station and ftc dashboard, for convenience
         telemetryA = new MultipleTelemetry(this.telemetry, dashboard.getTelemetry());
 
         autoAction = new SequentialAction(
-                robot.followPath(path, 0, false, 14)
+                robot.followPath(path1, -Math.PI/3, true),
+                robot.bucket()
         );
-    }
-
-    @Override
-    public void start() {
-
     }
 
     @Override
     public void loop() {
         localization.updatePoseEstimate();
-        pose = localization.getPose();
 
         TelemetryPacket packet = new TelemetryPacket();
 
@@ -101,6 +61,12 @@ public class AutonTesting extends OpMode {
 
         dashboard.sendTelemetryPacket(packet);
 
+        telemetryA.addData("frontLeft", robot.frontLeft.getPower());
+        telemetryA.addData("backLeft", robot.backLeft.getPower());
+        telemetryA.addData("frontRight", robot.frontRight.getPower());
+        telemetryA.addData("backRight", robot.backRight.getPower());
 
+        telemetryA.update();
     }
 }
+

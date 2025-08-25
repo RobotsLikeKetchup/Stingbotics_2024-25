@@ -13,7 +13,7 @@ public class MovementFunctions {
 
         double absoluteAngle = Math.atan2(relativeY,relativeX);
 
-        double relativeAngle = MathFunctions.angleWrap(absoluteAngle - robotPose[2])  - Math.PI/2;
+        double relativeAngle = MathFunctions.angleWrap(Math.PI/2-absoluteAngle+robotPose[2]);
 
         double divisor = Math.max(Math.abs(relativeX), Math.abs(relativeY));
 
@@ -30,7 +30,7 @@ public class MovementFunctions {
 
         double absoluteAngle = Math.atan2(relativeY,relativeX);
 
-        double relativeAngle = MathFunctions.angleWrap(absoluteAngle - robotPose[2])  - Math.PI/2;
+        double relativeAngle = MathFunctions.angleWrap(absoluteAngle - robotPose[2])  - (Math.PI/2);
 
         double divisor = Math.max(Math.abs(relativeX), Math.abs(relativeY));
 

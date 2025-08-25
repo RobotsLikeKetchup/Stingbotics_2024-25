@@ -14,10 +14,8 @@ public class PurePursuit {
     double distanceFromEnd;
 
     //distance to "look ahead" for the pure pursuit algorithm
-    double lookAhead = 20;
+    double lookAhead;
 
-    FtcDashboard dashboard;
-    boolean telemetry;
 
     double[] robotPosition;
     public double discriminantPublic;
@@ -28,14 +26,13 @@ public class PurePursuit {
         path = pathPoints;
         localization = localizer;
         lastFoundIndex = 0;
-        telemetry = false;
+        lookAhead = 17;
     }
-    public PurePursuit(double[][] pathPoints, StingLocalizer localizer, FtcDashboard dashboard) {
+    public PurePursuit(double[][] pathPoints, StingLocalizer localizer, double lookahead) {
         path = pathPoints;
         localization = localizer;
         lastFoundIndex = 0;
-        this.dashboard=dashboard;
-        telemetry= true;
+        lookAhead = lookahead;
     }
 
     // this method returns -1 if the number is <0, and 1 if anything else(including 0). it is for calculating line-circle intersection
@@ -80,15 +77,7 @@ public class PurePursuit {
 
         double discriminant = (Math.pow(lookAheadDistance, 2) * Math.pow(differenceRadius, 2)) - Math.pow(determinant, 2);
 
-        if(telemetry) {
-            TelemetryPacket packet = new TelemetryPacket();
-            packet.put("det",determinant);
-            packet.put("x1", x1);
-            packet.put("x2", x2);
-            packet.put("y1", y1);
-            packet.put("y2", y2);
-            dashboard.sendTelemetryPacket(packet);
-        }
+
 
 
         //do the math for line-circle intersection if there exist solutions
@@ -164,9 +153,66 @@ public class PurePursuit {
 
                     if (twoPointDistance(goalPoint, path[i + 1]) <= twoPointDistance(robotPosition, path[i + 1])) {
                         lastFoundIndex = i;
+
                         break;
                     } else {
                         lastFoundIndex = i + 1;
+                    }
+
+                } else { //no solution found!
+                    intersectionFound = false;
+                }
+            }
+            if(!intersectionFound) {
+                if(lastFoundIndex + 2 == path.length) { //if the robot is on its final line segment, go straight to the finish!
+                    goalPoint[0] = path[lastFoundIndex+1][0];
+                    goalPoint[1] = path[lastFoundIndex+1][1];
+                } else {
+                    goalPoint[0] = path[lastFoundIndex][0];
+                    goalPoint[1] = path[lastFoundIndex][1];
+                }
+            }
+        }
+        return goalPoint;
+    }
+
+    public double[] findPointOnPath(TelemetryPacket packet){
+
+        robotPosition = localization.getPose();
+        double[] goalPoint = new double[2];
+
+
+        if(lastFoundIndex == path.length-1) {
+            goalPoint = path[path.length-1];
+        } else {
+            //start by iterating through the path
+            for (int i = lastFoundIndex; i < (path.length - 1); i++) {
+                //find two points to create a line segment
+                double[] point1 = path[i];
+                double[] point2 = path[i + 1];
+
+                double[][] solutions = intersection(robotPosition, point1, point2, lookAhead);
+
+                if (solutions.length > 0) { // solution found!
+                    intersectionFound = true;
+
+                    if (solutions.length == 2) {
+                        if (twoPointDistance(solutions[0], path[i + 1]) < twoPointDistance(solutions[1], path[i + 1])) {
+                            goalPoint = solutions[0];
+                        } else {
+                            goalPoint = solutions[1];
+                        }
+                    } else {
+                        goalPoint = solutions[0];
+                    }
+
+                    if (twoPointDistance(goalPoint, path[i + 1]) <= twoPointDistance(robotPosition, path[i + 1])) {
+                        lastFoundIndex = i;
+                        packet.addLine("break loop");
+                        break;
+                    } else {
+                        lastFoundIndex = i + 1;
+                        packet.addLine("continue loop");
                     }
 
                 } else { //no solution found!

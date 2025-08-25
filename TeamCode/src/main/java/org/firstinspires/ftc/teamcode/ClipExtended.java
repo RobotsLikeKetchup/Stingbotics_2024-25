@@ -7,71 +7,60 @@ import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.hardware.Robot;
-import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
-import org.firstinspires.ftc.teamcode.pathing.PurePursuit;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
-import org.firstinspires.ftc.teamcode.utilities.MovementFunctions;
-import org.firstinspires.ftc.teamcode.utilities.PID;
 
 
 @Autonomous
-public class AutonTesting extends OpMode {
-    enum Steps {
-        ACCELERATION,
-        DRIVE,
-        DECELERATION
-    };
-
-    // Create variables
+public class ClipExtended extends OpMode {
     Robot robot = new Robot();
-
     ElapsedTime timer = new ElapsedTime();
     RoadrunnerThreeWheelLocalizer localization;
-    double[][] path = {
+    FtcDashboard dashboard;
+    MultipleTelemetry telemetryA;
+    boolean actionRunning = true;
+
+    double[][] path1 = {
             {0,0},
-            {0,20},
-            {20,20},
-            {20,0}
+            {0,-28}
     };
 
+    double[][] path2 = {
+            {0, -28},
+            {0,-18},
+            {-15, -20},
+            {-35, -52},
+            {-37, -52}
+    };
 
-    double[] pose = {0,0, Math.PI/2};
+    double[][] path3 = {
+            {-37, -52},
+            {-37, -3}
+    };
 
-    PID velocityControl = new PID(0.01, 0, 0, timer);
+    double[][] path4 = {
+            {-37,-3},
+            {-37, -52},
+            {-40, -52}
+    };
 
-    MotionProfile1D motionProfile = new MotionProfile1D(0.8, 0.4, timer);
-
-    double velocityCoeff;
-
-    MultipleTelemetry telemetryA;
-
-    enum Stages {DRIVING, ARM_UP, ARM_DOWN, RELEASE, COMPLETE};
-
-    Stages currentStage = Stages.DRIVING;
-
-    //the robot width and r are just used for drawing the robot on FTC Dashboard
-    final double robotWidth = 15;
-    final double r = (robotWidth/2) * Math.sqrt(2);
-
-    int pathNumber = 1;
-    boolean endingPath = false;
-
-    FtcDashboard dashboard;
-    boolean actionRunning = true;
+    double[][] path5 = {
+            {-40, -52},
+            {-35, -3}
+    };
 
     Action autoAction;
 
     @Override
     public void init() {
+        robot.init(hardwareMap,timer);
         localization = new RoadrunnerThreeWheelLocalizer(hardwareMap, new Pose2d(0 ,0, Math.PI / 2));
 
-        robot.init(hardwareMap, timer);
-
-        robot.intakeElbow.setPosition(0.3);
+        robot.intakeElbow.setPosition(0.2);
         robot.intakeClaw.setPosition(0.9);
 
         dashboard = FtcDashboard.getInstance();
@@ -79,21 +68,21 @@ public class AutonTesting extends OpMode {
         telemetryA = new MultipleTelemetry(this.telemetry, dashboard.getTelemetry());
 
         autoAction = new SequentialAction(
-                robot.followPath(path, 0, false, 14)
+                robot.followPath(path1, 0, true),
+                robot.clip(),
+                robot.followPath(path2, 0, true),
+                robot.followPath(path3, 0, true),
+                robot.followPath(path4, 0, true),
+                robot.followPath(path5, 0, true),
+                robot.rotate(Math.PI)
         );
-    }
-
-    @Override
-    public void start() {
-
     }
 
     @Override
     public void loop() {
         localization.updatePoseEstimate();
-        pose = localization.getPose();
 
-        TelemetryPacket packet = new TelemetryPacket();
+        TelemetryPacket packet = new TelemetryPacket(false);
 
         if(actionRunning){
             actionRunning = autoAction.run(packet);
@@ -101,6 +90,11 @@ public class AutonTesting extends OpMode {
 
         dashboard.sendTelemetryPacket(packet);
 
+        telemetryA.addData("frontLeft", robot.frontLeft.getPower());
+        telemetryA.addData("backLeft", robot.backLeft.getPower());
+        telemetryA.addData("frontRight", robot.frontRight.getPower());
+        telemetryA.addData("backRight", robot.backRight.getPower());
 
+        telemetryA.update();
     }
 }

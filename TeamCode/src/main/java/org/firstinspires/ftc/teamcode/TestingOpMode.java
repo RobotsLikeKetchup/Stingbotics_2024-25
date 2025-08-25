@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import static org.firstinspires.ftc.teamcode.utilities.MathFunctions.toInt;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -29,18 +30,21 @@ public class TestingOpMode extends OpMode {
     final double robotWidth = 15;
     final double r = (robotWidth/2) * Math.sqrt(2);
 
+    MultipleTelemetry telemetryA;
+
     @Override
     public void init() {
 
         dashboard = FtcDashboard.getInstance();
 
+        telemetryA = new MultipleTelemetry(telemetry,dashboard.getTelemetry());
 
         localization = new RoadrunnerThreeWheelLocalizer(hardwareMap, new Pose2d(0 ,0, Math.PI / 2));
 
         robot.init(hardwareMap, timer);
 
-        telemetry.addLine("initialized!");
-        telemetry.update();
+        telemetryA.addLine("initialized!");
+        telemetryA.update();
     }
 
     @Override
@@ -80,18 +84,18 @@ public class TestingOpMode extends OpMode {
 
         //telemetry.addLine("Pose" + Arrays.toString(localization.getPose()));
 
-        telemetry.addLine("Encoder Positions: " + Arrays.toString(new double[]{robot.backRight.getCurrentPosition(), robot.frontRight.getCurrentPosition(), robot.backLeft.getCurrentPosition()}));
+        telemetryA.addLine("Encoder Positions: " + Arrays.toString(new double[]{robot.backRight.getCurrentPosition(), robot.frontLeft.getCurrentPosition(), robot.backLeft.getCurrentPosition()}));
 
         telemetry.addData("Claw position", robot.intakeClaw.getPosition());
         telemetry.addData("Pose", localization.getPose());
         telemetry.addData("Arm Rotation", robot.armRotate.getCurrentPosition());
 
 
-        telemetry.addData("x", localization.getPose()[0]);
-        telemetry.addData("y", localization.getPose()[1]);
-        telemetry.addData("angle", Math.toDegrees(localization.getPose()[2]));
+        telemetryA.addData("x", localization.getPose()[0]);
+        telemetryA.addData("y", localization.getPose()[1]);
+        telemetryA.addData("angle", Math.toDegrees(localization.getPose()[2]));
         //telemetry.addData("encoder value", encoderValue);
-        telemetry.update();
+        telemetryA.update();
 
         //Draw on the field view of FTC Dashboard
         TelemetryPacket packet = new TelemetryPacket(false);
