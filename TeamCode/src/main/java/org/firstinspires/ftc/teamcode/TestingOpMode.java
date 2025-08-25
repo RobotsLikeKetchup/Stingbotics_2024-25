@@ -68,15 +68,8 @@ public class TestingOpMode extends OpMode {
        // if(gamepad1.x){robot.frontLeft.setPower(0.8);} else {robot.frontLeft.setPower(0);}
         //if(gamepad1.y){robot.frontRight.setPower(0.8);} else {robot.frontRight.setPower(0);}
 
-        robot.armRotate.setPower(gamepad1.b ? 0.8 : (gamepad1.x ? -0.8 : 0));
 
 
-        if(gamepad1.dpad_down) {
-            robot.intakeElbow.setPosition(-0.2);//test out to find correct position
-        }
-        if(gamepad1.dpad_up) {
-            robot.intakeElbow.setPosition(0.2);//test out to find correct position
-        }
 
         //int encoderValue = robot.driveMotors[3].getCurrentPosition();
         telemetry.addData("right stick x", gamepad1.right_stick_x);
@@ -85,12 +78,7 @@ public class TestingOpMode extends OpMode {
         //telemetry.addLine("Pose" + Arrays.toString(localization.getPose()));
 
         telemetryA.addLine("Encoder Positions: " + Arrays.toString(new double[]{robot.backRight.getCurrentPosition(), robot.frontLeft.getCurrentPosition(), robot.backLeft.getCurrentPosition()}));
-
-        telemetry.addData("Claw position", robot.intakeClaw.getPosition());
-        telemetry.addData("Pose", localization.getPose());
-        telemetry.addData("Arm Rotation", robot.armRotate.getCurrentPosition());
-
-
+        
         telemetryA.addData("x", localization.getPose()[0]);
         telemetryA.addData("y", localization.getPose()[1]);
         telemetryA.addData("angle", Math.toDegrees(localization.getPose()[2]));

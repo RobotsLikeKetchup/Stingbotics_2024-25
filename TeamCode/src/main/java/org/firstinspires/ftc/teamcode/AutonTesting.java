@@ -71,15 +71,15 @@ public class AutonTesting extends OpMode {
 
         robot.init(hardwareMap, timer);
 
-        robot.intakeElbow.setPosition(0.3);
-        robot.intakeClaw.setPosition(0.9);
 
         dashboard = FtcDashboard.getInstance();
         //this sends stuff to both Driver Station and ftc dashboard, for convenience
         telemetryA = new MultipleTelemetry(this.telemetry, dashboard.getTelemetry());
 
         autoAction = new SequentialAction(
-                robot.followPath(path, 0, false, 14)
+
+                robot.followPath(path, 0, true)
+
         );
     }
 

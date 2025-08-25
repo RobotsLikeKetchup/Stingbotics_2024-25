@@ -22,13 +22,10 @@ import org.firstinspires.ftc.teamcode.utilities.MovementFunctions;
 
 public class Robot {
     //fields
-    public DcMotor frontRight, armRotate, armExtend;
+    public DcMotor frontRight;
     public DcMotor frontLeft;
     public DcMotor backRight;
     public DcMotor backLeft;
-
-    public CRServo intakeRoller;
-    public Servo intakeElbow, intakeClaw;
 
     //parallel dead wheels (measuring x-coord and heading)
     DeadWheel parL;
@@ -36,9 +33,6 @@ public class Robot {
     //perpendicular dead wheel (measuring y-coord)
     DeadWheel per;
 
-    public TouchSensor slideLimitSwitch;
-    public TouchSensor frontArmLimitSwitch;
-    public TouchSensor backArmLimitSwitch;
     public DcMotor[] driveMotors;
 
     public RoadrunnerThreeWheelLocalizer localization;
@@ -70,16 +64,6 @@ public class Robot {
         backLeft = hardwareMap.get(DcMotor.class, "motor_bl");
         backRight = hardwareMap.get(DcMotor.class, "motor_br");
 
-        armRotate = hardwareMap.get(DcMotor.class, "armRotate");
-        armExtend = hardwareMap.get(DcMotor.class, "armExtend");
-
-        intakeRoller = hardwareMap.get(CRServo.class, "intakeRoller");
-        intakeElbow = hardwareMap.get(Servo.class, "intakeElbow");
-        intakeClaw =  hardwareMap.get(Servo.class, "intakeClaw");
-
-        slideLimitSwitch = hardwareMap.get(TouchSensor.class, "slideLimitSwitch");
-        frontArmLimitSwitch = hardwareMap.get(TouchSensor.class, "frontArmLimitSwitch");
-        backArmLimitSwitch = hardwareMap.get(TouchSensor.class, "backArmLimitSwitch");
 
         driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
 
@@ -88,7 +72,6 @@ public class Robot {
             i.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             i.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         };
-        armRotate.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         //set motor directions
         frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -100,10 +83,6 @@ public class Robot {
         parL = new DeadWheel(inPerTick, backRight);
         parR = new DeadWheel(inPerTick, frontRight);
         per = new DeadWheel(inPerTick, backLeft);
-
-        armRotate.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        armExtend.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        armExtend.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     //methods
@@ -187,6 +166,12 @@ public class Robot {
             telemetryPacket.put("Motion Profile Phase", motionProfile.currentPhase);
             telemetryPacket.put("Speed", velocityCoeff);
 
+            /*telemetryPacket.fieldOverlay()
+                    .setFill("blue")
+                    .fillPolygon([
+                            ],[
+                                    ])*/
+
             if (motionProfile.currentPhase == MotionProfile1D.Phase.STOPPED) {
                 return false;
             } else {
@@ -198,70 +183,6 @@ public class Robot {
     public Action followPath(double[][] path, double optimalAngle, boolean optimalAngleFieldReferenceFrame) {
         return new followPath(path, optimalAngle, optimalAngleFieldReferenceFrame);
     }
-
-    public class clipArmUp implements Action {
-
-        @Override
-        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-            intakeElbow.setPosition(0.2);
-            if(!backArmLimitSwitch.isPressed()) {
-                armRotate.setPower(-0.8);
-            } else {
-                armRotate.setPower(0);
-            }
-            if(armExtend.getCurrentPosition() <= 4400) {
-                armExtend.setPower(1);
-            } else {
-                armExtend.setPower(0);
-            }
-            if(backArmLimitSwitch.isPressed() && (armExtend.getCurrentPosition() >= 4400)) {
-                return false;
-            } else {
-                return true;
-            }
-        }
-    }
-
-    Action clipArmUp() {
-        return new clipArmUp();
-    }
-
-    public class clipArmDown implements Action {
-        boolean initialized = false;
-
-        @Override
-        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-            if(!initialized) {
-                armExtend.setPower(-0.5);
-                initialized = true;
-            }
-
-            if(armExtend.getCurrentPosition() <= 3000) {
-                armExtend.setPower(0);
-                return false;
-            } else {
-                return true;
-            }
-        }
-    }
-
-    Action clipArmDown() {
-        return new clipArmDown();
-    }
-
-    public class openClaw implements Action {
-        @Override
-        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-            intakeClaw.setPosition(0.1);
-            return false;
-        }
-    }
-
-    public Action openClaw() {
-        return new openClaw();
-    }
-
-
 
 }
 

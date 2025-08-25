@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class PurePursuit {
     boolean intersectionFound;
     double[][] path;
-    int lastFoundIndex=1;
+    int lastFoundIndex;
 
     double distanceFromEnd;
 
