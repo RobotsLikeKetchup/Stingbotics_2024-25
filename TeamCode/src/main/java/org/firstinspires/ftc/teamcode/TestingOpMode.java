@@ -78,7 +78,7 @@ public class TestingOpMode extends OpMode {
         //telemetry.addLine("Pose" + Arrays.toString(localization.getPose()));
 
         telemetryA.addLine("Encoder Positions: " + Arrays.toString(new double[]{robot.backRight.getCurrentPosition(), robot.frontLeft.getCurrentPosition(), robot.backLeft.getCurrentPosition()}));
-        
+
         telemetryA.addData("x", localization.getPose()[0]);
         telemetryA.addData("y", localization.getPose()[1]);
         telemetryA.addData("angle", Math.toDegrees(localization.getPose()[2]));

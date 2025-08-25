@@ -53,7 +53,7 @@ public class Robot {
 
         localization = new RoadrunnerThreeWheelLocalizer(hardwareMap, new Pose2d(0 ,0, Math.PI / 2));
 
-        this.timer=timer;
+        this.timer = timer;
 
         //TUNE THIS
         double inPerTick = 0.0004;
@@ -139,6 +139,9 @@ public class Robot {
                 initialized = true;
                 telemetryPacket.addLine("initialized!");
             }
+
+            localization.updatePoseEstimate();
+
             pose = localization.getPose();
 
             goalPoint = pathing.findPointOnPath();
@@ -163,14 +166,34 @@ public class Robot {
                 motionProfile.startSlowDown();
             }
 
+            final double robotWidth = 15;
+            final double r = (robotWidth/2) * Math.sqrt(2);
+
             telemetryPacket.put("Motion Profile Phase", motionProfile.currentPhase);
             telemetryPacket.put("Speed", velocityCoeff);
+            telemetryPacket.put("x", pose[0]);
+            telemetryPacket.put("y", pose[1]);
+            telemetryPacket.put("angle", pose[2]);
 
-            /*telemetryPacket.fieldOverlay()
+            telemetryPacket.fieldOverlay()
                     .setFill("blue")
-                    .fillPolygon([
-                            ],[
-                                    ])*/
+                    .fillPolygon(new double[] {
+                            pose[0] - (r * Math.sin(pose[2]+(Math.PI/4))),
+                            pose[0] - (r * Math.sin(pose[2]-(Math.PI/4))),
+                            pose[0] - (r * Math.sin(pose[2]-(3*Math.PI/4))),
+                            pose[0] - (r * Math.sin(pose[2]+(3*Math.PI/4)))
+                    }, new double[] {
+                            pose[1] - (r*Math.cos(pose[2]+(Math.PI/4))),
+                            pose[1] - (r*Math.cos(pose[2]-(Math.PI/4))),
+                            pose[1] - (r*Math.cos(pose[2]-(3*Math.PI/4))),
+                            pose[1] - (r*Math.cos(pose[2]+(3*Math.PI/4)))
+                    }); //all the stuff above are the points, rotated based on the robot's angle
+
+            for(int i=1; i < path.length; i++) {
+                //draw the path
+                telemetryPacket.fieldOverlay().strokeLine((int) Math.round(path[i-1][0]), (int) Math.round(path[i-1][1]), (int) Math.round(path[i][0]), (int) Math.round(path[i][1]));
+
+            }
 
             if (motionProfile.currentPhase == MotionProfile1D.Phase.STOPPED) {
                 return false;
