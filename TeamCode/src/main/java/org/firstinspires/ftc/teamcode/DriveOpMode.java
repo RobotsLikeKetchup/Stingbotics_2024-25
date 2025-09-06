@@ -121,10 +121,12 @@ public class DriveOpMode extends OpMode {
         telemetry.addData("frontRight", robot.frontRight.getPower());
         telemetry.addData("backRight", robot.backRight.getPower());
 
+        telemetry.addData("red", robot.ballColor.red());
+        telemetry.addData("green", robot.ballColor.green());
+        telemetry.addData("blue", robot.ballColor.blue());
+
 
         //These things MUST be at the end of each loop. DO NOT MOVE
-
-
         telemetry.update();
     }
 
