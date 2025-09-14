@@ -29,6 +29,7 @@ public class Robot {
     public DcMotor backRight;
     public DcMotor backLeft;
     public ColorSensor ballColor;
+    public DcMotor shooter;
     //parallel dead wheels (measuring x-coord and heading)
     DeadWheel parL;
     DeadWheel parR;
@@ -40,6 +41,8 @@ public class Robot {
     public RoadrunnerThreeWheelLocalizer localization;
 
     ElapsedTime timer;
+
+
 
     //constructor
     public Robot(DcMotor fR, DcMotor fL, DcMotor bR, DcMotor bL){
@@ -66,6 +69,8 @@ public class Robot {
         backLeft = hardwareMap.get(DcMotor.class, "motor_bl");
         backRight = hardwareMap.get(DcMotor.class, "motor_br");
 
+        shooter = hardwareMap.get(DcMotor.class, "shooter");
+
         driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
         ballColor = hardwareMap.get(ColorSensor.class, "ballSensor");
                 // Set universal wheel behaviors
@@ -73,6 +78,11 @@ public class Robot {
             i.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             i.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         };
+
+
+
+
+
 
         //set motor directions
         frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);

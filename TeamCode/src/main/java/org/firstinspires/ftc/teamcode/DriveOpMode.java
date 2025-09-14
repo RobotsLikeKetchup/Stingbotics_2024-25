@@ -26,7 +26,7 @@ public class DriveOpMode extends OpMode {
     double[] motorPowers;
 //ur nt shkspr vro
     Robot robot = new Robot();
-
+    //dame un grr un que
     ElapsedTime timer= new ElapsedTime();
 
     RoadrunnerThreeWheelLocalizer localizer;
@@ -38,7 +38,20 @@ public class DriveOpMode extends OpMode {
     Gamepad currentGamepad2 = new Gamepad();
 
     MotionProfile1D rampFunction = new MotionProfile1D(0.8,1, 0.4, timer);
+    // list of colors and variables
+    public enum colors{
+        PURPLE,
+        GREEN,
+        UNKNOWN
+    }
 
+    colors detectedColor = colors.UNKNOWN;
+
+    double red = robot.ballColor.red();
+    double green = robot.ballColor.green();
+    double blue = robot.ballColor.blue();
+    double finalRed = red/green;
+    double finalBlue = blue/green;
 
     //config variables
     public static double UP_WEIGHT_CORRECTION = 0.65;
@@ -80,8 +93,29 @@ public class DriveOpMode extends OpMode {
         previousGamepad2.copy(currentGamepad2);
         currentGamepad2.copy(gamepad2);
 
+        // gives robot loving parents
+        if(currentGamepad1.y && !previousGamepad1.y){
+            robot.shooter.setPower(1);
+        }
+        //gives robot fixed income
+        if(currentGamepad1.a && !previousGamepad1.a){
+            robot.shooter.setPower(-1);
+        }
 
-        //ramp  function: if sebastian has just started moving, start the motion profile.
+
+        //replace numbers from ratio calculated
+
+        if (green!= 0 && finalRed>1 && finalRed<2 && finalBlue>1 && finalBlue<2){
+            detectedColor = colors.PURPLE;
+
+        } else if (green!= 0 && finalRed>0.5 && finalRed<2 && finalBlue>1 && finalBlue<2) {
+            detectedColor = colors.GREEN;
+        } else {
+            detectedColor = colors.UNKNOWN;
+        }
+
+
+        //ramp  function: if sebastian has just started moving, beat his ass.
         if ((Math.abs(currentGamepad1.left_stick_x) > 0.05 || Math.abs(currentGamepad1.left_stick_y) > 0.05) && !(Math.abs(previousGamepad1.left_stick_x) > 0.05 || Math.abs(previousGamepad1.left_stick_y) > 0.05)) {
             rampFunction.reset();
         }
@@ -97,6 +131,11 @@ public class DriveOpMode extends OpMode {
             rampFunction.getTargetSpeed(), 1, //this all just correcting for our shitty weight distribution
             true
         );
+
+
+
+
+
 
         telemetry.addData("gamepadx", currentGamepad1.left_stick_x);
         telemetry.addData("gamepady", currentGamepad1.left_stick_y);
@@ -124,7 +163,7 @@ public class DriveOpMode extends OpMode {
         telemetry.addData("red", robot.ballColor.red());
         telemetry.addData("green", robot.ballColor.green());
         telemetry.addData("blue", robot.ballColor.blue());
-
+        telemetry.addData("ballDetected", detectedColor);
 
         //These things MUST be at the end of each loop. DO NOT MOVE
         telemetry.update();
