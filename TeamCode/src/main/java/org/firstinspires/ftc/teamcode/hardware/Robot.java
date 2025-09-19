@@ -29,7 +29,7 @@ public class Robot {
     public DcMotor backRight;
     public DcMotor backLeft;
     public ColorSensor ballColor;
-    public DcMotor shooter;
+    //public DcMotor shooter;
     //parallel dead wheels (measuring x-coord and heading)
     DeadWheel parL;
     DeadWheel parR;
@@ -68,11 +68,11 @@ public class Robot {
         frontRight = hardwareMap.get(DcMotor.class, "motor_fr");
         backLeft = hardwareMap.get(DcMotor.class, "motor_bl");
         backRight = hardwareMap.get(DcMotor.class, "motor_br");
-
-        shooter = hardwareMap.get(DcMotor.class, "shooter");
+        ballColor = hardwareMap.get(ColorSensor.class, "ballSensor");
+        //shooter = hardwareMap.get(DcMotor.class, "shooter");
 
         driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
-        ballColor = hardwareMap.get(ColorSensor.class, "ballSensor");
+
                 // Set universal wheel behaviors
         for (DcMotor i : driveMotors) {
             i.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

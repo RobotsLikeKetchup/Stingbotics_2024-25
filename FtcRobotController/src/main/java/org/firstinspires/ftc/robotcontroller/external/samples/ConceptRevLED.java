@@ -74,6 +74,5 @@ public class ConceptRevLED extends OpMode {
         } else {
             frontLED_green.off();
         }
-        return null;
     }
 }

@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -47,11 +48,7 @@ public class DriveOpMode extends OpMode {
 
     colors detectedColor = colors.UNKNOWN;
 
-    double red = robot.ballColor.red();
-    double green = robot.ballColor.green();
-    double blue = robot.ballColor.blue();
-    double finalRed = red/green;
-    double finalBlue = blue/green;
+
 
     //config variables
     public static double UP_WEIGHT_CORRECTION = 0.65;
@@ -68,6 +65,7 @@ public class DriveOpMode extends OpMode {
     public void init() {
         robot.init(hardwareMap, timer);
         //localizer = new RoadrunnerThreeWheelLocalizer(hardwareMap);
+
 
         dashboard = FtcDashboard.getInstance();
         packet = new TelemetryPacket();
@@ -95,21 +93,26 @@ public class DriveOpMode extends OpMode {
 
         // gives robot loving parents
         if(currentGamepad1.y && !previousGamepad1.y){
-            robot.shooter.setPower(1);
+            //robot.shooter.setPower(1);
         }
         //gives robot fixed income
         if(currentGamepad1.a && !previousGamepad1.a){
-            robot.shooter.setPower(-1);
+            //robot.shooter.setPower(-1);
         }
 
 
         //replace numbers from ratio calculated
 
-        if (green!= 0 && finalRed>1 && finalRed<2 && finalBlue>1 && finalBlue<2){
-            detectedColor = colors.PURPLE;
-
-        } else if (green!= 0 && finalRed>0.5 && finalRed<2 && finalBlue>1 && finalBlue<2) {
+        double red = robot.ballColor.red();
+        double green = robot.ballColor.green();
+        double blue = robot.ballColor.blue();
+        double finalRed = red/green;
+        double finalBlue = blue/green;
+        if (green!= 0 && finalRed>0.05 && finalRed<0.5 && finalBlue>0.6 && finalBlue<0.9){
             detectedColor = colors.GREEN;
+
+        } else if (green!= 0 && finalRed>0.5 && finalRed<1.3 && finalBlue>1 && finalBlue<2.8) {
+            detectedColor = colors.PURPLE;
         } else {
             detectedColor = colors.UNKNOWN;
         }
