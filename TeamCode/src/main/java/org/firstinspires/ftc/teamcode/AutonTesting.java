@@ -10,12 +10,19 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.PurePursuit;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.MovementFunctions;
 import org.firstinspires.ftc.teamcode.utilities.PID;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
+import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
+
 
 
 @Autonomous
@@ -65,11 +72,27 @@ public class AutonTesting extends OpMode {
 
     Action autoAction;
 
+    VisionPortal visionPortal;
+    AprilTagProcessor myAprilTagProcessor;
+    AprilTagLibrary tagLibrary = AprilTagGameDatabase.getCurrentGameTagLibrary();
+// Create a new Builder
+
     @Override
     public void init() {
         localization = new RoadrunnerThreeWheelLocalizer(hardwareMap, new Pose2d(0 ,0, Math.PI / 2));
 
         robot.init(hardwareMap, timer);
+
+        myAprilTagProcessor = new AprilTagProcessor.Builder()
+                .setTagLibrary(tagLibrary)
+                .setDrawTagID(true)
+                .setDrawAxes(true)
+                .setDrawTagOutline(true)
+                .build();
+        visionPortal = new VisionPortal.Builder()
+                .setCamera(hardwareMap.get(WebcamName.class, "cameraOfDoom")) // or use .setCamera(InternalCameraDirection.BACK)
+                .addProcessor(myAprilTagProcessor)
+                .build();
 
 
         dashboard = FtcDashboard.getInstance();
@@ -100,8 +123,6 @@ public class AutonTesting extends OpMode {
         }
 
         dashboard.sendTelemetryPacket(packet);
-
-
 
     }
 }

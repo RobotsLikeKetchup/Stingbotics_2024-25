@@ -13,12 +13,16 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 // Import custom-made classes/methods
 import static org.firstinspires.ftc.teamcode.utilities.MathFunctions.toInt;
+
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.EzraLocalizer;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 
-//This opMode uses the standardconfig configuration file.
+
+
+
 @TeleOp
 
 @Config
@@ -67,6 +71,9 @@ public class DriveOpMode extends OpMode {
         //localizer = new RoadrunnerThreeWheelLocalizer(hardwareMap);
 
 
+
+
+
         dashboard = FtcDashboard.getInstance();
         packet = new TelemetryPacket();
 
@@ -76,6 +83,7 @@ public class DriveOpMode extends OpMode {
         //telemetry.addData("y pos",localizer.getPose()[1]);
         //telemetry.addData("Angle pos",localizer.getPose()[2]);
         telemetry.update();
+
     }
 
     /*@Override
@@ -101,8 +109,7 @@ public class DriveOpMode extends OpMode {
         }
 
 
-        //replace numbers from ratio calculated
-
+        //totr
         double red = robot.ballColor.red();
         double green = robot.ballColor.green();
         double blue = robot.ballColor.blue();
@@ -162,10 +169,6 @@ public class DriveOpMode extends OpMode {
         telemetry.addData("backLeft", robot.backLeft.getPower());
         telemetry.addData("frontRight", robot.frontRight.getPower());
         telemetry.addData("backRight", robot.backRight.getPower());
-
-        telemetry.addData("red", robot.ballColor.red());
-        telemetry.addData("green", robot.ballColor.green());
-        telemetry.addData("blue", robot.ballColor.blue());
         telemetry.addData("ballDetected", detectedColor);
 
         //These things MUST be at the end of each loop. DO NOT MOVE

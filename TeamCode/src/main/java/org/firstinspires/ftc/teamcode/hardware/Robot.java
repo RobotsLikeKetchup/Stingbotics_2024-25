@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
-
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.MecanumKinematics;
@@ -29,6 +29,7 @@ public class Robot {
     public DcMotor backRight;
     public DcMotor backLeft;
     public ColorSensor ballColor;
+    public WebcamName cameraOfDoom;
     //public DcMotor shooter;
     //parallel dead wheels (measuring x-coord and heading)
     DeadWheel parL;
@@ -69,6 +70,7 @@ public class Robot {
         backLeft = hardwareMap.get(DcMotor.class, "motor_bl");
         backRight = hardwareMap.get(DcMotor.class, "motor_br");
         ballColor = hardwareMap.get(ColorSensor.class, "ballSensor");
+        cameraOfDoom = hardwareMap.get(WebcamName.class, "cameraOfDoom");
         //shooter = hardwareMap.get(DcMotor.class, "shooter");
 
         driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
@@ -81,7 +83,9 @@ public class Robot {
 
 
 
-
+//hagrid: eres un horrocrux harry
+        //harry: un que?
+        //hagrid: un grrr
 
 
         //set motor directions
