@@ -18,10 +18,7 @@ import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLoc
 import org.firstinspires.ftc.teamcode.utilities.MovementFunctions;
 import org.firstinspires.ftc.teamcode.utilities.PID;
 import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
-import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
+
 
 
 
@@ -71,10 +68,6 @@ public class AutonTesting extends OpMode {
     boolean actionRunning = true;
 
     Action autoAction;
-
-    VisionPortal visionPortal;
-    AprilTagProcessor myAprilTagProcessor;
-    AprilTagLibrary tagLibrary = AprilTagGameDatabase.getCurrentGameTagLibrary();
 // Create a new Builder
 
     @Override
@@ -82,18 +75,6 @@ public class AutonTesting extends OpMode {
         localization = new RoadrunnerThreeWheelLocalizer(hardwareMap, new Pose2d(0 ,0, Math.PI / 2));
 
         robot.init(hardwareMap, timer);
-
-        myAprilTagProcessor = new AprilTagProcessor.Builder()
-                .setTagLibrary(tagLibrary)
-                .setDrawTagID(true)
-                .setDrawAxes(true)
-                .setDrawTagOutline(true)
-                .build();
-        visionPortal = new VisionPortal.Builder()
-                .setCamera(hardwareMap.get(WebcamName.class, "cameraOfDoom")) // or use .setCamera(InternalCameraDirection.BACK)
-                .addProcessor(myAprilTagProcessor)
-                .build();
-
 
         dashboard = FtcDashboard.getInstance();
         //this sends stuff to both Driver Station and ftc dashboard, for convenience

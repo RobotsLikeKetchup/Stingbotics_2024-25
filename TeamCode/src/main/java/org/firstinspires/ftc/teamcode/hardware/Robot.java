@@ -30,7 +30,7 @@ public class Robot {
     public DcMotor backLeft;
     public ColorSensor ballColor;
     public WebcamName cameraOfDoom;
-    //public DcMotor shooter;
+    public DcMotor shooter;
     //parallel dead wheels (measuring x-coord and heading)
     DeadWheel parL;
     DeadWheel parR;
@@ -71,7 +71,7 @@ public class Robot {
         backRight = hardwareMap.get(DcMotor.class, "motor_br");
         ballColor = hardwareMap.get(ColorSensor.class, "ballSensor");
         cameraOfDoom = hardwareMap.get(WebcamName.class, "cameraOfDoom");
-        //shooter = hardwareMap.get(DcMotor.class, "shooter");
+        shooter = hardwareMap.get(DcMotor.class, "shooter");
 
         driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
 

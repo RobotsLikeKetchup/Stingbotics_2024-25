@@ -101,11 +101,11 @@ public class DriveOpMode extends OpMode {
 
         // gives robot loving parents
         if(currentGamepad1.y && !previousGamepad1.y){
-            //robot.shooter.setPower(1);
+            robot.shooter.setPower(1);
         }
         //gives robot fixed income
         if(currentGamepad1.a && !previousGamepad1.a){
-            //robot.shooter.setPower(-1);
+            robot.shooter.setPower(-1);
         }
 
 
