@@ -41,7 +41,23 @@ public class AprilTagTesting extends OpMode {
         for (AprilTagDetection myAprilTagDetection : myAprilTagDetections) {
             if (myAprilTagDetection.metadata != null) {
                 myAprilTagIdCode = myAprilTagDetection.id;
+                double myTagPoseX = myAprilTagDetection.ftcPose.x;
+                double myTagPoseY = myAprilTagDetection.ftcPose.y;  
+                double myTagPoseZ = myAprilTagDetection.ftcPose.z;
+                double myTagPosePitch = myAprilTagDetection.ftcPose.pitch;
+                double myTagPoseRoll = myAprilTagDetection.ftcPose.roll;
+                double myTagPoseYaw = myAprilTagDetection.ftcPose.yaw;
                 telemetry.addData("id code", myAprilTagIdCode);
+                telemetry.addData("Pose x", myTagPoseX);
+                telemetry.addData("Pose Y", myTagPoseY);
+                telemetry.addData("Pose z", myTagPoseZ);
+                telemetry.addData("pose pitch", myTagPosePitch);
+                telemetry.addData("pose roll", myTagPoseRoll);
+                telemetry.addData("pose yaw", myTagPoseYaw);
+
+
+
+
             }
         }
     }
