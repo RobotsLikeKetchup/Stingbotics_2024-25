@@ -60,6 +60,7 @@ public class DriveOpMode extends OpMode {
     colors detectedColor = colors.UNKNOWN;
 
     public ezraUnemployed shooter = ezraUnemployed.OFF;
+    public ezraUnemployed intCopy = ezraUnemployed.OFF;
 
     //config variables
     public static double UP_WEIGHT_CORRECTION = 0.65;
@@ -116,6 +117,16 @@ public class DriveOpMode extends OpMode {
             else{
                 robot.shooter.setPower(0);
                 shooter = ezraUnemployed.OFF;
+            }
+        }
+        if(currentGamepad1.y && !previousGamepad1.y){
+            if(intCopy == ezraUnemployed.OFF){
+                robot.intake.setPower(1);
+                intCopy = ezraUnemployed.ON;
+            }
+            else{
+                robot.intake.setPower(0);
+                intCopy = ezraUnemployed.OFF;
             }
         }
 
