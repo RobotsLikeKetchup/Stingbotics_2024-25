@@ -64,7 +64,7 @@ public class Robot {
         //TUNE THIS
         double inPerTick = 0.0004;
 
-        // Map variables to motors
+        //Map variables to motors
         frontLeft = hardwareMap.get(DcMotor.class,"motor_fl");
         frontRight = hardwareMap.get(DcMotor.class, "motor_fr");
         backLeft = hardwareMap.get(DcMotor.class, "motor_bl");

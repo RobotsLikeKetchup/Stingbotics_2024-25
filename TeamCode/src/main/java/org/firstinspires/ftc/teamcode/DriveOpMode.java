@@ -42,6 +42,8 @@ public class DriveOpMode extends OpMode {
     Gamepad previousGamepad2 = new Gamepad();
     Gamepad currentGamepad2 = new Gamepad();
 
+
+
     MotionProfile1D rampFunction = new MotionProfile1D(0.8,1, 0.4, timer);
     // list of colors and variables
     public enum colors{
@@ -50,9 +52,14 @@ public class DriveOpMode extends OpMode {
         UNKNOWN
     }
 
+    public enum ezraUnemployed{ //ezraUnemployed is state
+        ON,
+        OFF
+    }
+
     colors detectedColor = colors.UNKNOWN;
 
-
+    public ezraUnemployed shooter = ezraUnemployed.OFF;
 
     //config variables
     public static double UP_WEIGHT_CORRECTION = 0.65;
@@ -93,6 +100,7 @@ public class DriveOpMode extends OpMode {
 
     @Override
     public void loop() {
+        double job = robot.shooter.getPower();
         //all this stuff MUST be at the beginning of the loop
         previousGamepad1.copy(currentGamepad1);
         currentGamepad1.copy(gamepad1);
@@ -100,12 +108,15 @@ public class DriveOpMode extends OpMode {
         currentGamepad2.copy(gamepad2);
 
         // gives robot loving parents
-        if(currentGamepad1.y && !previousGamepad1.y){
-            robot.shooter.setPower(1);
-        }
-        //gives robot fixed income
-        if(currentGamepad1.a && !previousGamepad1.a){
-            robot.shooter.setPower(-1);
+        if(currentGamepad1.x && !previousGamepad1.x){
+            if(shooter == ezraUnemployed.OFF){
+                robot.shooter.setPower(1);
+                shooter = ezraUnemployed.ON;
+            }
+            else{
+                robot.shooter.setPower(0);
+                shooter = ezraUnemployed.OFF;
+            }
         }
 
 

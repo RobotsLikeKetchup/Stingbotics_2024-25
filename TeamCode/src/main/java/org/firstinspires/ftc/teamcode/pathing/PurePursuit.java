@@ -214,7 +214,6 @@ public class PurePursuit {
                         lastFoundIndex = i + 1;
                         packet.addLine("continue loop");
                     }
-
                 } else { //no solution found!
                     intersectionFound = false;
                 }

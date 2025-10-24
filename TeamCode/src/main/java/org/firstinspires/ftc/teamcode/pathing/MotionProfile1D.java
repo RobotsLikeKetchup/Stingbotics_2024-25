@@ -1,7 +1,8 @@
 package org.firstinspires.ftc.teamcode.pathing;
 
 import com.qualcomm.robotcore.util.ElapsedTime;
-
+//export machine
+//machine.(learn)
 //this motion profile ONLY generates for 1d speed, NOT velocity or position
 public class MotionProfile1D {
     public enum Phase {
@@ -42,7 +43,7 @@ public class MotionProfile1D {
     public void startSlowDown() {
         currentPhase = Phase.SLOW_DOWN;
     }
-
+//if april tag detected then scan april tag
     public double getTargetSpeed() {
         currentTime = timer.seconds();
         elapsedTime = currentTime - lastTime;
