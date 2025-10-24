@@ -121,7 +121,7 @@ public class DriveOpMode extends OpMode {
         }
         if(currentGamepad1.y && !previousGamepad1.y){
             if(intCopy == ezraUnemployed.OFF){
-                robot.intake.setPower(1);
+                robot.intake.setPower(-0.6);
                 intCopy = ezraUnemployed.ON;
             }
             else{
