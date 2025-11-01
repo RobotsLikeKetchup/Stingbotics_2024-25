@@ -29,9 +29,9 @@ import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLoc
 public class DriveOpMode extends OpMode {
     // Create variables
     double[] motorPowers;
-//ur nt shkspr vro
+//ur nt shkspr vro -sebastian
     Robot robot = new Robot();
-    //dame un grr un que
+    //dame un grr un que -sebastian
     ElapsedTime timer= new ElapsedTime();
 
     RoadrunnerThreeWheelLocalizer localizer;
@@ -56,6 +56,8 @@ public class DriveOpMode extends OpMode {
         ON,
         OFF
     }
+
+    //I am NOT unemployed I swear
 
     colors detectedColor = colors.UNKNOWN;
 
@@ -131,6 +133,7 @@ public class DriveOpMode extends OpMode {
         }
 
 
+
         //totr
         double red = robot.ballColor.red();
         double green = robot.ballColor.green();
@@ -183,9 +186,9 @@ public class DriveOpMode extends OpMode {
         //this implements a simple toggle system
 
 
-        telemetry.addData("Encoder 1", robot.getDeadwheel("parR").getTicks());
-        telemetry.addData("Encoder 2", robot.getDeadwheel("parL").getTicks());
-        telemetry.addData("Encoder 3", robot.getDeadwheel("per").getTicks());
+        telemetry.addData("Encoder R", robot.getDeadwheel("parR").getTicks());
+        telemetry.addData("Encoder L", robot.getDeadwheel("parL").getTicks());
+        telemetry.addData("Encoder perp", robot.getDeadwheel("per").getTicks());
 
         telemetry.addData("frontLeft", robot.frontLeft.getPower());
         telemetry.addData("backLeft", robot.backLeft.getPower());
