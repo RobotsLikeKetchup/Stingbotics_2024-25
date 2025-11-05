@@ -57,7 +57,7 @@ public class DriveOpMode extends OpMode {
         OFF
     }
 
-    //I am NOT unemployed I swear
+    //I am NOT unemployed
 
     colors detectedColor = colors.UNKNOWN;
 

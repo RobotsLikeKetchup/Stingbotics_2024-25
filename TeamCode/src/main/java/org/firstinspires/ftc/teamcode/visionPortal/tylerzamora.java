@@ -19,12 +19,12 @@
  * SOFTWARE.
  */
 
-package org.firstinspires.ftc.robotcontroller.external.samples;
+package org.firstinspires.ftc.teamcode.visionPortal;
 
 import android.graphics.Color;
 import android.util.Size;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -50,18 +50,26 @@ import org.firstinspires.ftc.vision.opencv.PredominantColorProcessor;
  *
  * To aid the user, a colored rectangle is drawn on the camera preview to show the RegionOfInterest,
  * The Predominant Color is used to paint the rectangle border, so the user can verify that the color is reasonable.
- *
+
  * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@Disabled
-@TeleOp(name = "Concept: Vision Color-Sensor", group = "Concept")
-public class ConceptVisionColorSensor extends LinearOpMode
+@TeleOp(name = "tylerzamora", group = "Concept")
+public class tylerzamora extends LinearOpMode
 {
+    public enum colors{
+        P,
+        G,
+        UNKNOWN
+    }
+
+    colors detectedBall = colors.UNKNOWN;
+
     @Override
     public void runOpMode()
     {
+
         /* Build a "Color Sensor" vision processor based on the PredominantColorProcessor class.
          *
          * - Focus the color sensor by defining a RegionOfInterest (ROI) which you want to inspect.
@@ -86,11 +94,15 @@ public class ConceptVisionColorSensor extends LinearOpMode
         PredominantColorProcessor colorSensor = new PredominantColorProcessor.Builder()
                 .setRoi(ImageRegion.asUnityCenterCoordinates(-0.1, 0.1, 0.1, -0.1))
                 .setSwatches(
-                        PredominantColorProcessor.Swatch.RED,
+                        PredominantColorProcessor.Swatch.GREEN,
                         PredominantColorProcessor.Swatch.BLUE,
                         PredominantColorProcessor.Swatch.YELLOW,
+                        PredominantColorProcessor.Swatch.ORANGE,
                         PredominantColorProcessor.Swatch.BLACK,
-                        PredominantColorProcessor.Swatch.WHITE)
+                        PredominantColorProcessor.Swatch.WHITE,
+                        PredominantColorProcessor.Swatch.CYAN,
+                        PredominantColorProcessor.Swatch.RED,
+                        PredominantColorProcessor.Swatch.PURPLE)
                 .build();
 
         /*
@@ -124,11 +136,19 @@ public class ConceptVisionColorSensor extends LinearOpMode
             //  eg:
             //      if (result.closestSwatch == PredominantColorProcessor.Swatch.RED) {... some code  ...}
             PredominantColorProcessor.Result result = colorSensor.getAnalysis();
+            if(result.closestSwatch == PredominantColorProcessor.Swatch.GREEN){
+                detectedBall = colors.G;
+            } else if (result.closestSwatch == PredominantColorProcessor.Swatch.PURPLE) {
+                detectedBall = colors.P;
 
+            } else{
+                detectedBall = colors.UNKNOWN;
+            }
             // Display the Color Sensor result.
             telemetry.addData("Best Match:", result.closestSwatch);
             telemetry.addLine(String.format("R %3d, G %3d, B %3d", Color.red(result.rgb), Color.green(result.rgb), Color.blue(result.rgb)));
             telemetry.update();
+
 
             sleep(20);
         }
