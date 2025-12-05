@@ -1,9 +1,7 @@
 package org.firstinspires.ftc.teamcode.pathing;
 
 public class Waypoint {
-
     public enum WaypointType {STOP, PATH, START};
-
     WaypointType pointType;
     double x, y, lookahead;
 

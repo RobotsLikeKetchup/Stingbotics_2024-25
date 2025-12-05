@@ -109,11 +109,10 @@ public class DriveOpMode extends OpMode {
         currentGamepad1.copy(gamepad1);
         previousGamepad2.copy(currentGamepad2);
         currentGamepad2.copy(gamepad2);
-
         // gives robot loving parents
         if(currentGamepad1.x && !previousGamepad1.x){
             if(shooter == ezraUnemployed.OFF){
-                robot.shooter.setPower(1);
+                robot.shooter.setPower(-0.8);
                 shooter = ezraUnemployed.ON;
             }
             else{
@@ -131,7 +130,19 @@ public class DriveOpMode extends OpMode {
                 intCopy = ezraUnemployed.OFF;
             }
         }
+        double ayush = robot.aim.getPosition();
 
+        if(currentGamepad1.dpad_up){
+            robot.aim.setPosition(ayush - 0.1);
+        }
+        if(currentGamepad1.dpad_down){
+            robot.aim.setPosition(ayush + 0.1);
+        }
+        if(ayush > 0.6){
+            ayush = 0.6;
+        }
+
+    // FRICK EZRA- AYUSH BARUA
 
 
         //totr
@@ -171,10 +182,9 @@ public class DriveOpMode extends OpMode {
 
 
 
-
+        telemetry.addData("aimer position", ayush);
         telemetry.addData("gamepadx", currentGamepad1.left_stick_x);
         telemetry.addData("gamepady", currentGamepad1.left_stick_y);
-
         // Sets power levels
         // Works because each index corresponds with the same wheel in both arrays
         for (int i=0; i < motorPowers.length; i++) {
@@ -195,7 +205,6 @@ public class DriveOpMode extends OpMode {
         telemetry.addData("frontRight", robot.frontRight.getPower());
         telemetry.addData("backRight", robot.backRight.getPower());
         telemetry.addData("ballDetected", detectedColor);
-
         //These things MUST be at the end of each loop. DO NOT MOVE
         telemetry.update();
     }

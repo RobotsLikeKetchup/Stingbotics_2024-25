@@ -31,6 +31,7 @@ public class Robot {
     public ColorSensor ballColor;
     public DcMotor shooter;
     public DcMotor intake;
+    public Servo aim;
     //parallel dead wheels (measuring x-coord and heading)
     DeadWheel parL;
     DeadWheel parR;
@@ -71,6 +72,7 @@ public class Robot {
         backRight = hardwareMap.get(DcMotor.class, "motor_br");
         ballColor = hardwareMap.get(ColorSensor.class, "ballSensor");
         shooter = hardwareMap.get(DcMotor.class, "shooter");
+        aim = hardwareMap.get(Servo.class, "aim");
         intake = hardwareMap.get(DcMotor.class, "intake");
         driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
 
@@ -79,6 +81,8 @@ public class Robot {
             i.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             i.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         };
+
+        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
 
