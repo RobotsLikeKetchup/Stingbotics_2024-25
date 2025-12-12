@@ -19,8 +19,7 @@ import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.EzraLocalizer;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
-
-
+import org.firstinspires.ftc.teamcode.utilities.PID;
 
 
 @TeleOp
@@ -42,7 +41,11 @@ public class DriveOpMode extends OpMode {
     Gamepad previousGamepad2 = new Gamepad();
     Gamepad currentGamepad2 = new Gamepad();
 
+    static double kP = 0.01;
+    static double kl = 0;
+    static double kD = 0;
 
+    PID shooterpid = new PID(kP,kl,kD, timer);
 
     MotionProfile1D rampFunction = new MotionProfile1D(0.8,1, 0.4, timer);
     // list of colors and variables
@@ -74,15 +77,14 @@ public class DriveOpMode extends OpMode {
     FtcDashboard dashboard;
     TelemetryPacket packet;
 
+    double shooterPower = 0;
     @Override
     // Set starting values for variable
     public void init() {
         robot.init(hardwareMap, timer);
         //localizer = new RoadrunnerThreeWheelLocalizer(hardwareMap);
 
-
-
-
+        robot.aim.setPosition(0.5);
 
         dashboard = FtcDashboard.getInstance();
         packet = new TelemetryPacket();
@@ -103,13 +105,13 @@ public class DriveOpMode extends OpMode {
 
     @Override
     public void loop() {
-        double job = robot.shooter.getPower();
         //all this stuff MUST be at the beginning of the loop
         previousGamepad1.copy(currentGamepad1);
         currentGamepad1.copy(gamepad1);
         previousGamepad2.copy(currentGamepad2);
         currentGamepad2.copy(gamepad2);
         // gives robot loving parents
+        shooterPower = shooterpid.loop(-1, robot.shooter.getPower());
         if(currentGamepad1.x && !previousGamepad1.x){
             if(shooter == ezraUnemployed.OFF){
                 robot.shooter.setPower(-0.8);
@@ -130,16 +132,20 @@ public class DriveOpMode extends OpMode {
                 intCopy = ezraUnemployed.OFF;
             }
         }
+
         double ayush = robot.aim.getPosition();
 
         if(currentGamepad1.dpad_up){
-            robot.aim.setPosition(ayush - 0.1);
+            robot.aim.setPosition(ayush - 0.05);
         }
         if(currentGamepad1.dpad_down){
-            robot.aim.setPosition(ayush + 0.1);
+            robot.aim.setPosition(ayush + 0.05);
         }
-        if(ayush > 0.6){
-            ayush = 0.6;
+        if(ayush > 0.7) {
+            robot.aim.setPosition(0.7);
+        }
+        if(ayush < 0.2){
+            robot.aim.setPosition(0.2);
         }
 
     // FRICK EZRA- AYUSH BARUA
@@ -177,10 +183,6 @@ public class DriveOpMode extends OpMode {
             rampFunction.getTargetSpeed(), 1, //this all just correcting for our shitty weight distribution
             true
         );
-
-
-
-
 
         telemetry.addData("aimer position", ayush);
         telemetry.addData("gamepadx", currentGamepad1.left_stick_x);

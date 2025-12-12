@@ -82,7 +82,7 @@ public class Robot {
             i.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         };
 
-        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
 
 
 
