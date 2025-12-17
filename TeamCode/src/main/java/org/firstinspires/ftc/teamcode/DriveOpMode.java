@@ -78,6 +78,7 @@ public class DriveOpMode extends OpMode {
     TelemetryPacket packet;
 
     double shooterPower = 0;
+
     @Override
     // Set starting values for variable
     public void init() {
@@ -121,7 +122,9 @@ public class DriveOpMode extends OpMode {
                 robot.shooter.setPower(0);
                 shooter = ezraUnemployed.OFF;
             }
-        }
+        } robot.shooter.setPower(shooterPower);
+
+        
         if(currentGamepad1.y && !previousGamepad1.y){
             if(intCopy == ezraUnemployed.OFF){
                 robot.intake.setPower(-0.6);
