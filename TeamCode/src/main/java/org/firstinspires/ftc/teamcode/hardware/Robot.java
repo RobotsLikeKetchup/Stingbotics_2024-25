@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import android.util.Size;
+
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -9,6 +11,7 @@ import com.acmerobotics.roadrunner.SequentialAction;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -21,6 +24,8 @@ import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.PurePursuit;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.MovementFunctions;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 public class Robot {
     //fields
@@ -29,7 +34,7 @@ public class Robot {
     public DcMotor backRight;
     public DcMotor backLeft;
     public ColorSensor ballColor;
-    public DcMotor shooter;
+    public DcMotorEx shooter;
     public DcMotor intake;
     public Servo aim;
     //parallel dead wheels (measuring x-coord and heading)
@@ -44,6 +49,9 @@ public class Robot {
 
     ElapsedTime timer;
 
+    public AprilTagProcessor aprilTagProcessor = new AprilTagProcessor.Builder().build();
+
+    public VisionPortal visionPortal;
 
 
     //constructor
@@ -71,7 +79,7 @@ public class Robot {
         backLeft = hardwareMap.get(DcMotor.class, "motor_bl");
         backRight = hardwareMap.get(DcMotor.class, "motor_br");
         ballColor = hardwareMap.get(ColorSensor.class, "ballSensor");
-        shooter = hardwareMap.get(DcMotor.class, "shooter");
+        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
         aim = hardwareMap.get(Servo.class, "aim");
         intake = hardwareMap.get(DcMotor.class, "intake");
         driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
@@ -82,11 +90,7 @@ public class Robot {
             i.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         };
 
-
-
-
-
-//hagrid: eres un horrocrux harry
+        //hagrid: eres un horrocrux harry
         //harry: un que?
         //hagrid: un grrr
 
@@ -101,6 +105,15 @@ public class Robot {
         parL = new DeadWheel(inPerTick, backRight);
         parR = new DeadWheel(inPerTick, frontRight);
         per = new DeadWheel(inPerTick, backLeft);
+
+        //create vision portal
+        visionPortal = new VisionPortal.Builder()
+                .setCamera(hardwareMap.get(WebcamName.class, "cameraOfDoom"))
+                .addProcessor(aprilTagProcessor)
+                .setCameraResolution(new Size(640, 480))
+                .setStreamFormat(VisionPortal.StreamFormat.MJPEG)
+                .build();
+
     }
 
     //methods
@@ -223,6 +236,20 @@ public class Robot {
 
     public Action followPath(double[][] path, double optimalAngle, boolean optimalAngleFieldReferenceFrame) {
         return new followPath(path, optimalAngle, optimalAngleFieldReferenceFrame);
+    }
+
+    //TODO: finish!
+    public class Shoot implements Action {
+        double velocity;
+
+        public Shoot(double velocity){
+            this.velocity = velocity;
+        }
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            return false;
+        }
     }
 
 }

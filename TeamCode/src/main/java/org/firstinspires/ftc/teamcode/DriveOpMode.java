@@ -6,20 +6,19 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 // Import custom-made classes/methods
 import static org.firstinspires.ftc.teamcode.utilities.MathFunctions.toInt;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
-import org.firstinspires.ftc.teamcode.pathing.EzraLocalizer;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
-import org.firstinspires.ftc.teamcode.utilities.PID;
+import org.firstinspires.ftc.teamcode.utilities.PIDF;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+
+import java.util.List;
 
 
 @TeleOp
@@ -41,19 +40,20 @@ public class DriveOpMode extends OpMode {
     Gamepad previousGamepad2 = new Gamepad();
     Gamepad currentGamepad2 = new Gamepad();
 
-    static double kP = 0.01;
-    static double kl = 0;
-    static double kD = 0;
+    public static double kP = 0.0055;
+    public static double kI = 0.00000023;
+    public static double kD = 0.012;
+    public static double kF = 0.000012;
 
-    PID shooterpid = new PID(kP,kl,kD, timer);
+    PIDF shooterpid = new PIDF(kP,kI,kD,kF, timer);
 
     MotionProfile1D rampFunction = new MotionProfile1D(0.8,1, 0.4, timer);
     // list of colors and variables
-    public enum colors{
-        PURPLE,
-        GREEN,
-        UNKNOWN
-    }
+    public enum colors{ PURPLE, GREEN, UNKNOWN }
+
+    public enum side { BLUE, RED }
+
+    public side currentSide = side.BLUE;
 
     public enum ezraUnemployed{ //ezraUnemployed is state
         ON,
@@ -67,15 +67,17 @@ public class DriveOpMode extends OpMode {
     public ezraUnemployed shooter = ezraUnemployed.OFF;
     public ezraUnemployed intCopy = ezraUnemployed.OFF;
 
-    //config variables
-    public static double UP_WEIGHT_CORRECTION = 0.65;
-    public static double DOWN_WEIGHT_CORRECTION = 1;
-
-    public static double ELBOW_INTERCEPT = 0.3;
-    public static double ELBOW_SLOPE = 0.000055;
 
     FtcDashboard dashboard;
     TelemetryPacket packet;
+    public int shooter_target;
+
+    public double shooterSpeed = -1800;
+
+    public double target_bearing;
+    public double target_range;
+
+    List<AprilTagDetection> aprilTagDetections;
 
     double shooterPower = 0;
 
@@ -84,6 +86,8 @@ public class DriveOpMode extends OpMode {
     public void init() {
         robot.init(hardwareMap, timer);
         //localizer = new RoadrunnerThreeWheelLocalizer(hardwareMap);
+
+        //telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         robot.aim.setPosition(0.5);
 
@@ -96,6 +100,8 @@ public class DriveOpMode extends OpMode {
         //telemetry.addData("y pos",localizer.getPose()[1]);
         //telemetry.addData("Angle pos",localizer.getPose()[2]);
         telemetry.update();
+
+        if (currentSide == side.BLUE) {shooter_target = 20;} else {shooter_target = 24;}
 
     }
 
@@ -111,11 +117,12 @@ public class DriveOpMode extends OpMode {
         currentGamepad1.copy(gamepad1);
         previousGamepad2.copy(currentGamepad2);
         currentGamepad2.copy(gamepad2);
+
         // gives robot loving parents
-        shooterPower = shooterpid.loop(-1, robot.shooter.getPower());
+        shooterPower = shooterpid.loop(shooterSpeed, robot.shooter.getVelocity());
         if(currentGamepad1.x && !previousGamepad1.x){
             if(shooter == ezraUnemployed.OFF){
-                robot.shooter.setPower(-0.8);
+                robot.shooter.setPower(shooterPower);
                 shooter = ezraUnemployed.ON;
             }
             else{
@@ -127,7 +134,7 @@ public class DriveOpMode extends OpMode {
         
         if(currentGamepad1.y && !previousGamepad1.y){
             if(intCopy == ezraUnemployed.OFF){
-                robot.intake.setPower(-0.6);
+                robot.intake.setPower(.8);
                 intCopy = ezraUnemployed.ON;
             }
             else{
@@ -138,6 +145,7 @@ public class DriveOpMode extends OpMode {
 
         double ayush = robot.aim.getPosition();
 
+        //servo location
         if(currentGamepad1.dpad_up){
             robot.aim.setPosition(ayush - 0.05);
         }
@@ -151,7 +159,7 @@ public class DriveOpMode extends OpMode {
             robot.aim.setPosition(0.2);
         }
 
-    // FRICK EZRA- AYUSH BARUA
+        // FRICK EZRA- AYUSH BARUA
 
 
         //totr
@@ -171,10 +179,23 @@ public class DriveOpMode extends OpMode {
 
 
         //ramp  function: if sebastian has just started moving, beat his ass.
+        //it basically prevents jerky movement by making sure it speeds up slower.
+        // This way also if the driver is making precise adjustments they can go slowly
         if ((Math.abs(currentGamepad1.left_stick_x) > 0.05 || Math.abs(currentGamepad1.left_stick_y) > 0.05) && !(Math.abs(previousGamepad1.left_stick_x) > 0.05 || Math.abs(previousGamepad1.left_stick_y) > 0.05)) {
             rampFunction.reset();
         }
 
+
+        //AprilTag Detection: update target location
+        aprilTagDetections = robot.aprilTagProcessor.getDetections();
+        for (AprilTagDetection detection : aprilTagDetections) {
+            if (detection.metadata != null) {
+                if(detection.id == shooter_target){
+                    target_bearing = detection.ftcPose.bearing;
+                    target_range = detection.ftcPose.range;
+                }
+            }
+        }
 
         // Gets power levels for each motor, using gamepad inputs as directions
         // The third item in the array dictates which trigger is being pressed (=1 if left, =-1 if right, =0 if none or both).
@@ -196,11 +217,6 @@ public class DriveOpMode extends OpMode {
             robot.driveMotors[i].setPower(motorPowers[i]);
         }
 
-
-        // Servo Controller            RT is in , LT is out
-        //this implements a simple toggle system
-
-
         telemetry.addData("Encoder R", robot.getDeadwheel("parR").getTicks());
         telemetry.addData("Encoder L", robot.getDeadwheel("parL").getTicks());
         telemetry.addData("Encoder perp", robot.getDeadwheel("per").getTicks());
@@ -210,6 +226,10 @@ public class DriveOpMode extends OpMode {
         telemetry.addData("frontRight", robot.frontRight.getPower());
         telemetry.addData("backRight", robot.backRight.getPower());
         telemetry.addData("ballDetected", detectedColor);
+
+        telemetry.addData("range", target_range);
+
+        telemetry.addData("shooter", robot.shooter.getVelocity());
         //These things MUST be at the end of each loop. DO NOT MOVE
         telemetry.update();
     }

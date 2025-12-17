@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import static org.firstinspires.ftc.teamcode.utilities.MathFunctions.toInt;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Pose2d;
@@ -12,11 +13,13 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
+import org.firstinspires.ftc.teamcode.utilities.PIDF;
 
 import java.util.Arrays;
 
 
 @TeleOp
+@Config
 public class TestingOpMode extends OpMode {
     double[] motorPowers;
     RoadrunnerThreeWheelLocalizer localization;
@@ -31,6 +34,16 @@ public class TestingOpMode extends OpMode {
     final double r = (robotWidth/2) * Math.sqrt(2);
 
     MultipleTelemetry telemetryA;
+
+    public static double kP = 0.0055;
+    public static double kI = 0.00000023;
+    public static double kD = 0.012;
+    public static double kF = 0.000012;
+
+    PIDF shooterpid = new PIDF(kP,kI,kD,kF, timer);
+    public double shooterPower = 0;
+
+    public static double shooterRef = -1800;
 
     @Override
     public void init() {
@@ -49,6 +62,8 @@ public class TestingOpMode extends OpMode {
 
     @Override
     public void loop() {
+        shooterpid.setConstants(kP, kI, kD, kF);
+
         localization.updatePoseEstimate();
         motorPowers = MecanumKinematics.getPowerFromDirection(new double[] {
                 gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x),
@@ -61,6 +76,10 @@ public class TestingOpMode extends OpMode {
         }
 
         double[] pose = localization.getPose();
+
+        shooterPower = shooterpid.loop(shooterRef, robot.shooter.getVelocity());
+
+        robot.shooter.setPower(shooterPower);
 
 
         //if(gamepad1.a){robot.backLeft.setPower(0.8);} else {robot.backLeft.setPower(0);}
@@ -82,6 +101,8 @@ public class TestingOpMode extends OpMode {
         telemetryA.addData("x", localization.getPose()[0]);
         telemetryA.addData("y", localization.getPose()[1]);
         telemetryA.addData("angle", Math.toDegrees(localization.getPose()[2]));
+        telemetryA.addData("shooter", robot.shooter.getVelocity());
+        telemetryA.addData("shooterpower", shooterPower);
         //telemetry.addData("encoder value", encoderValue);
         telemetryA.update();
 
