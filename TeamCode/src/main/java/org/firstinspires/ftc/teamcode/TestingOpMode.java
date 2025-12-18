@@ -9,6 +9,7 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.hardware.Robot;
@@ -45,6 +46,8 @@ public class TestingOpMode extends OpMode {
 
     public static double shooterRef = -1800;
 
+    public DriveOpMode.ezraUnemployed intCopy = DriveOpMode.ezraUnemployed.OFF;
+
     @Override
     public void init() {
 
@@ -74,12 +77,46 @@ public class TestingOpMode extends OpMode {
         for (int i=0; i < motorPowers.length; i++) {
             robot.driveMotors[i].setPower(motorPowers[i]);
         }
+        Gamepad previousGamepad1 = new Gamepad();
+        Gamepad currentGamepad1 = new Gamepad();
+        previousGamepad1.copy(currentGamepad1);
+        currentGamepad1.copy(gamepad1);
+
+        if(currentGamepad1.y && !previousGamepad1.y){
+            if(intCopy == DriveOpMode.ezraUnemployed.OFF){
+                robot.intake.setPower(.8);
+                intCopy = DriveOpMode.ezraUnemployed.ON;
+            }
+            else{
+                robot.intake.setPower(0);
+                intCopy = DriveOpMode.ezraUnemployed.OFF;
+            }
+        }
 
         double[] pose = localization.getPose();
 
-        shooterPower = shooterpid.loop(shooterRef, robot.shooter.getVelocity());
+        if(shooterRef != 0) {
+            shooterPower = shooterpid.loop(shooterRef, robot.shooter.getVelocity());
+        } else shooterPower = 0;
 
         robot.shooter.setPower(shooterPower);
+        
+        previousGamepad1.copy(currentGamepad1);
+        currentGamepad1.copy(gamepad1);
+
+        double ayush = robot.aim.getPosition();
+        if(currentGamepad1.dpad_up){
+            robot.aim.setPosition(ayush - 0.05);
+        }
+        if(currentGamepad1.dpad_down){
+            robot.aim.setPosition(ayush + 0.05);
+        }
+        if(ayush > 0.7) {
+            //robot.aim.setPosition(0.7);
+        }
+        if(ayush < 0.2){
+            //robot.aim.setPosition(0.2);
+        }
 
 
         //if(gamepad1.a){robot.backLeft.setPower(0.8);} else {robot.backLeft.setPower(0);}
@@ -103,6 +140,7 @@ public class TestingOpMode extends OpMode {
         telemetryA.addData("angle", Math.toDegrees(localization.getPose()[2]));
         telemetryA.addData("shooter", robot.shooter.getVelocity());
         telemetryA.addData("shooterpower", shooterPower);
+        telemetryA.addData("aim position", robot.aim.getPosition());
         //telemetry.addData("encoder value", encoderValue);
         telemetryA.update();
 
@@ -124,6 +162,12 @@ public class TestingOpMode extends OpMode {
 
 
         dashboard.sendTelemetryPacket(packet);
+
+
+
+        // FRICK EZRA- AYUSH BARUA
+
+
 
     }
 

@@ -79,7 +79,7 @@ public class DriveOpMode extends OpMode {
 
     List<AprilTagDetection> aprilTagDetections;
 
-    double shooterPower = 0;
+    double shooterVelocity = 0;
 
     @Override
     // Set starting values for variable
@@ -119,18 +119,22 @@ public class DriveOpMode extends OpMode {
         currentGamepad2.copy(gamepad2);
 
         // gives robot loving parents
-        shooterPower = shooterpid.loop(shooterSpeed, robot.shooter.getVelocity());
+        shooterVelocity = shooterpid.loop(shooterSpeed, robot.shooter.getVelocity());
         if(currentGamepad1.x && !previousGamepad1.x){
             if(shooter == ezraUnemployed.OFF){
-                robot.shooter.setPower(shooterPower);
+                shooterVelocity = -1800;
                 shooter = ezraUnemployed.ON;
             }
             else{
+                shooterVelocity = 0;
                 robot.shooter.setPower(0);
                 shooter = ezraUnemployed.OFF;
             }
-        } robot.shooter.setPower(shooterPower);
+        }
 
+        if(shooterVelocity != 0) {
+            robot.shooter.setPower(shooterpid.loop(shooterVelocity, robot.shooter.getVelocity()));
+        } else robot.shooter.setPower(0);
         
         if(currentGamepad1.y && !previousGamepad1.y){
             if(intCopy == ezraUnemployed.OFF){
