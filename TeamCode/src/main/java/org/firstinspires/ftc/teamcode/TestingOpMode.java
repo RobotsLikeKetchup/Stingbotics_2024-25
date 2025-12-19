@@ -45,6 +45,7 @@ public class TestingOpMode extends OpMode {
     public double shooterPower = 0;
 
     public static double shooterRef = -1800;
+    public static double servoPos = 0;
 
     public DriveOpMode.ezraUnemployed intCopy = DriveOpMode.ezraUnemployed.OFF;
 
@@ -105,17 +106,18 @@ public class TestingOpMode extends OpMode {
         currentGamepad1.copy(gamepad1);
 
         double ayush = robot.aim.getPosition();
+        //robot.aim.setPosition(servoPos);
         if(currentGamepad1.dpad_up){
             robot.aim.setPosition(ayush - 0.05);
         }
         if(currentGamepad1.dpad_down){
             robot.aim.setPosition(ayush + 0.05);
         }
-        if(ayush > 0.7) {
-            //robot.aim.setPosition(0.7);
+        if(ayush > 0.94) {
+            robot.aim.setPosition(0.94);
         }
-        if(ayush < 0.2){
-            //robot.aim.setPosition(0.2);
+        if(ayush < 0.4){
+            robot.aim.setPosition(0.4);
         }
 
 
@@ -141,6 +143,7 @@ public class TestingOpMode extends OpMode {
         telemetryA.addData("shooter", robot.shooter.getVelocity());
         telemetryA.addData("shooterpower", shooterPower);
         telemetryA.addData("aim position", robot.aim.getPosition());
+        telemetryA.addData("aim target", ayush);
         //telemetry.addData("encoder value", encoderValue);
         telemetryA.update();
 
