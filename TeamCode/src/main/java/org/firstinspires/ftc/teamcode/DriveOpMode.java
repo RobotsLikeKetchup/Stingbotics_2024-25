@@ -53,11 +53,12 @@ public class DriveOpMode extends OpMode {
 
     public enum side { BLUE, RED }
 
-    public side currentSide = side.BLUE;
+    public side currentSide = side.RED;
 
     public enum ezraUnemployed{ //ezraUnemployed is state
         ON,
-        OFF
+        OFF,
+        REVERSE
     }
 
     //I am NOT unemployed
@@ -75,18 +76,21 @@ public class DriveOpMode extends OpMode {
     public double shooterSpeed = -1800;
 
     public double target_bearing;
-    public double target_range;
+    public double target_range = 40;
+    public double prev_target_range;
 
     List<AprilTagDetection> aprilTagDetections;
 
     double shooterVelocity = 0;
+    double target_spin = -1900;
+    double target_aim = 0.78;
 
 
     double[][] lookup = {
-            {33,1800,0.78},
-            {46,1900,0.78},
-            {58,1950,0.64},
-            {78,2200,0.54}
+            {33,-1800,0.78},
+            {46,-1900,0.78},
+            {58,-1950,0.64},
+            {90,-2200,0.54}
     };
 
     @Override
@@ -125,31 +129,48 @@ public class DriveOpMode extends OpMode {
         currentGamepad1.copy(gamepad1);
         previousGamepad2.copy(currentGamepad2);
         currentGamepad2.copy(gamepad2);
+        prev_target_range = target_range;
 
         // gives robot loving parents
         shooterVelocity = shooterpid.loop(shooterSpeed, robot.shooter.getVelocity());
+
+        //toggle
         if(currentGamepad1.x && !previousGamepad1.x){
             if(shooter == ezraUnemployed.OFF){
-                shooterVelocity = -1800;
                 shooter = ezraUnemployed.ON;
             }
-            else{
-                shooterVelocity = 0;
+            else if (shooter == ezraUnemployed.ON){
                 robot.shooter.setPower(0);
                 shooter = ezraUnemployed.OFF;
             }
         }
+
+
+        if (shooter == ezraUnemployed.ON) shooterVelocity = -1800;
+        else shooterVelocity = 0;
+
+
 
         if(shooterVelocity != 0) {
             robot.shooter.setPower(shooterpid.loop(shooterVelocity, robot.shooter.getVelocity()));
         } else robot.shooter.setPower(0);
         
         if(currentGamepad1.y && !previousGamepad1.y){
-            if(intCopy == ezraUnemployed.OFF){
+            if(intCopy != ezraUnemployed.ON){
                 robot.intake.setPower(.8);
                 intCopy = ezraUnemployed.ON;
             }
-            else{
+            else if(intCopy != ezraUnemployed.OFF){
+                robot.intake.setPower(0);
+                intCopy = ezraUnemployed.OFF;
+            }
+        }
+        if(currentGamepad1.a && !previousGamepad1.a){
+            if(intCopy != ezraUnemployed.REVERSE){
+                robot.intake.setPower(-.8);
+                intCopy = ezraUnemployed.REVERSE;
+            }
+            else if(intCopy != ezraUnemployed.OFF){
                 robot.intake.setPower(0);
                 intCopy = ezraUnemployed.OFF;
             }
@@ -164,11 +185,11 @@ public class DriveOpMode extends OpMode {
         if(currentGamepad1.dpad_down){
             robot.aim.setPosition(ayush + 0.05);
         }
-        if(ayush > 0.7) {
-            robot.aim.setPosition(0.7);
+        if(ayush > 0.94) {
+            robot.aim.setPosition(0.94);
         }
-        if(ayush < 0.2){
-            robot.aim.setPosition(0.2);
+        if(ayush < 0.4){
+            robot.aim.setPosition(0.4);
         }
 
         // FRICK EZRA- AYUSH BARUA
@@ -201,19 +222,28 @@ public class DriveOpMode extends OpMode {
         //AprilTag Detection: update target location
         aprilTagDetections = robot.aprilTagProcessor.getDetections();
         for (AprilTagDetection detection : aprilTagDetections) {
+            telemetry.addLine("d" + detection.ftcPose.range);
             if (detection.metadata != null) {
-                if(detection.id == shooter_target){
+                if(detection.metadata.id == shooter_target){
                     target_bearing = detection.ftcPose.bearing;
                     target_range = detection.ftcPose.range;
                 }
             }
         }
 
+        for(double[] item: lookup) {
+            if (item[0]>=target_range){
+                target_spin = item[1];
+                target_aim = item[2];
+            }
+        }
+
+
         // Gets power levels for each motor, using gamepad inputs as directions
         // The third item in the array dictates which trigger is being pressed (=1 if left, =-1 if right, =0 if none or both).
         motorPowers = MecanumKinematics.getPowerFromDirection(new double[] {
                 gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x),
-                gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
+                - gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
                 toInt(gamepad1.right_bumper) - toInt(gamepad1.left_bumper)
             },
             rampFunction.getTargetSpeed(), 1, //this all just correcting for our shitty weight distribution
@@ -242,6 +272,8 @@ public class DriveOpMode extends OpMode {
         telemetry.addData("range", target_range);
 
         telemetry.addData("shooter", robot.shooter.getVelocity());
+        telemetry.addData("taim", target_aim);
+        telemetry.addData("tspin", target_spin);
         //These things MUST be at the end of each loop. DO NOT MOVE
         telemetry.update();
     }
