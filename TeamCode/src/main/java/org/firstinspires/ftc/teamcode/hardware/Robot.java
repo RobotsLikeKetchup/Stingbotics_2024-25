@@ -127,6 +127,7 @@ public class Robot {
                 .addProcessor(aprilTagProcessor)
                 .setCameraResolution(new Size(640, 480))
                 .setStreamFormat(VisionPortal.StreamFormat.YUY2)
+                .setAutoStartStreamOnBuild(true)
                 .build();
 
         visionPortal.setProcessorEnabled(aprilTagProcessor, true);

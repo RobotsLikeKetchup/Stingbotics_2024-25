@@ -146,7 +146,7 @@ public class DriveOpModeRED extends OpMode {
         }
 
 
-        if (shooter == ezraUnemployed.ON) shooterVelocity = -1800;
+        if (shooter == ezraUnemployed.ON) shooterVelocity = target_spin;
         else shooterVelocity = 0;
 
 
@@ -178,6 +178,7 @@ public class DriveOpModeRED extends OpMode {
 
         double ayush = robot.aim.getPosition();
 
+        robot.aim.setPosition(target_aim);
         //servo location
         if(currentGamepad1.dpad_up){
             robot.aim.setPosition(ayush - 0.05);

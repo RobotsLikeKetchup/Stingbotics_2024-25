@@ -136,18 +136,26 @@ public class DriveOpMode extends OpMode {
 
         //toggle
         if(currentGamepad1.x && !previousGamepad1.x){
-            if(shooter == ezraUnemployed.OFF){
+            if(shooter != ezraUnemployed.ON){
                 shooter = ezraUnemployed.ON;
             }
-            else if (shooter == ezraUnemployed.ON){
+            else if (shooter != ezraUnemployed.OFF){
                 robot.shooter.setPower(0);
+                shooter = ezraUnemployed.OFF;
+            }
+        }
+        if(currentGamepad1.b && !previousGamepad1.b){
+            if(shooter != ezraUnemployed.REVERSE){
+                shooter = ezraUnemployed.REVERSE;
+            } else if (shooter != ezraUnemployed.OFF){
                 shooter = ezraUnemployed.OFF;
             }
         }
 
 
-        if (shooter == ezraUnemployed.ON) shooterVelocity = -1800;
-        else shooterVelocity = 0;
+        if (shooter == ezraUnemployed.ON) shooterVelocity = target_spin;
+        else if(shooter == ezraUnemployed.OFF) shooterVelocity = 0;
+        else shooterVelocity = 800;
 
 
 
@@ -178,6 +186,7 @@ public class DriveOpMode extends OpMode {
 
         double ayush = robot.aim.getPosition();
 
+        robot.aim.setPosition(target_aim);
         //servo location
         if(currentGamepad1.dpad_up){
             robot.aim.setPosition(ayush - 0.05);
