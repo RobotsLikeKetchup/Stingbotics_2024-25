@@ -81,6 +81,14 @@ public class DriveOpMode extends OpMode {
 
     double shooterVelocity = 0;
 
+
+    double[][] lookup = {
+            {33,1800,0.78},
+            {46,1900,0.78},
+            {58,1950,0.64},
+            {78,2200,0.54}
+    };
+
     @Override
     // Set starting values for variable
     public void init() {
