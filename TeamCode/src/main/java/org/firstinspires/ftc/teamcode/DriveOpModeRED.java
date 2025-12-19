@@ -1,6 +1,9 @@
 // Import FTC package
 package org.firstinspires.ftc.teamcode;
 // Import FTC classes
+
+import static org.firstinspires.ftc.teamcode.utilities.MathFunctions.toInt;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -8,9 +11,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-// Import custom-made classes/methods
-import static org.firstinspires.ftc.teamcode.utilities.MathFunctions.toInt;
 
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
@@ -24,7 +24,7 @@ import java.util.List;
 @TeleOp
 
 @Config
-public class DriveOpMode extends OpMode {
+public class DriveOpModeRED extends OpMode {
     // Create variables
     double[] motorPowers;
 //ur nt shkspr vro -sebastian
@@ -53,7 +53,7 @@ public class DriveOpMode extends OpMode {
 
     public enum side { BLUE, RED }
 
-    public side currentSide = side.BLUE;
+    public side currentSide = side.RED;
 
     public enum ezraUnemployed{ //ezraUnemployed is state
         ON,
@@ -222,8 +222,8 @@ public class DriveOpMode extends OpMode {
         //AprilTag Detection: update target location
         aprilTagDetections = robot.aprilTagProcessor.getDetections();
         for (AprilTagDetection detection : aprilTagDetections) {
+            telemetry.addLine("d" + detection.ftcPose.range);
             if (detection.metadata != null) {
-                telemetry.addLine(" "+detection.metadata.id);
                 if(detection.metadata.id == shooter_target){
                     target_bearing = detection.ftcPose.bearing;
                     target_range = detection.ftcPose.range;

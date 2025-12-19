@@ -19,12 +19,15 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.MecanumKinematics;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.PurePursuit;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.MovementFunctions;
 import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 public class Robot {
@@ -49,7 +52,7 @@ public class Robot {
 
     ElapsedTime timer;
 
-    public AprilTagProcessor aprilTagProcessor = new AprilTagProcessor.Builder().build();
+    public AprilTagProcessor aprilTagProcessor;
 
     public VisionPortal visionPortal;
 
@@ -107,12 +110,26 @@ public class Robot {
         per = new DeadWheel(inPerTick, backLeft);
 
         //create vision portal
+        aprilTagProcessor = new AprilTagProcessor.Builder()
+
+                // The following default settings are available to un-comment and edit as needed.
+                .setDrawAxes(false)
+                //.setDrawCubeProjection(false)
+                .setDrawTagOutline(true)
+                .setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
+                .setTagLibrary(AprilTagGameDatabase.getCurrentGameTagLibrary())
+                .setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
+
+                .build();
+
         visionPortal = new VisionPortal.Builder()
                 .setCamera(hardwareMap.get(WebcamName.class, "cameraOfDoom"))
                 .addProcessor(aprilTagProcessor)
                 .setCameraResolution(new Size(640, 480))
-                .setStreamFormat(VisionPortal.StreamFormat.MJPEG)
+                .setStreamFormat(VisionPortal.StreamFormat.YUY2)
                 .build();
+
+        visionPortal.setProcessorEnabled(aprilTagProcessor, true);
 
     }
 
