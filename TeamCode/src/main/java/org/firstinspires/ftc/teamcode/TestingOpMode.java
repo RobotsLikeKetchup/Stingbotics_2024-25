@@ -44,7 +44,7 @@ public class TestingOpMode extends OpMode {
     PIDF shooterpid = new PIDF(kP,kI,kD,kF, timer);
     public double shooterPower = 0;
 
-    public static double shooterRef = -1800;
+    public static double shooterRef = 0;
     public static double servoPos = 0;
 
     public DriveOpMode.ezraUnemployed intCopy = DriveOpMode.ezraUnemployed.OFF;
@@ -118,6 +118,9 @@ public class TestingOpMode extends OpMode {
         }
         if(ayush < 0.4){
             robot.aim.setPosition(0.4);
+        }
+        if(currentGamepad1.dpad_left){
+
         }
 
 

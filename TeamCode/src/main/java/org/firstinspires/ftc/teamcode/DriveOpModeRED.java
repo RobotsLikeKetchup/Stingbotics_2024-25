@@ -181,11 +181,12 @@ public class DriveOpModeRED extends OpMode {
         robot.aim.setPosition(target_aim);
         //servo location
         if(currentGamepad1.dpad_up){
-            robot.aim.setPosition(ayush - 0.05);
+            ayush -= 0.05;
         }
         if(currentGamepad1.dpad_down){
-            robot.aim.setPosition(ayush + 0.05);
+            ayush += 0.05;
         }
+        robot.aim.setPosition(ayush);
         if(ayush > 0.94) {
             robot.aim.setPosition(0.94);
         }
