@@ -155,7 +155,7 @@ public class DriveOpMode extends OpMode {
 
         if (shooter == ezraUnemployed.ON) shooterVelocity = target_spin;
         else if(shooter == ezraUnemployed.OFF) shooterVelocity = 0;
-        else shooterVelocity = 800;
+        else if(shooter == ezraUnemployed.REVERSE) shooterVelocity = -target_spin/2;
 
 
 
@@ -195,8 +195,8 @@ public class DriveOpMode extends OpMode {
             ayush += 0.05;
         }
         robot.aim.setPosition(ayush);
-        if(ayush > 0.94) {
-            robot.aim.setPosition(0.94);
+        if(ayush > 1) {
+            robot.aim.setPosition(1);
         }
         if(ayush < 0.4) {
             robot.aim.setPosition(0.4);

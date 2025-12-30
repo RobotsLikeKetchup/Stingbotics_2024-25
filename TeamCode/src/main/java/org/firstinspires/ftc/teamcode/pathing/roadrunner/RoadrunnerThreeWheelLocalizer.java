@@ -52,7 +52,7 @@ public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLoca
         //   the encoders should be plugged into the slot matching the named motor
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
         par0 = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "motor_fl")));//left
-        par1 = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "motor_fr")));//right
+        par1 = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "intake")));//right
         perp = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "motor_bl")));//middle - umed
 
         // TODO: reverse encoder directions if needed
