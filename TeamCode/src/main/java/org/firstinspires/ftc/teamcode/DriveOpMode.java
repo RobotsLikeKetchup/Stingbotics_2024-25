@@ -238,6 +238,23 @@ public class DriveOpMode extends OpMode {
             rampFunction.reset();
         }
 
+        //update
+        aprilTag.update();
+        AprilTagDetection id20 = aprilTag.getTagByID(20);
+        //display
+        aprilTag.displayTelemetry(id20);
+        if(id20 != null && id20.ftcPose != null){
+            double bearingError = id20.ftcPose.bearing;
+            if(bearingError > 5){
+                robot.spin.setPower(0.3);
+            } else if (bearingError < -5) {
+                robot.spin.setPower(-0.3);
+            }else {
+                robot.spin.setPower(0);
+            }
+        }else{
+            robot.spin.setPower(0);
+        }
 
         //AprilTag Detection: update target location
         aprilTagDetections = robot.aprilTagProcessor.getDetections();
@@ -245,17 +262,7 @@ public class DriveOpMode extends OpMode {
             if (detection.metadata != null) {
                 telemetry.addLine(" " + detection.metadata.id);
                 if (detection.metadata.id == shooter_target) {
-                    target_bearing = detection.ftcPose.bearing;
                     target_range = detection.ftcPose.range;
-                    telemetry.addData("target_bearing:", target_bearing);
-                    double bearingError = target_bearing;
-                    if (bearingError > 0.8) {
-                        robot.spin.setPower(1);
-                    }else if (bearingError < -0.8) {
-                        robot.spin.setPower(-1);
-                    }else{
-                        robot.spin.setPower(0);
-                    }
                 }
             }
         }
@@ -267,10 +274,7 @@ public class DriveOpMode extends OpMode {
             }
         }
 
-        aprilTag.update();
-        AprilTagDetection id20 = aprilTag.getTagByID(20);
-        //display
-        aprilTag.displayTelemetry(id20);
+
 
         // Gets power levels for each motor, using gamepad inputs as directions
         // The third item in the array dictates which trigger is being pressed (=1 if left, =-1 if right, =0 if none or both).
