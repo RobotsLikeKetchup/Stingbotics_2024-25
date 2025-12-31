@@ -12,11 +12,16 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 // Import custom-made classes/methods
 import static org.firstinspires.ftc.teamcode.utilities.MathFunctions.toInt;
 
+import org.firstinspires.ftc.teamcode.hardware.AprilTag;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.PIDF;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 import java.util.List;
 
@@ -92,6 +97,7 @@ public class DriveOpMode extends OpMode {
             {58,-1950,0.64},
             {90,-2200,0.54}
     };
+    AprilTag aprilTag = new AprilTag();
 
     @Override
     // Set starting values for variable
@@ -112,6 +118,7 @@ public class DriveOpMode extends OpMode {
         //telemetry.addData("y pos",localizer.getPose()[1]);
         //telemetry.addData("Angle pos",localizer.getPose()[2]);
         telemetry.update();
+        aprilTag.init(hardwareMap, telemetry);
 
         if (currentSide == side.BLUE) {shooter_target = 20;} else {shooter_target = 24;}
 
@@ -135,50 +142,46 @@ public class DriveOpMode extends OpMode {
         shooterVelocity = shooterpid.loop(shooterSpeed, robot.shooter.getVelocity());
 
         //toggle
-        if(currentGamepad1.x && !previousGamepad1.x){
-            if(shooter != ezraUnemployed.ON){
+        if (currentGamepad1.x && !previousGamepad1.x) {
+            if (shooter != ezraUnemployed.ON) {
                 shooter = ezraUnemployed.ON;
-            }
-            else if (shooter != ezraUnemployed.OFF){
+            } else if (shooter != ezraUnemployed.OFF) {
                 robot.shooter.setPower(0);
                 shooter = ezraUnemployed.OFF;
             }
         }
-        if(currentGamepad1.b && !previousGamepad1.b){
-            if(shooter != ezraUnemployed.REVERSE){
+        if (currentGamepad1.b && !previousGamepad1.b) {
+            if (shooter != ezraUnemployed.REVERSE) {
                 shooter = ezraUnemployed.REVERSE;
-            } else if (shooter != ezraUnemployed.OFF){
+            } else if (shooter != ezraUnemployed.OFF) {
                 shooter = ezraUnemployed.OFF;
             }
         }
 
 
         if (shooter == ezraUnemployed.ON) shooterVelocity = target_spin;
-        else if(shooter == ezraUnemployed.OFF) shooterVelocity = 0;
-        else if(shooter == ezraUnemployed.REVERSE) shooterVelocity = -target_spin/2;
+        else if (shooter == ezraUnemployed.OFF) shooterVelocity = 0;
+        else if (shooter == ezraUnemployed.REVERSE) shooterVelocity = -target_spin / 2;
 
 
-
-        if(shooterVelocity != 0) {
+        if (shooterVelocity != 0) {
             robot.shooter.setPower(shooterpid.loop(shooterVelocity, robot.shooter.getVelocity()));
         } else robot.shooter.setPower(0);
-        
-        if(currentGamepad1.y && !previousGamepad1.y){
-            if(intCopy != ezraUnemployed.ON){
+
+        if (currentGamepad1.y && !previousGamepad1.y) {
+            if (intCopy != ezraUnemployed.ON) {
                 robot.intake.setPower(.8);
                 intCopy = ezraUnemployed.ON;
-            }
-            else if(intCopy != ezraUnemployed.OFF){
+            } else if (intCopy != ezraUnemployed.OFF) {
                 robot.intake.setPower(0);
                 intCopy = ezraUnemployed.OFF;
             }
         }
-        if(currentGamepad1.a && !previousGamepad1.a){
-            if(intCopy != ezraUnemployed.REVERSE){
+        if (currentGamepad1.a && !previousGamepad1.a) {
+            if (intCopy != ezraUnemployed.REVERSE) {
                 robot.intake.setPower(-.8);
                 intCopy = ezraUnemployed.REVERSE;
-            }
-            else if(intCopy != ezraUnemployed.OFF){
+            } else if (intCopy != ezraUnemployed.OFF) {
                 robot.intake.setPower(0);
                 intCopy = ezraUnemployed.OFF;
             }
@@ -188,27 +191,27 @@ public class DriveOpMode extends OpMode {
 
         robot.aim.setPosition(target_aim);
         //servo location
-        if(currentGamepad1.dpad_up){
+        if (currentGamepad1.dpad_up) {
             ayush -= 0.05;
         }
-        if(currentGamepad1.dpad_down){
+        if (currentGamepad1.dpad_down) {
             ayush += 0.05;
         }
         robot.aim.setPosition(ayush);
-        if(ayush > 1) {
+        if (ayush > 1) {
             robot.aim.setPosition(1);
         }
-        if(ayush < 0.4) {
+        if (ayush < 0.4) {
             robot.aim.setPosition(0.4);
         }
-
-        if(currentGamepad1.dpad_left){
-            robot.spin.setPower(1);
-        } else if(currentGamepad1.dpad_right){
-            robot.spin.setPower(-1);
-        }else{
-            robot.spin.setPower(0);
-        }
+//manual spin
+        //if (currentGamepad1.dpad_left) {
+            //robot.spin.setPower(1);
+        //} else if (currentGamepad1.dpad_right) {
+            //robot.spin.setPower(-1);
+        //} else {
+            //robot.spin.setPower(0);
+        //}
         // FRICK EZRA- AYUSH BARUA
 
 
@@ -216,12 +219,12 @@ public class DriveOpMode extends OpMode {
         double red = robot.ballColor.red();
         double green = robot.ballColor.green();
         double blue = robot.ballColor.blue();
-        double finalRed = red/green;
-        double finalBlue = blue/green;
-        if (green!= 0 && finalRed>0.05 && finalRed<0.5 && finalBlue>0.6 && finalBlue<0.9){
+        double finalRed = red / green;
+        double finalBlue = blue / green;
+        if (green != 0 && finalRed > 0.05 && finalRed < 0.5 && finalBlue > 0.6 && finalBlue < 0.9) {
             detectedColor = colors.GREEN;
 
-        } else if (green!= 0 && finalRed>0.5 && finalRed<1.3 && finalBlue>1 && finalBlue<2.8) {
+        } else if (green != 0 && finalRed > 0.5 && finalRed < 1.3 && finalBlue > 1 && finalBlue < 2.8) {
             detectedColor = colors.PURPLE;
         } else {
             detectedColor = colors.UNKNOWN;
@@ -240,21 +243,34 @@ public class DriveOpMode extends OpMode {
         aprilTagDetections = robot.aprilTagProcessor.getDetections();
         for (AprilTagDetection detection : aprilTagDetections) {
             if (detection.metadata != null) {
-                telemetry.addLine(" "+detection.metadata.id);
-                if(detection.metadata.id == shooter_target){
+                telemetry.addLine(" " + detection.metadata.id);
+                if (detection.metadata.id == shooter_target) {
                     target_bearing = detection.ftcPose.bearing;
                     target_range = detection.ftcPose.range;
+                    telemetry.addData("target_bearing:", target_bearing);
+                    double bearingError = target_bearing;
+                    if (bearingError > 0.8) {
+                        robot.spin.setPower(1);
+                    }else if (bearingError < -0.8) {
+                        robot.spin.setPower(-1);
+                    }else{
+                        robot.spin.setPower(0);
+                    }
                 }
             }
         }
 
-        for(double[] item: lookup) {
-            if (item[0]>=target_range){
+        for (double[] item : lookup) {
+            if (item[0] >= target_range) {
                 target_spin = item[1];
                 target_aim = item[2];
             }
         }
 
+        aprilTag.update();
+        AprilTagDetection id20 = aprilTag.getTagByID(20);
+        //display
+        aprilTag.displayTelemetry(id20);
 
         // Gets power levels for each motor, using gamepad inputs as directions
         // The third item in the array dictates which trigger is being pressed (=1 if left, =-1 if right, =0 if none or both).
@@ -262,7 +278,7 @@ public class DriveOpMode extends OpMode {
                 gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x),
                 - gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
                 toInt(gamepad1.right_bumper) - toInt(gamepad1.left_bumper)
-            },
+                },
             rampFunction.getTargetSpeed(), 1, //this all just correcting for our shitty weight distribution
             true
         );
