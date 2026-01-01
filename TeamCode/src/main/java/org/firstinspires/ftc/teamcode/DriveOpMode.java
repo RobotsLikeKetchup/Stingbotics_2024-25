@@ -95,7 +95,7 @@ public class DriveOpMode extends OpMode {
             {33,-1800,0.78},
             {46,-1900,0.78},
             {58,-1950,0.64},
-            {90,-2200,0.54}
+            {78,-2200,0.54}
     };
     AprilTag aprilTag = new AprilTag();
 
@@ -249,9 +249,15 @@ public class DriveOpMode extends OpMode {
                 robot.spin.setPower(0.3);
             } else if (bearingError < -5) {
                 robot.spin.setPower(-0.3);
-            }else {
+            }else if(currentGamepad1.dpad_left) {
+                robot.spin.setPower(1);
+            }else if(currentGamepad1.dpad_right){
+                robot.spin.setPower(-1);
+            }else{
                 robot.spin.setPower(0);
             }
+            double targetRange = id20.ftcPose.range;
+
         }else{
             robot.spin.setPower(0);
         }
