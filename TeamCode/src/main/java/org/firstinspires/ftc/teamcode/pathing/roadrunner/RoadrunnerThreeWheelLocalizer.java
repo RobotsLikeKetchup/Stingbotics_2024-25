@@ -29,9 +29,9 @@ import org.firstinspires.ftc.teamcode.pathing.StingLocalizer;
 @Config
 public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLocalizer {
     public static class Params {
-        public double par0YTicks = -934.7663101281455; // y position of the first parallel encoder (in tick units)
-        public double par1YTicks = 1024.9217812046631; // y position of the second parallel encoder (in tick units)
-        public double perpXTicks = 12.547695985644761; // x position of the perpendicular encoder (in tick units)
+        public double par0YTicks = -409.9520267332982; // y position of the first parallel encoder (in tick units)
+        public double par1YTicks = 619.4442806739024; // y position of the second parallel encoder (in tick units)
+        public double perpXTicks = -446.1845844487434; // x position of the perpendicular encoder (in tick units)
     }
 
     public static Params PARAMS = new Params();
@@ -53,7 +53,7 @@ public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLoca
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
         par0 = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "motor_fl")));//left
         par1 = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "motor_fr")));//right
-        perp = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "motor_bl")));//middle - umed
+        perp = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "motor_br")));//middle - umed
 
         // TODO: reverse encoder directions if needed
         //   par0.setDirection(DcMotorSimple.Direction.REVERSE);
