@@ -132,7 +132,7 @@ public class DriveOpMode extends OpMode {
 
         // gives robot loving parents
         shooterVelocity = shooterpid.loop(shooterSpeed, robot.shooter.getVelocity());
-
+        //could be hard coded
         turretBearing = 360 * ((robot.spin.getCurrentPosition() / SPIN_MOTOR_TPR)/SPIN_GEAR_RATIO);
 
         //toggle shooter
@@ -152,17 +152,17 @@ public class DriveOpMode extends OpMode {
             }
         }
 
-
+        //setting the target velocity
         if (shooter == state.ON) shooterVelocity = target_spin;
         else if (shooter == state.OFF) shooterVelocity = 0;
         else if (shooter == state.REVERSE) shooterVelocity = -target_spin / 2;
 
-
+        //enacting the velocity
         if (shooterVelocity != 0) {
             robot.shooter.setPower(shooterpid.loop(shooterVelocity, robot.shooter.getVelocity()));
         } else robot.shooter.setPower(0);
 
-
+        //setting intake power
         if (currentGamepad1.y) {
             robot.intake.setPower(.8);
         } else if (currentGamepad1.a) {
@@ -170,25 +170,25 @@ public class DriveOpMode extends OpMode {
         } else {
             robot.intake.setPower(0);
         }
-
-        double ayush = robot.aim.getPosition();
+        //hood angle
+        double hoodAngle = robot.aim.getPosition();
 
         robot.aim.setPosition(target_aim);
         //servo location
         if (currentGamepad1.dpad_up) {
-            ayush -= 0.05;
+            hoodAngle -= 0.05;
         }
         if (currentGamepad1.dpad_down) {
-            ayush += 0.05;
+            hoodAngle += 0.05;
         }
-        robot.aim.setPosition(ayush);
-        if (ayush > 1) {
+        robot.aim.setPosition(hoodAngle);
+        if (hoodAngle > 1) {
             robot.aim.setPosition(1);
         }
-        if (ayush < 0.4) {
+        if (hoodAngle < 0.4) {
             robot.aim.setPosition(0.4);
         }
-
+        //the autoAim is always off for now
         if(autoAim == state.OFF){
             if(currentSide == side.BLUE) {
                 targetBearing = -85;
@@ -199,13 +199,14 @@ public class DriveOpMode extends OpMode {
         } else {
             //AprilTag Detection: update target location
             aprilTag.update();
+            //goal is the actual apriltag
             AprilTagDetection goal = aprilTag.getTagByID(shooter_target);
             if (goal != null && goal.ftcPose != null) {
                 target_range = goal.ftcPose.range;
                 aprilTagBearingError = goal.ftcPose.bearing;
                 targetBearing = targetBearing + aprilTagBearingError;
             }
-
+            //picking where to shoot aim and bearing
             for (double[] item : lookup) {
                 if (item[0] >= target_range) {
                     target_spin = item[1];
@@ -218,11 +219,13 @@ public class DriveOpMode extends OpMode {
                 targetBearing = -30;
             }
         }
+        //toggling autoAim off
         if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left) {
             if (autoAim == state.ON) {
                 autoAim = state.OFF;
             }
         }
+        //toggle autoAim on
         if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down){
             if (autoAim == state.OFF) {
                 autoAim = state.ON;
@@ -271,7 +274,7 @@ public class DriveOpMode extends OpMode {
             true
         );
 
-        telemetry.addData("aimer position", ayush);
+        telemetry.addData("aimer position", hoodAngle);
         telemetry.addData("gamepadx", currentGamepad1.left_stick_x);
         telemetry.addData("gamepady", currentGamepad1.left_stick_y);
         // Sets power levels
