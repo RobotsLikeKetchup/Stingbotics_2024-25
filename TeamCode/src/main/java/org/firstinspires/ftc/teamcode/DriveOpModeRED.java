@@ -28,9 +28,7 @@ import java.util.List;
 public class DriveOpModeRED extends OpMode {
     // Create variables
     double[] motorPowers;
-    //ur nt shkspr vro -sebastian
     Robot robot = new Robot();
-    //dame un grr un que -sebastian
     ElapsedTime timer= new ElapsedTime();
 
     RoadrunnerThreeWheelLocalizer localizer;
