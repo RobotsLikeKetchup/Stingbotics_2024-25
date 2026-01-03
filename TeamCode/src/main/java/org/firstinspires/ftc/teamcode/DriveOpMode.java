@@ -18,10 +18,6 @@ import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.PIDF;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 import java.util.List;
 
@@ -45,11 +41,14 @@ public class DriveOpMode extends OpMode {
     Gamepad previousGamepad2 = new Gamepad();
     Gamepad currentGamepad2 = new Gamepad();
 
-    public static double kP = 0.0055;
+    public static double kP = 0.0058;
     public static double kI = 0.00000023;
     public static double kD = 0.012;
     public static double kF = 0.000012;
 
+    public final double SPIN_MOTOR_TPR = 537.7;
+    public final double SPIN_GEAR_RATIO = 180/49.5;
+    public double turretBearing = 0;
     PIDF shooterpid = new PIDF(kP,kI,kD,kF, timer);
 
     MotionProfile1D rampFunction = new MotionProfile1D(0.8,1, 0.4, timer);
@@ -60,7 +59,7 @@ public class DriveOpMode extends OpMode {
 
     public side currentSide = side.BLUE;
 
-    public enum ezraUnemployed{ //ezraUnemployed is state
+    public enum state {
         ON,
         OFF,
         REVERSE
@@ -70,8 +69,8 @@ public class DriveOpMode extends OpMode {
 
     colors detectedColor = colors.UNKNOWN;
 
-    public ezraUnemployed shooter = ezraUnemployed.OFF;
-    public ezraUnemployed intCopy = ezraUnemployed.OFF;
+    public state shooter = state.OFF;
+    public state autoAim = state.OFF;
 
 
     FtcDashboard dashboard;
@@ -80,15 +79,15 @@ public class DriveOpMode extends OpMode {
 
     public double shooterSpeed = -1800;
 
-    public double target_bearing;
-    public double target_range = 40;
+    public double targetBearing = 0;
+    public double target_range = 30;
     public double prev_target_range;
 
-    List<AprilTagDetection> aprilTagDetections;
 
     double shooterVelocity = 0;
     double target_spin = -1900;
     double target_aim = 0.78;
+    double aprilTagBearingError = 0;
 
 
     double[][] lookup = {
@@ -103,20 +102,13 @@ public class DriveOpMode extends OpMode {
     // Set starting values for variable
     public void init() {
         robot.init(hardwareMap, timer);
-        //localizer = new RoadrunnerThreeWheelLocalizer(hardwareMap);
-
-        //telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-
-        robot.aim.setPosition(0.5);
+        robot.aim.setPosition(0.75);
 
         dashboard = FtcDashboard.getInstance();
         packet = new TelemetryPacket();
 
         // Update telemetry (for feedback)
         telemetry.addLine("Initialized!");
-        //telemetry.addData("X pos",localizer.getPose()[0]);
-        //telemetry.addData("y pos",localizer.getPose()[1]);
-        //telemetry.addData("Angle pos",localizer.getPose()[2]);
         telemetry.update();
         aprilTag.init(hardwareMap, telemetry);
 
@@ -141,50 +133,42 @@ public class DriveOpMode extends OpMode {
         // gives robot loving parents
         shooterVelocity = shooterpid.loop(shooterSpeed, robot.shooter.getVelocity());
 
-        //toggle
+        turretBearing = 360 * ((robot.spin.getCurrentPosition() / SPIN_MOTOR_TPR)/SPIN_GEAR_RATIO);
+
+        //toggle shooter
         if (currentGamepad1.x && !previousGamepad1.x) {
-            if (shooter != ezraUnemployed.ON) {
-                shooter = ezraUnemployed.ON;
-            } else if (shooter != ezraUnemployed.OFF) {
+            if (shooter != state.ON) {
+                shooter = state.ON;
+            } else if (shooter != state.OFF) {
                 robot.shooter.setPower(0);
-                shooter = ezraUnemployed.OFF;
+                shooter = state.OFF;
             }
         }
         if (currentGamepad1.b && !previousGamepad1.b) {
-            if (shooter != ezraUnemployed.REVERSE) {
-                shooter = ezraUnemployed.REVERSE;
-            } else if (shooter != ezraUnemployed.OFF) {
-                shooter = ezraUnemployed.OFF;
+            if (shooter != state.REVERSE) {
+                shooter = state.REVERSE;
+            } else if (shooter != state.OFF) {
+                shooter = state.OFF;
             }
         }
 
 
-        if (shooter == ezraUnemployed.ON) shooterVelocity = target_spin;
-        else if (shooter == ezraUnemployed.OFF) shooterVelocity = 0;
-        else if (shooter == ezraUnemployed.REVERSE) shooterVelocity = -target_spin / 2;
+        if (shooter == state.ON) shooterVelocity = target_spin;
+        else if (shooter == state.OFF) shooterVelocity = 0;
+        else if (shooter == state.REVERSE) shooterVelocity = -target_spin / 2;
 
 
         if (shooterVelocity != 0) {
             robot.shooter.setPower(shooterpid.loop(shooterVelocity, robot.shooter.getVelocity()));
         } else robot.shooter.setPower(0);
 
-        if (currentGamepad1.y && !previousGamepad1.y) {
-            if (intCopy != ezraUnemployed.ON) {
-                robot.intake.setPower(.8);
-                intCopy = ezraUnemployed.ON;
-            } else if (intCopy != ezraUnemployed.OFF) {
-                robot.intake.setPower(0);
-                intCopy = ezraUnemployed.OFF;
-            }
-        }
-        if (currentGamepad1.a && !previousGamepad1.a) {
-            if (intCopy != ezraUnemployed.REVERSE) {
-                robot.intake.setPower(-.8);
-                intCopy = ezraUnemployed.REVERSE;
-            } else if (intCopy != ezraUnemployed.OFF) {
-                robot.intake.setPower(0);
-                intCopy = ezraUnemployed.OFF;
-            }
+
+        if (currentGamepad1.y) {
+            robot.intake.setPower(.8);
+        } else if (currentGamepad1.a) {
+            robot.intake.setPower(-.6);
+        } else {
+            robot.intake.setPower(0);
         }
 
         double ayush = robot.aim.getPosition();
@@ -204,31 +188,60 @@ public class DriveOpMode extends OpMode {
         if (ayush < 0.4) {
             robot.aim.setPosition(0.4);
         }
-//manual spin
-        //if (currentGamepad1.dpad_left) {
-            //robot.spin.setPower(1);
-        //} else if (currentGamepad1.dpad_right) {
-            //robot.spin.setPower(-1);
-        //} else {
-            //robot.spin.setPower(0);
-        //}
-        // FRICK EZRA- AYUSH BARUA
 
-
-        //totr
-        double red = robot.ballColor.red();
-        double green = robot.ballColor.green();
-        double blue = robot.ballColor.blue();
-        double finalRed = red / green;
-        double finalBlue = blue / green;
-        if (green != 0 && finalRed > 0.05 && finalRed < 0.5 && finalBlue > 0.6 && finalBlue < 0.9) {
-            detectedColor = colors.GREEN;
-
-        } else if (green != 0 && finalRed > 0.5 && finalRed < 1.3 && finalBlue > 1 && finalBlue < 2.8) {
-            detectedColor = colors.PURPLE;
+        if(autoAim == state.OFF){
+            if(currentSide == side.BLUE) {
+                targetBearing = -85;
+            } else {
+                targetBearing = 78;
+            }
+            target_spin = 2100;
         } else {
-            detectedColor = colors.UNKNOWN;
+            //AprilTag Detection: update target location
+            aprilTag.update();
+            AprilTagDetection goal = aprilTag.getTagByID(shooter_target);
+            if (goal != null && goal.ftcPose != null) {
+                target_range = goal.ftcPose.range;
+                aprilTagBearingError = goal.ftcPose.bearing;
+                targetBearing = targetBearing + aprilTagBearingError;
+            }
+
+            for (double[] item : lookup) {
+                if (item[0] >= target_range) {
+                    target_spin = item[1];
+                    target_aim = item[2];
+                }
+            }
+            if (targetBearing > 30) {
+                targetBearing = 30;
+            } else if (targetBearing < -30){
+                targetBearing = -30;
+            }
         }
+        if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left) {
+            if (autoAim == state.ON) {
+                autoAim = state.OFF;
+            }
+        }
+        if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down){
+            if (autoAim == state.OFF) {
+                autoAim = state.ON;
+                targetBearing = 0;
+            }
+        }
+//        double red = robot.ballColor.red();
+//        double green = robot.ballColor.green();
+//        double blue = robot.ballColor.blue();
+//        double finalRed = red / green;
+//        double finalBlue = blue / green;
+//        if (green != 0 && finalRed > 0.05 && finalRed < 0.5 && finalBlue > 0.6 && finalBlue < 0.9) {
+//            detectedColor = colors.GREEN;
+//
+//        } else if (green != 0 && finalRed > 0.5 && finalRed < 1.3 && finalBlue > 1 && finalBlue < 2.8) {
+//            detectedColor = colors.PURPLE;
+//        } else {
+//            detectedColor = colors.UNKNOWN;
+//        }
 
 
         //ramp  function: if sebastian has just started moving, beat his ass.
@@ -238,46 +251,11 @@ public class DriveOpMode extends OpMode {
             rampFunction.reset();
         }
 
-        //update
-        aprilTag.update();
-        AprilTagDetection id20 = aprilTag.getTagByID(20);
-        //display
-        aprilTag.displayTelemetry(id20);
-        if(id20 != null && id20.ftcPose != null){
-            double bearingError = id20.ftcPose.bearing;
-            if(bearingError > 5){
-                robot.spin.setPower(0.3);
-            } else if (bearingError < -5) {
-                robot.spin.setPower(-0.3);
-            }else if(currentGamepad1.dpad_left) {
-                robot.spin.setPower(1);
-            }else if(currentGamepad1.dpad_right){
-                robot.spin.setPower(-1);
-            }else{
-                robot.spin.setPower(0);
-            }
-            double targetRange = id20.ftcPose.range;
-
-        }else{
+        double bearingError = targetBearing - turretBearing;
+        if(Math.abs(bearingError) > 2) {
+            robot.spin.setPower(0.03 * bearingError);
+        } else {
             robot.spin.setPower(0);
-        }
-
-        //AprilTag Detection: update target location
-        aprilTagDetections = robot.aprilTagProcessor.getDetections();
-        for (AprilTagDetection detection : aprilTagDetections) {
-            if (detection.metadata != null) {
-                telemetry.addLine(" " + detection.metadata.id);
-                if (detection.metadata.id == shooter_target) {
-                    target_range = detection.ftcPose.range;
-                }
-            }
-        }
-
-        for (double[] item : lookup) {
-            if (item[0] >= target_range) {
-                target_spin = item[1];
-                target_aim = item[2];
-            }
         }
 
 
@@ -285,9 +263,9 @@ public class DriveOpMode extends OpMode {
         // Gets power levels for each motor, using gamepad inputs as directions
         // The third item in the array dictates which trigger is being pressed (=1 if left, =-1 if right, =0 if none or both).
         motorPowers = MecanumKinematics.getPowerFromDirection(new double[] {
-                gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x),
-                - gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
-                toInt(gamepad1.right_bumper) - toInt(gamepad1.left_bumper)
+                - gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x),
+                gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
+                - (toInt(gamepad1.right_bumper) - toInt(gamepad1.left_bumper))
                 },
             rampFunction.getTargetSpeed(), 1, //this all just correcting for our shitty weight distribution
             true
@@ -316,7 +294,7 @@ public class DriveOpMode extends OpMode {
 
         telemetry.addData("shooter", robot.shooter.getVelocity());
         telemetry.addData("taim", target_aim);
-        telemetry.addData("tspin", target_spin);
+        telemetry.addData("ourbearing", turretBearing);
         //These things MUST be at the end of each loop. DO NOT MOVE
         telemetry.update();
     }

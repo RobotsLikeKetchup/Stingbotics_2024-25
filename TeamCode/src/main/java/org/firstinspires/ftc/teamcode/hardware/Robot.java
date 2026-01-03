@@ -8,7 +8,6 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -35,11 +34,10 @@ public class Robot {
     public DcMotor frontLeft;
     public DcMotor backRight;
     public DcMotor backLeft;
-    public ColorSensor ballColor;
     public DcMotorEx shooter;
     public DcMotor intake;
     public Servo aim;
-    public CRServo spin;
+    public DcMotorEx spin;
     //parallel dead wheels (measuring x-coord and heading)
     DeadWheel parL;
     DeadWheel parR;
@@ -52,9 +50,9 @@ public class Robot {
 
     ElapsedTime timer;
 
-    public AprilTagProcessor aprilTagProcessor;
-
-    public VisionPortal visionPortal;
+//    public AprilTagProcessor aprilTagProcessor;
+//
+//    public VisionPortal visionPortal;
 
 
     //constructor
@@ -81,10 +79,9 @@ public class Robot {
         frontRight = hardwareMap.get(DcMotor.class, "motor_fr");
         backLeft = hardwareMap.get(DcMotor.class, "motor_bl");
         backRight = hardwareMap.get(DcMotor.class, "motor_br");
-        ballColor = hardwareMap.get(ColorSensor.class, "ballSensor");
         shooter = hardwareMap.get(DcMotorEx.class, "shooter");
         aim = hardwareMap.get(Servo.class, "aim");
-        spin = hardwareMap.get(CRServo.class, "spin");
+        spin = hardwareMap.get(DcMotorEx.class, "spin");
         intake = hardwareMap.get(DcMotor.class, "intake");
         driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
 
@@ -100,10 +97,13 @@ public class Robot {
 
 
         //set motor directions
-        frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
+        backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        backRight.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        spin.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        spin.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         //set deadwheel encoders
         parL = new DeadWheel(inPerTick, backRight);
@@ -111,28 +111,28 @@ public class Robot {
         per = new DeadWheel(inPerTick, backLeft);
 
         //create vision portal
-        aprilTagProcessor = new AprilTagProcessor.Builder()
-
-                // The following default settings are available to un-comment and edit as needed.
-                .setDrawAxes(false)
-                //.setDrawCubeProjection(false)
-                .setDrawTagOutline(true)
-                .setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
-                .setTagLibrary(AprilTagGameDatabase.getCurrentGameTagLibrary())
-                .setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
-
-                .build();
-        int cameraMoniterViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMoniterViewId", "id", hardwareMap.appContext.getPackageName());
-        visionPortal = new VisionPortal.Builder()
-                .setCamera(hardwareMap.get(WebcamName.class, "cameraOfDoom"))
-                .addProcessor(aprilTagProcessor)
-                .setCameraResolution(new Size(640, 480))
-                .setStreamFormat(VisionPortal.StreamFormat.YUY2)
-                .setLiveViewContainerId(cameraMoniterViewId)
-                .setAutoStartStreamOnBuild(true)
-                .build();
-
-        visionPortal.setProcessorEnabled(aprilTagProcessor, true);
+//        aprilTagProcessor = new AprilTagProcessor.Builder()
+//
+//                // The following default settings are available to un-comment and edit as needed.
+//                .setDrawAxes(false)
+//                //.setDrawCubeProjection(false)
+//                .setDrawTagOutline(true)
+//                .setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
+//                .setTagLibrary(AprilTagGameDatabase.getCurrentGameTagLibrary())
+//                .setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
+//
+//                .build();
+//        int cameraMoniterViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMoniterViewId", "id", hardwareMap.appContext.getPackageName());
+//        visionPortal = new VisionPortal.Builder()
+//                .setCamera(hardwareMap.get(WebcamName.class, "cameraOfDoom"))
+//                .addProcessor(aprilTagProcessor)
+//                .setCameraResolution(new Size(640, 480))
+//                .setStreamFormat(VisionPortal.StreamFormat.YUY2)
+//                .setLiveViewContainerId(cameraMoniterViewId)
+//                .setAutoStartStreamOnBuild(true)
+//                .build();
+//
+//        visionPortal.setProcessorEnabled(aprilTagProcessor, true);
 
     }
 

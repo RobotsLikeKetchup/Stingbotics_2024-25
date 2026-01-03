@@ -31,10 +31,15 @@ public class TestingOpMode extends OpMode {
 
     FtcDashboard dashboard;
 
+    public final double SPIN_MOTOR_TPR = 537.7;
+    public final double SPIN_GEAR_RATIO = 180/49.5;
+
     final double robotWidth = 15;
     final double r = (robotWidth/2) * Math.sqrt(2);
 
     MultipleTelemetry telemetryA;
+
+    public double turretBearing = 0;
 
     public static double kP = 0.0055;
     public static double kI = 0.00000023;
@@ -45,9 +50,9 @@ public class TestingOpMode extends OpMode {
     public double shooterPower = 0;
 
     public static double shooterRef = 0;
-    public static double servoPos = 0;
+    public static double targetBearing = 0;
 
-    public DriveOpMode.ezraUnemployed intCopy = DriveOpMode.ezraUnemployed.OFF;
+    public DriveOpMode.state intCopy = DriveOpMode.state.OFF;
 
     @Override
     public void init() {
@@ -83,14 +88,16 @@ public class TestingOpMode extends OpMode {
         previousGamepad1.copy(currentGamepad1);
         currentGamepad1.copy(gamepad1);
 
+        turretBearing = 360 * ((robot.spin.getCurrentPosition() / SPIN_MOTOR_TPR)/SPIN_GEAR_RATIO);
+
         if(currentGamepad1.y && !previousGamepad1.y){
-            if(intCopy == DriveOpMode.ezraUnemployed.OFF){
+            if(intCopy == DriveOpMode.state.OFF){
                 robot.intake.setPower(.8);
-                intCopy = DriveOpMode.ezraUnemployed.ON;
+                intCopy = DriveOpMode.state.ON;
             }
             else{
                 robot.intake.setPower(0);
-                intCopy = DriveOpMode.ezraUnemployed.OFF;
+                intCopy = DriveOpMode.state.OFF;
             }
         }
 
@@ -123,6 +130,13 @@ public class TestingOpMode extends OpMode {
 
         }
 
+        double bearingError = targetBearing - turretBearing;
+        if(Math.abs(bearingError) > 2) {
+            robot.spin.setPower(0.03 * bearingError);
+        } else {
+            robot.spin.setPower(0);
+        }
+
 
         //if(gamepad1.a){robot.backLeft.setPower(0.8);} else {robot.backLeft.setPower(0);}
         //if(gamepad1.b){robot.backRight.setPower(0.8);} else {robot.backRight.setPower(0);}
@@ -147,6 +161,7 @@ public class TestingOpMode extends OpMode {
         telemetryA.addData("shooterpower", shooterPower);
         telemetryA.addData("aim position", robot.aim.getPosition());
         telemetryA.addData("aim target", ayush);
+        telemetryA.addData("our bearing", turretBearing);
         //telemetry.addData("encoder value", encoderValue);
         telemetryA.update();
 
