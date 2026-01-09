@@ -97,5 +97,13 @@ public class AutonTesting extends OpMode {
 
         dashboard.sendTelemetryPacket(packet);
 
+        telemetryA.addData("x: " , pose[0]);
+        telemetryA.addData("y: " , pose[1]);
+        telemetryA.addData("rotation: " , pose[2]);
+        telemetryA.update();
+
     }
+
+
 }
+
