@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
+import static org.firstinspires.ftc.teamcode.utilities.MathFunctions.toInt;
+
 import android.util.Size;
 
 import androidx.annotation.NonNull;
@@ -24,6 +26,8 @@ import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.PurePursuit;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.MovementFunctions;
+import org.firstinspires.ftc.teamcode.utilities.PIDF;
+import org.firstinspires.ftc.teamcode.utilities.Vector2d;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
@@ -50,19 +54,17 @@ public class Robot {
 
     ElapsedTime timer;
 
+    //order of constants will be P, I, D, F
+    public static double[] headingConstants = {0,0,0,0};
+    public static double[] driveConstants = {0,0,0,0};
+    public static double[] strafeConstants = {0,0,0,0};
+
 //    public AprilTagProcessor aprilTagProcessor;
 //
 //    public VisionPortal visionPortal;
 
 
     //constructor
-    public Robot(DcMotor fR, DcMotor fL, DcMotor bR, DcMotor bL){
-        frontRight = fR;
-        frontLeft = fL;
-        backRight = bR;
-        backLeft = bL;
-    }
-
     public Robot(){};
 
     public void init(HardwareMap hardwareMap, ElapsedTime timer){
@@ -137,10 +139,13 @@ public class Robot {
     }
 
     //methods
-    public void setDeadwheels(DeadWheel p1, DeadWheel p2, DeadWheel pr){
-        parL = p1;
-        parR = p2;
-        per = pr;
+
+    //sets motor powers in the same order as mecanumKinematics: fl, fr, bl, br
+    public void setMotorPowers(double[] motorPowers){
+        frontLeft.setPower(motorPowers[0]);
+        frontRight.setPower(motorPowers[1]);
+        backLeft.setPower(motorPowers[2]);
+        backRight.setPower(motorPowers[3]);
     }
 
     public DeadWheel getDeadwheel(String location){ // location can be parL, parR, or perp
@@ -270,6 +275,50 @@ public class Robot {
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
             return false;
         }
+    }
+
+    public class PIDtoPt implements Action {
+        double[] pt;
+        PIDF headingPID;
+        PIDF drivePID;
+        PIDF strafePID;
+
+        double[] position;
+        Vector2d direction;
+        Vector2d rotatedDirection;
+
+        double[] robotDirection;
+
+
+        public PIDtoPt(double[] pt, double angleThreshold, double spaceThreshold) {
+            this.pt = pt;
+            headingPID = new PIDF(headingConstants[0], headingConstants[1], headingConstants[2], headingConstants[3], timer);
+            drivePID = new PIDF(driveConstants[0], driveConstants[1], driveConstants[2], driveConstants[3], timer);
+            strafePID = new PIDF(strafeConstants[0], strafeConstants[1], strafeConstants[2], strafeConstants[3], timer);
+        }
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            localization.update();
+            position = localization.getPose();
+            direction = new Vector2d(pt[0]-position[0], pt[1]-position[1]);
+            rotatedDirection = direction.rotateBy(position[2]);
+
+            robotDirection = new double[] {
+                    drivePID.loop(0, rotatedDirection.y),
+                    strafePID.loop(0,rotatedDirection.x),
+                    headingPID.loop(pt[2], position[2])
+            };
+
+            setMotorPowers(MecanumKinematics.getPowerFromDirection(robotDirection,1));
+
+            return false;
+
+        }
+    }
+
+    public Action PIDtoPt(double[] pt, double angleThreshold, double spaceThreshold){
+        return new PIDtoPt(pt, angleThreshold, spaceThreshold);
     }
 
 }

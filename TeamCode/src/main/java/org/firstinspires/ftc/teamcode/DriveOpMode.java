@@ -28,12 +28,13 @@ import java.util.List;
 public class DriveOpMode extends OpMode {
     // Create variables
     double[] motorPowers;
-//ur nt shkspr vro -sebastian
+    //ur nt shkspr vro -sebastian
     Robot robot = new Robot();
     //dame un grr un que -sebastian
     ElapsedTime timer= new ElapsedTime();
 
     RoadrunnerThreeWheelLocalizer localizer;
+    double[] pose;
 
     Gamepad previousGamepad1 = new Gamepad();
     Gamepad currentGamepad1 = new Gamepad();
@@ -91,10 +92,10 @@ public class DriveOpMode extends OpMode {
 
 
     double[][] lookup = {
-            {33,-1800,0.78},
-            {46,-1900,0.78},
-            {58,-1950,0.64},
-            {78,-2200,0.54}
+            {33,-1800,0.95},
+            {46,-1900,0.95},
+            {58,-1950,0.81},
+            {78,-2200,0.71}
     };
     AprilTag aprilTag = new AprilTag();
 
@@ -102,7 +103,7 @@ public class DriveOpMode extends OpMode {
     // Set starting values for variable
     public void init() {
         robot.init(hardwareMap, timer);
-        robot.aim.setPosition(0.75);
+        robot.aim.setPosition(0.95);
 
         dashboard = FtcDashboard.getInstance();
         packet = new TelemetryPacket();
@@ -173,20 +174,20 @@ public class DriveOpMode extends OpMode {
         //hood angle
         double hoodAngle = robot.aim.getPosition();
 
-        robot.aim.setPosition(target_aim);
-        //servo location
-        if (currentGamepad1.dpad_up) {
-            hoodAngle -= 0.05;
+
+        if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left) {
+            if (autoAim == state.ON) {
+                autoAim = state.OFF;
+                target_aim = 0.95;
+                robot.aim.setPosition(target_aim);
+            }
         }
-        if (currentGamepad1.dpad_down) {
-            hoodAngle += 0.05;
-        }
-        robot.aim.setPosition(hoodAngle);
-        if (hoodAngle > 1) {
-            robot.aim.setPosition(1);
-        }
-        if (hoodAngle < 0.4) {
-            robot.aim.setPosition(0.4);
+        if (currentGamepad1.dpad_right && !previousGamepad1.dpad_right){
+            if (autoAim == state.OFF) {
+                autoAim = state.ON;
+                targetBearing = 0;
+            }
+
         }
         //the autoAim is always off for now
         if(autoAim == state.OFF){
@@ -196,6 +197,7 @@ public class DriveOpMode extends OpMode {
                 targetBearing = 78;
             }
             target_spin = 2100;
+            target_aim = 0.95;
         } else {
             //AprilTag Detection: update target location
             aprilTag.update();
@@ -204,8 +206,15 @@ public class DriveOpMode extends OpMode {
             if (goal != null && goal.ftcPose != null) {
                 target_range = goal.ftcPose.range;
                 aprilTagBearingError = goal.ftcPose.bearing;
-                targetBearing = targetBearing + aprilTagBearingError;
+                for (double[] item : lookup) {
+                    if (item[0] >= target_range) {
+                        target_spin = item[1];
+                        target_aim = item[2];
+                    }
+                }
+                robot.aim.setPosition(target_aim);
             }
+
             //picking where to shoot aim and bearing
             for (double[] item : lookup) {
                 if (item[0] >= target_range) {
@@ -213,12 +222,17 @@ public class DriveOpMode extends OpMode {
                     target_aim = item[2];
                 }
             }
+
+
+            targetBearing = turretBearing + aprilTagBearingError;
+
             if (targetBearing > 30) {
                 targetBearing = 30;
             } else if (targetBearing < -30){
                 targetBearing = -30;
             }
         }
+
         //toggling autoAim off
         if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left) {
             if (autoAim == state.ON) {
@@ -232,6 +246,7 @@ public class DriveOpMode extends OpMode {
                 targetBearing = 0;
             }
         }
+
 //        double red = robot.ballColor.red();
 //        double green = robot.ballColor.green();
 //        double blue = robot.ballColor.blue();
@@ -256,7 +271,7 @@ public class DriveOpMode extends OpMode {
 
         double bearingError = targetBearing - turretBearing;
         if(Math.abs(bearingError) > 2) {
-            robot.spin.setPower(0.03 * bearingError);
+            robot.spin.setPower(0.015 * bearingError);
         } else {
             robot.spin.setPower(0);
         }
@@ -266,12 +281,12 @@ public class DriveOpMode extends OpMode {
         // Gets power levels for each motor, using gamepad inputs as directions
         // The third item in the array dictates which trigger is being pressed (=1 if left, =-1 if right, =0 if none or both).
         motorPowers = MecanumKinematics.getPowerFromDirection(new double[] {
-                - gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x),
-                gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
-                - (toInt(gamepad1.right_bumper) - toInt(gamepad1.left_bumper))
+                        - gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x),
+                        gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
+                        - (toInt(gamepad1.right_bumper) - toInt(gamepad1.left_bumper))
                 },
-            rampFunction.getTargetSpeed(), 1, //this all just correcting for our shitty weight distribution
-            true
+                rampFunction.getTargetSpeed(), 1, //this all just correcting for our shitty weight distribution
+                true
         );
 
         telemetry.addData("aimer position", hoodAngle);
@@ -298,6 +313,9 @@ public class DriveOpMode extends OpMode {
         telemetry.addData("shooter", robot.shooter.getVelocity());
         telemetry.addData("taim", target_aim);
         telemetry.addData("ourbearing", turretBearing);
+        telemetry.addData("target_bearing", targetBearing);
+        telemetry.addData("apriltagbearingerror", aprilTagBearingError);
+        telemetry.addData("autoAim", autoAim);
         //These things MUST be at the end of each loop. DO NOT MOVE
         telemetry.update();
     }

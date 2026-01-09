@@ -75,9 +75,7 @@ public class AutonTesting extends OpMode {
         telemetryA = new MultipleTelemetry(this.telemetry, dashboard.getTelemetry());
 
         autoAction = new SequentialAction(
-
-                robot.followPath(path, 0, true)
-
+                robot.PIDtoPt(new double[]{0,0,0}, 1, 0.2)
         );
     }
 

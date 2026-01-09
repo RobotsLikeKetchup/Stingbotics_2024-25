@@ -52,6 +52,8 @@ public class TestingOpMode extends OpMode {
     public static double shooterRef = 0;
     public static double targetBearing = 0;
 
+    public static double hoodpos = 0.5;
+
     public DriveOpMode.state intCopy = DriveOpMode.state.OFF;
 
     @Override
@@ -113,22 +115,7 @@ public class TestingOpMode extends OpMode {
         currentGamepad1.copy(gamepad1);
 
         double ayush = robot.aim.getPosition();
-        //robot.aim.setPosition(servoPos);
-        if(currentGamepad1.dpad_up){
-            robot.aim.setPosition(ayush - 0.05);
-        }
-        if(currentGamepad1.dpad_down){
-            robot.aim.setPosition(ayush + 0.05);
-        }
-        if(ayush > 0.94) {
-            robot.aim.setPosition(0.94);
-        }
-        if(ayush < 0.4){
-            robot.aim.setPosition(0.4);
-        }
-        if(currentGamepad1.dpad_left){
-
-        }
+        robot.aim.setPosition(hoodpos);
 
         double bearingError = targetBearing - turretBearing;
         if(Math.abs(bearingError) > 2) {
@@ -136,15 +123,6 @@ public class TestingOpMode extends OpMode {
         } else {
             robot.spin.setPower(0);
         }
-
-
-        //if(gamepad1.a){robot.backLeft.setPower(0.8);} else {robot.backLeft.setPower(0);}
-        //if(gamepad1.b){robot.backRight.setPower(0.8);} else {robot.backRight.setPower(0);}
-       // if(gamepad1.x){robot.frontLeft.setPower(0.8);} else {robot.frontLeft.setPower(0);}
-        //if(gamepad1.y){robot.frontRight.setPower(0.8);} else {robot.frontRight.setPower(0);}
-
-
-
 
         //int encoderValue = robot.driveMotors[3].getCurrentPosition();
         telemetry.addData("right stick x", gamepad1.right_stick_x);

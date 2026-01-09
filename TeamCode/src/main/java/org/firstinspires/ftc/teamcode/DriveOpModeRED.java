@@ -81,18 +81,18 @@ public class DriveOpModeRED extends OpMode {
     public double target_range = 30;
     public double prev_target_range;
 
-    List<AprilTagDetection> aprilTagDetections;
 
     double shooterVelocity = 0;
     double target_spin = -1900;
     double target_aim = 0.78;
+    double aprilTagBearingError = 0;
 
 
     double[][] lookup = {
-            {33,-1800,0.78},
-            {46,-1900,0.78},
-            {58,-1950,0.64},
-            {78,-2200,0.54}
+            {33,-1800,0.95},
+            {46,-1900,0.95},
+            {58,-1950,0.81},
+            {78,-2200,0.71}
     };
     AprilTag aprilTag = new AprilTag();
 
@@ -100,7 +100,7 @@ public class DriveOpModeRED extends OpMode {
     // Set starting values for variable
     public void init() {
         robot.init(hardwareMap, timer);
-        robot.aim.setPosition(0.75);
+        robot.aim.setPosition(0.95);
 
         dashboard = FtcDashboard.getInstance();
         packet = new TelemetryPacket();
@@ -171,20 +171,18 @@ public class DriveOpModeRED extends OpMode {
 
         double ayush = robot.aim.getPosition();
 
-        robot.aim.setPosition(target_aim);
-        //servo location
-        if (currentGamepad1.dpad_up) {
-            ayush -= 0.05;
+        if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left) {
+            if (autoAim == state.ON) {
+                autoAim = state.OFF;
+                target_aim = 0.95;
+                robot.aim.setPosition(target_aim);
+            }
         }
-        if (currentGamepad1.dpad_down) {
-            ayush += 0.05;
-        }
-        robot.aim.setPosition(ayush);
-        if (ayush > 1) {
-            robot.aim.setPosition(1);
-        }
-        if (ayush < 0.4) {
-            robot.aim.setPosition(0.4);
+        if (currentGamepad1.dpad_right && !previousGamepad1.dpad_right){
+            if (autoAim == state.OFF) {
+                autoAim = state.ON;
+                targetBearing = 0;
+            }
         }
 
         if(autoAim == state.OFF){
@@ -194,31 +192,31 @@ public class DriveOpModeRED extends OpMode {
                 targetBearing = 78;
             }
             target_spin = 2100;
+            target_aim = 0.95;
         } else {
             //AprilTag Detection: update target location
             aprilTag.update();
             AprilTagDetection goal = aprilTag.getTagByID(shooter_target);
             if (goal != null && goal.ftcPose != null) {
                 target_range = goal.ftcPose.range;
+                aprilTagBearingError = goal.ftcPose.bearing;
+                targetBearing = targetBearing + aprilTagBearingError;
+                for (double[] item : lookup) {
+                    if (item[0] >= target_range) {
+                        target_spin = item[1];
+                        target_aim = item[2];
+                    }
+                }
+                robot.aim.setPosition(target_aim);
             }
 
-            for (double[] item : lookup) {
-                if (item[0] >= target_range) {
-                    target_spin = item[1];
-                    target_aim = item[2];
-                }
+            if (targetBearing > 30) {
+                targetBearing = 30;
+            } else if (targetBearing < -30){
+                targetBearing = -30;
             }
         }
-        if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left) {
-            if (autoAim == state.ON) {
-                autoAim = state.OFF;
-            }
-        }
-        if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down){
-            if (autoAim == state.OFF) {
-                autoAim = state.ON;
-            }
-        }
+
 //        double red = robot.ballColor.red();
 //        double green = robot.ballColor.green();
 //        double blue = robot.ballColor.blue();
@@ -243,7 +241,7 @@ public class DriveOpModeRED extends OpMode {
 
         double bearingError = targetBearing - turretBearing;
         if(Math.abs(bearingError) > 2) {
-            robot.spin.setPower(0.03 * bearingError);
+            robot.spin.setPower(0.015 * bearingError);
         } else {
             robot.spin.setPower(0);
         }
@@ -255,7 +253,7 @@ public class DriveOpModeRED extends OpMode {
         motorPowers = MecanumKinematics.getPowerFromDirection(new double[] {
                         - gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x),
                         gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
-                        toInt(gamepad1.right_bumper) - toInt(gamepad1.left_bumper)
+                        - (toInt(gamepad1.right_bumper) - toInt(gamepad1.left_bumper))
                 },
                 rampFunction.getTargetSpeed(), 1, //this all just correcting for our shitty weight distribution
                 true
@@ -285,6 +283,7 @@ public class DriveOpModeRED extends OpMode {
         telemetry.addData("shooter", robot.shooter.getVelocity());
         telemetry.addData("taim", target_aim);
         telemetry.addData("ourbearing", turretBearing);
+        telemetry.addData("autoAim", autoAim);
         //These things MUST be at the end of each loop. DO NOT MOVE
         telemetry.update();
     }

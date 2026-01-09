@@ -20,15 +20,9 @@ public class EZAuton extends LinearOpMode {
         for(DcMotor motor : robot.driveMotors) {
             motor.setPower(0.8);
         }
-        sleep(1600);
+        sleep(2500);
         for(DcMotor motor : robot.driveMotors) {
             motor.setPower(0);
         }
-        robot.shooter.setPower(-0.8);
-        sleep(700);
-        robot.intake.setPower(.8);
-        sleep(1500);
-        robot.shooter.setPower(0);
-        robot.intake.setPower(0);
     }
 }
