@@ -31,7 +31,9 @@ import org.firstinspires.ftc.teamcode.utilities.Vector2d;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import com.acmerobotics.dashboard.config.Config;
 
+@Config
 public class Robot {
     //fields
     public DcMotor frontRight;
