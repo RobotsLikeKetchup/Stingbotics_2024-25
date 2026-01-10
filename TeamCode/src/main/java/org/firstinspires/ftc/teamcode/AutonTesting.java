@@ -75,7 +75,7 @@ public class AutonTesting extends OpMode {
         telemetryA = new MultipleTelemetry(this.telemetry, dashboard.getTelemetry());
 
         autoAction = new SequentialAction(
-                robot.PIDtoPt(new double[]{0,0,1}, 1, 0.2)
+                robot.PIDtoPt(new double[]{0,0,1}, 0.1, 0.2)
         );
     }
 
@@ -93,6 +93,7 @@ public class AutonTesting extends OpMode {
 
         if(actionRunning){
             actionRunning = autoAction.run(packet);
+
         }
 
         dashboard.sendTelemetryPacket(packet);
@@ -100,6 +101,7 @@ public class AutonTesting extends OpMode {
         telemetryA.addData("x: " , pose[0]);
         telemetryA.addData("y: " , pose[1]);
         telemetryA.addData("rotation: " , pose[2]);
+        telemetryA.addData("action running" , autoAction.run(packet));
         telemetryA.update();
 
     }

@@ -290,10 +290,13 @@ public class Robot {
         Vector2d rotatedDirection;
 
         double[] robotDirection;
-
+        double angleThreshold;
+        double spaceThreshold;
 
         public PIDtoPt(double[] pt, double angleThreshold, double spaceThreshold) {
             this.pt = pt;
+            this.angleThreshold = angleThreshold;
+            this.spaceThreshold = spaceThreshold;
             headingPID = new PIDF(headingConstants[0], headingConstants[1], headingConstants[2], headingConstants[3], timer);
             drivePID = new PIDF(driveConstants[0], driveConstants[1], driveConstants[2], driveConstants[3], timer);
             strafePID = new PIDF(strafeConstants[0], strafeConstants[1], strafeConstants[2], strafeConstants[3], timer);
@@ -303,25 +306,30 @@ public class Robot {
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
             localization.update();
             position = localization.getPose();
-            direction = new Vector2d(pt[0]-position[0], pt[1]-position[1]);
+            direction = new Vector2d(pt[0] - position[0], pt[1] - position[1]);
             rotatedDirection = direction.rotateBy(position[2]);
 
-            robotDirection = new double[] {
+            robotDirection = new double[]{
                     drivePID.loop(0, rotatedDirection.y),
-                    strafePID.loop(0,rotatedDirection.x),
+                    strafePID.loop(0, rotatedDirection.x),
                     headingPID.loop(pt[2], position[2])
             };
 
-            setMotorPowers(MecanumKinematics.getPowerFromDirection(robotDirection,1));
+            setMotorPowers(MecanumKinematics.getPowerFromDirection(robotDirection, 1));
 
-            return false;
+
+            if (position[2] >= angleThreshold) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
 
         }
-    }
 
-    public Action PIDtoPt(double[] pt, double angleThreshold, double spaceThreshold){
-        return new PIDtoPt(pt, angleThreshold, spaceThreshold);
+        public Action PIDtoPt(double[] pt, double angleThreshold, double spaceThreshold) {
+            return new PIDtoPt(pt, angleThreshold, spaceThreshold);
+        }
     }
-
-}
 
