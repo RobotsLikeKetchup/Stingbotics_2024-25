@@ -95,10 +95,6 @@ public class Robot {
             i.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         };
 
-        //hagrid: eres un horrocrux harry
-        //harry: un que?
-        //hagrid: un grrr
-
 
         //set motor directions
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -318,11 +314,13 @@ public class Robot {
             setMotorPowers(MecanumKinematics.getPowerFromDirection(robotDirection, 1));
 
 
-            if (position[2] >= angleThreshold) {
+            // debuging problem with action running bool in auton testing
+            return true;
+            /*if (position[2] >= angleThreshold) {
                 return true;
             } else {
                 return false;
-            }
+            }*/
         }
 
 
