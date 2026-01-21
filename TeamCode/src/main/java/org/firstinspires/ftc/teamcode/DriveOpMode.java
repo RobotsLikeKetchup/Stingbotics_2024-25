@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 // Import FTC classes
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -17,6 +18,7 @@ import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.PIDF;
+import org.firstinspires.ftc.teamcode.utilities.Vector2d;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 
 import java.util.List;
@@ -42,13 +44,14 @@ public class DriveOpMode extends OpMode {
     Gamepad previousGamepad2 = new Gamepad();
     Gamepad currentGamepad2 = new Gamepad();
 
-    public static double kP = 0.0058;
+    public static double kP = 0.0061;
     public static double kI = 0.00000023;
-    public static double kD = 0.012;
-    public static double kF = 0.000012;
+    public static double kD = 0.015;
+    public static double kF = 0.00015;
 
     public final double SPIN_MOTOR_TPR = 537.7;
     public final double SPIN_GEAR_RATIO = 180/49.5;
+    public final double TURRET_RADIUS = 6.49;
     public double turretBearing = 0;
     PIDF shooterpid = new PIDF(kP,kI,kD,kF, timer);
 
@@ -90,6 +93,8 @@ public class DriveOpMode extends OpMode {
     double target_aim = 0.78;
     double aprilTagBearingError = 0;
 
+    double[] cameraPos = {0,0};
+
 
     double[][] lookup = {
             {33,-1800,0.95},
@@ -99,12 +104,17 @@ public class DriveOpMode extends OpMode {
     };
     AprilTag aprilTag = new AprilTag();
 
+    MultipleTelemetry telemetryA;
+
     @Override
     // Set starting values for variable
     public void init() {
         robot.init(hardwareMap, timer);
         robot.aim.setPosition(0.95);
 
+        dashboard = FtcDashboard.getInstance();
+
+        telemetryA = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
         dashboard = FtcDashboard.getInstance();
         packet = new TelemetryPacket();
 
@@ -135,6 +145,16 @@ public class DriveOpMode extends OpMode {
         shooterVelocity = shooterpid.loop(shooterSpeed, robot.shooter.getVelocity());
         //could be hard coded
         turretBearing = 360 * ((robot.spin.getCurrentPosition() / SPIN_MOTOR_TPR)/SPIN_GEAR_RATIO);
+
+        //calculate the position of the camera from the straight-forward position
+        cameraPos[0] = TURRET_RADIUS*Math.sin(-Math.toRadians(turretBearing));
+        cameraPos[1] = TURRET_RADIUS*(-1+Math.cos(Math.toRadians(turretBearing)));
+
+        //calculating distance between cameraPosition and center of rotation, done with calculations on the robot
+        double tempX = cameraPos[0] + 4.62 - 3.75 - (RoadrunnerThreeWheelLocalizer.PARAMS.perpXTicks * RoadrunnerThreeWheelLocalizer.inPerTick);
+        double tempY = RoadrunnerThreeWheelLocalizer.PARAMS.par1YTicks * RoadrunnerThreeWheelLocalizer.inPerTick;
+
+        Vector2d tempsubtract = new Vector2d(tempX, tempY);
 
         //toggle shooter
         if (currentGamepad1.x && !previousGamepad1.x) {
@@ -189,7 +209,9 @@ public class DriveOpMode extends OpMode {
             }
 
         }
-        //the autoAim is always off for now
+
+        double[] tempPose;
+
         if(autoAim == state.OFF){
             if(currentSide == side.BLUE) {
                 targetBearing = -85;
@@ -212,6 +234,22 @@ public class DriveOpMode extends OpMode {
                         target_aim = item[2];
                     }
                 }
+
+                //take april tag robot pose and turn it into actual pose with the camera positions
+                tempPose = new double[] {
+                        goal.robotPose.getPosition().x,
+                        goal.robotPose.getPosition().y,
+                        goal.robotPose.getOrientation().getYaw()
+                };
+
+                Vector2d subtraction = tempsubtract.rotateBy(tempPose[2]);
+
+                pose = new double[] {
+                        tempPose[0] - subtraction.x,
+                        tempPose[1] - subtraction.y,
+                        tempPose[2] - turretBearing
+                };
+
                 robot.aim.setPosition(target_aim);
             }
 
@@ -312,12 +350,20 @@ public class DriveOpMode extends OpMode {
 
         telemetry.addData("shooter", robot.shooter.getVelocity());
         telemetry.addData("taim", target_aim);
-        telemetry.addData("ourbearing", turretBearing);
+        telemetryA.addData("ourbearing", turretBearing);
         telemetry.addData("target_bearing", targetBearing);
         telemetry.addData("apriltagbearingerror", aprilTagBearingError);
         telemetry.addData("autoAim", autoAim);
+        telemetryA.addData("cameraPos-x", cameraPos[0]);
+        telemetryA.addData("cameraPos-y", cameraPos[1]);
+        telemetryA.addData("x", pose[0]);
+        telemetryA.addData("y", pose[1]);
+        telemetryA.addData("angle", pose[2]);
+
+
         //These things MUST be at the end of each loop. DO NOT MOVE
         telemetry.update();
+        telemetryA.update();
     }
 
 }

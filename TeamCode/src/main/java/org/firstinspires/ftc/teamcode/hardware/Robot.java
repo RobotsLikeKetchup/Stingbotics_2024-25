@@ -40,7 +40,9 @@ public class Robot {
     public DcMotor frontLeft;
     public DcMotor backRight;
     public DcMotor backLeft;
-    public DcMotorEx shooter;
+    public DcMotorEx shooter1;
+    public DcMotorEx shooter2;
+    public DcMotorCombined shooter;
     public DcMotor intake;
     public Servo aim;
     public DcMotorEx spin;
@@ -83,7 +85,9 @@ public class Robot {
         frontRight = hardwareMap.get(DcMotor.class, "motor_fr");
         backLeft = hardwareMap.get(DcMotor.class, "motor_bl");
         backRight = hardwareMap.get(DcMotor.class, "motor_br");
-        shooter = hardwareMap.get(DcMotorEx.class, "shooter");
+        shooter1 = hardwareMap.get(DcMotorEx.class, "shooter");
+        shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
+        shooter = new DcMotorCombined(shooter1, shooter2);
         aim = hardwareMap.get(Servo.class, "aim");
         spin = hardwareMap.get(DcMotorEx.class, "spin");
         intake = hardwareMap.get(DcMotor.class, "intake");
@@ -101,6 +105,8 @@ public class Robot {
         frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backRight.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        shooter2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         spin.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         spin.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);

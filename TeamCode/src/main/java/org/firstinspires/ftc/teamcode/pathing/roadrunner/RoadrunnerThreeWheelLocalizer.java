@@ -38,7 +38,7 @@ public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLoca
 
     public final Encoder par0, par1, perp;
 
-    public double inPerTick =  0.00409623;
+    public static double inPerTick =  0.00409623;
 
     private int lastPar0Pos, lastPar1Pos, lastPerpPos;
     private boolean initialized;
