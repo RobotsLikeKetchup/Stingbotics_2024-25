@@ -118,11 +118,18 @@ public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLoca
         pose = pose.plus(twist.value());
         velocity = twist.velocity().value();
     }
-    public double[] getPose() {
+    public double[] getPoseDouble() {
         //converting the complex number format that roadrunner uses into an angle in radians
-        double angle = Math.atan2(pose.component2().real, pose.component2().imag);
+        double angle = Math.atan2(pose.heading.real, pose.heading.imag);
 
         return new double[] {pose.component1().x, pose.component1().y, angle};
+    }
+    public Pose2d getPose2D() {
+        return pose;
+    }
+
+    public void setPose(Pose2d pose) {
+        this.pose = pose;
     }
 
     public double[] getVelocity() {

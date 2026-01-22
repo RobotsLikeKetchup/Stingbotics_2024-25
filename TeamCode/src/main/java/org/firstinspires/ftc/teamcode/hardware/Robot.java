@@ -1,26 +1,17 @@
 package org.firstinspires.ftc.teamcode.hardware;
 
-import static org.firstinspires.ftc.teamcode.utilities.MathFunctions.toInt;
-
-import android.util.Size;
-
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.SequentialAction;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.TouchSensor;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
 import org.firstinspires.ftc.teamcode.MecanumKinematics;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.PurePursuit;
@@ -28,9 +19,7 @@ import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLoc
 import org.firstinspires.ftc.teamcode.utilities.MovementFunctions;
 import org.firstinspires.ftc.teamcode.utilities.PIDF;
 import org.firstinspires.ftc.teamcode.utilities.Vector2d;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
 import com.acmerobotics.dashboard.config.Config;
 
 @Config
@@ -73,7 +62,7 @@ public class Robot {
 
     public void init(HardwareMap hardwareMap, ElapsedTime timer){
 
-        localization = new RoadrunnerThreeWheelLocalizer(hardwareMap, new Pose2d(0 ,0, Math.PI / 2));
+        localization = new RoadrunnerThreeWheelLocalizer(hardwareMap, new Pose2d(0 ,0, 0));
 
         this.timer = timer;
 
@@ -202,7 +191,7 @@ public class Robot {
 
             localization.updatePoseEstimate();
 
-            pose = localization.getPose();
+            pose = localization.getPoseDouble();
 
             goalPoint = pathing.findPointOnPath();
             if(optimalAngleFieldReferenceFrame) {
@@ -307,7 +296,7 @@ public class Robot {
         @Override
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
             localization.update();
-            position = localization.getPose();
+            position = localization.getPoseDouble();
             direction = new Vector2d(pt[0] - position[0], pt[1] - position[1]);
             rotatedDirection = direction.rotateBy(position[2]);
 

@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.pathing;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
 import java.util.ArrayList;
@@ -123,7 +122,7 @@ public class PurePursuit {
 
     public double[] findPointOnPath(){
 
-        robotPosition = localization.getPose();
+        robotPosition = localization.getPoseDouble();
         double[] goalPoint = new double[2];
 
 
@@ -178,7 +177,7 @@ public class PurePursuit {
 
     public double[] findPointOnPath(TelemetryPacket packet){
 
-        robotPosition = localization.getPose();
+        robotPosition = localization.getPoseDouble();
         double[] goalPoint = new double[2];
 
 

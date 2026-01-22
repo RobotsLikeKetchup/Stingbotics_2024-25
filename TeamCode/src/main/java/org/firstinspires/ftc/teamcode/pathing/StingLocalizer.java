@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.pathing;
 
 public interface StingLocalizer {
-    double[] getPose();
+    double[] getPoseDouble();
     double[] getVelocity();
 }

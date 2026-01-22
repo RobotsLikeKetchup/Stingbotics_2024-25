@@ -87,7 +87,7 @@ public class AutonTesting extends OpMode {
     @Override
     public void loop() {
         localization.updatePoseEstimate();
-        pose = localization.getPose();
+        pose = localization.getPoseDouble();
 
         TelemetryPacket packet = new TelemetryPacket();
 

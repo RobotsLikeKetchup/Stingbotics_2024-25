@@ -57,7 +57,7 @@ public class EzraLocalizer implements StingLocalizer{
         FORWARD_DISTANCE = forwardDisplacement;
     }
     //methods
-    public double[] getPose(){
+    public double[] getPoseDouble(){
         return pose;
     }
 

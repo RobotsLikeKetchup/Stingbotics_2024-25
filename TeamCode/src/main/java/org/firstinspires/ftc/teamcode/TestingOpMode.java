@@ -103,7 +103,7 @@ public class TestingOpMode extends OpMode {
             }
         }
 
-        double[] pose = localization.getPose();
+        double[] pose = localization.getPoseDouble();
 
         if(shooterRef != 0) {
             shooterPower = shooterpid.loop(shooterRef, robot.shooter.getVelocity());
@@ -132,9 +132,9 @@ public class TestingOpMode extends OpMode {
 
         telemetryA.addLine("Encoder Positions: " + Arrays.toString(new double[]{robot.backRight.getCurrentPosition(), robot.frontLeft.getCurrentPosition(), robot.backLeft.getCurrentPosition()}));
 
-        telemetryA.addData("x", localization.getPose()[0]);
-        telemetryA.addData("y", localization.getPose()[1]);
-        telemetryA.addData("angle", Math.toDegrees(localization.getPose()[2]));
+        telemetryA.addData("x", localization.getPoseDouble()[0]);
+        telemetryA.addData("y", localization.getPoseDouble()[1]);
+        telemetryA.addData("angle", Math.toDegrees(localization.getPoseDouble()[2]));
         telemetryA.addData("shooter", robot.shooter.getVelocity());
         telemetryA.addData("shooterpower", shooterPower);
         telemetryA.addData("aim position", robot.aim.getPosition());

@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -35,8 +36,9 @@ public class DriveOpMode extends OpMode {
     //dame un grr un que -sebastian
     ElapsedTime timer= new ElapsedTime();
 
-    RoadrunnerThreeWheelLocalizer localizer;
-    double[] pose;
+    //initial position of robot: MAKE SURE TO CHANGE FOR COMP
+    Pose2d pose = new Pose2d(0,0,0);
+
 
     Gamepad previousGamepad1 = new Gamepad();
     Gamepad currentGamepad1 = new Gamepad();
@@ -112,6 +114,8 @@ public class DriveOpMode extends OpMode {
         robot.init(hardwareMap, timer);
         robot.aim.setPosition(0.95);
 
+        robot.localization.setPose(pose);
+
         dashboard = FtcDashboard.getInstance();
 
         telemetryA = new MultipleTelemetry(telemetry, dashboard.getTelemetry());
@@ -141,9 +145,12 @@ public class DriveOpMode extends OpMode {
         currentGamepad2.copy(gamepad2);
         prev_target_range = target_range;
 
+        robot.localization.update();
+        pose = robot.localization.getPose2D();
+
         // gives robot loving parents
         shooterVelocity = shooterpid.loop(shooterSpeed, robot.shooter.getVelocity());
-        //could be hard coded
+
         turretBearing = 360 * ((robot.spin.getCurrentPosition() / SPIN_MOTOR_TPR)/SPIN_GEAR_RATIO);
 
         //calculate the position of the camera from the straight-forward position
@@ -212,46 +219,36 @@ public class DriveOpMode extends OpMode {
 
         double[] tempPose;
 
-        if(autoAim == state.OFF){
-            if(currentSide == side.BLUE) {
-                targetBearing = -85;
-            } else {
-                targetBearing = 78;
-            }
-            target_spin = 2100;
-            target_aim = 0.95;
-        } else {
-            //AprilTag Detection: update target location
-            aprilTag.update();
-            //goal is the actual apriltag
-            AprilTagDetection goal = aprilTag.getTagByID(shooter_target);
-            if (goal != null && goal.ftcPose != null) {
-                target_range = goal.ftcPose.range;
-                aprilTagBearingError = goal.ftcPose.bearing;
-                for (double[] item : lookup) {
-                    if (item[0] >= target_range) {
-                        target_spin = item[1];
-                        target_aim = item[2];
-                    }
+        //AprilTag Detection: update target location
+        aprilTag.update();
+        //goal is the actual apriltag
+        AprilTagDetection goal = aprilTag.getTagByID(shooter_target);
+        if (goal != null && goal.ftcPose != null) {
+            target_range = goal.ftcPose.range;
+            aprilTagBearingError = goal.ftcPose.bearing;
+            for (double[] item : lookup) {
+                if (item[0] >= target_range) {
+                    target_spin = item[1];
+                    target_aim = item[2];
                 }
-
-                //take april tag robot pose and turn it into actual pose with the camera positions
-                tempPose = new double[] {
-                        goal.robotPose.getPosition().x,
-                        goal.robotPose.getPosition().y,
-                        goal.robotPose.getOrientation().getYaw()
-                };
-
-                Vector2d subtraction = tempsubtract.rotateBy(tempPose[2]);
-
-                pose = new double[] {
-                        tempPose[0] - subtraction.x,
-                        tempPose[1] - subtraction.y,
-                        tempPose[2] - turretBearing
-                };
-
-                robot.aim.setPosition(target_aim);
             }
+            //take april tag robot pose and turn it into actual pose with the camera positions
+            //IMPORTANT: in this, x and y are switched because of the way the aprilTag calculates
+            tempPose = new double[] {
+                    goal.robotPose.getPosition().y,
+                    goal.robotPose.getPosition().x,
+                    goal.robotPose.getOrientation().getYaw()
+            };
+            Vector2d subtraction = tempsubtract.rotateBy(Math.toRadians(tempPose[2]));
+
+            pose = new Pose2d(
+                    tempPose[0] - subtraction.x,
+                    tempPose[1] - subtraction.y,
+                    Math.toRadians(tempPose[2] - turretBearing)
+            );
+
+            robot.aim.setPosition(target_aim);
+
 
             //picking where to shoot aim and bearing
             for (double[] item : lookup) {
@@ -309,9 +306,9 @@ public class DriveOpMode extends OpMode {
 
         double bearingError = targetBearing - turretBearing;
         if(Math.abs(bearingError) > 2) {
-            robot.spin.setPower(0.015 * bearingError);
+            //robot.spin.setPower(0.015 * bearingError);
         } else {
-            robot.spin.setPower(0);
+            //  robot.spin.setPower(0);
         }
 
 
@@ -356,9 +353,9 @@ public class DriveOpMode extends OpMode {
         telemetry.addData("autoAim", autoAim);
         telemetryA.addData("cameraPos-x", cameraPos[0]);
         telemetryA.addData("cameraPos-y", cameraPos[1]);
-        telemetryA.addData("x", pose[0]);
-        telemetryA.addData("y", pose[1]);
-        telemetryA.addData("angle", pose[2]);
+        telemetryA.addData("x", pose.position.x);
+        telemetryA.addData("y", pose.position.y);
+        telemetryA.addData("angle", Math.atan2(pose.heading.real, pose.heading.imag));
 
 
         //These things MUST be at the end of each loop. DO NOT MOVE
