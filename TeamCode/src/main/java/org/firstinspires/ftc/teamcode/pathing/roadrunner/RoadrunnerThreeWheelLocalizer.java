@@ -159,6 +159,7 @@ public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLoca
         //a note on frame of reference: here, (0,0) is the center of the field. 0 heading is forward.
         //y is positive towards the goals and negative away
         //x is negative towards blue goal and positive towards red goal.
+        //angle must be between x axis and front of robot
         double[] tempPose = new double[] {
                 lensPose.getPosition().y,
                 - lensPose.getPosition().x,

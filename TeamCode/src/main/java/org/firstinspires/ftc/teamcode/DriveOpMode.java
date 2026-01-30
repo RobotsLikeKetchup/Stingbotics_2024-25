@@ -157,7 +157,7 @@ public class DriveOpMode extends OpMode {
         currentGamepad2.copy(gamepad2);
         prev_target_range = target_range;
         double test = robot.ballStop.getPosition();
-        robot.localization.update();
+        robot.localization.updatePoseEstimate();
         pose = robot.localization.getPose2D();
 
         // gives robot loving parents
@@ -229,9 +229,10 @@ public class DriveOpMode extends OpMode {
 
             //convert the lens pose to the robot's pose
             pose = RoadrunnerThreeWheelLocalizer.cameraToRobotPose(goal.robotPose, turretBearing);
+            robot.localization.setPose(pose);
 
 
-            double robotToGoalAngle = Math.atan2(targetAprilTagPos.get(1) - pose.position.y, targetAprilTagPos.get(0) - pose.position.x);
+
 
 
             //picking where to shoot aim and bearing
@@ -242,14 +243,6 @@ public class DriveOpMode extends OpMode {
                 }
             }
 
-
-            targetBearing = turretBearing + aprilTagBearingError;
-
-            if (targetBearing > 30) {
-                targetBearing = 30;
-            } else if (targetBearing < -30) {
-                targetBearing = -30;
-            }
         }
         robot.aim.setPosition(target_aim);
 
@@ -268,11 +261,24 @@ public class DriveOpMode extends OpMode {
             rampFunction.reset();
         }
 
+        //this is a little wack cause the ftc field coordinates are super different and weird
+        //also, Math.atan2 accepts (y, x) <--- IMPORTANT that its not (x,y)
+        double robotToGoalAngle = Math.atan2((-targetAprilTagPos.get(0)) - pose.position.y, targetAprilTagPos.get(1) - pose.position.x);
+        //subtract robotToGoalAngle since its from x axis
+        targetBearing = Math.toDegrees(robotToGoalAngle - pose.heading.toDouble());
+
+        if (targetBearing < TURRET_LIMITS[0]) {
+
+        }
+        if (targetBearing > TURRET_LIMITS[1]) {
+
+        }
+
         double bearingError = targetBearing - turretBearing;
         if (Math.abs(bearingError) > 2) {
-            //robot.spin.setPower(0.015 * bearingError);
+            robot.spin.setPower(0.015 * bearingError);
         } else {
-            //  robot.spin.setPower(0);
+            robot.spin.setPower(0);
         }
 
 
@@ -310,14 +316,14 @@ public class DriveOpMode extends OpMode {
         telemetry.addData("shooter", robot.shooter.getVelocity());
         telemetry.addData("taim", target_aim);
         telemetryA.addData("ourbearing", turretBearing);
-        telemetry.addData("target_bearing", targetBearing);
+        telemetryA.addData("target_bearing", targetBearing);
         telemetry.addData("apriltagbearingerror", aprilTagBearingError);
         telemetry.addData("autoAim", autoAim);
         telemetryA.addData("cameraPos-x", cameraPos[0]);
         telemetryA.addData("cameraPos-y", cameraPos[1]);
         telemetryA.addData("x", pose.position.x);
         telemetryA.addData("y", pose.position.y);
-        telemetryA.addData("angle", Math.atan2(pose.heading.real, pose.heading.imag));
+        telemetryA.addData("angle", pose.heading.toDouble());
         telemetry.addData("number", robot.ballStop.getPosition());
         telemetry.addData("aimpos", robot.aim.getPosition());
 
