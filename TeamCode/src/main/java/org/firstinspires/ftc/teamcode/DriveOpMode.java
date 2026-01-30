@@ -34,10 +34,10 @@ public class DriveOpMode extends OpMode {
     //ur nt shkspr vro -sebastian
     Robot robot = new Robot();
     //dame un grr un que -sebastian
-    ElapsedTime timer= new ElapsedTime();
+    ElapsedTime timer = new ElapsedTime();
 
     //initial position of robot: MAKE SURE TO CHANGE FOR COMP
-    Pose2d pose = new Pose2d(0,0,0);
+    Pose2d pose = new Pose2d(0, 0, 0);
 
 
     Gamepad previousGamepad1 = new Gamepad();
@@ -52,16 +52,17 @@ public class DriveOpMode extends OpMode {
     public static double kF = 0.00015;
 
     public final double SPIN_MOTOR_TPR = 537.7;
-    public final double SPIN_GEAR_RATIO = 180/49.5;
+    public final double SPIN_GEAR_RATIO = 180 / 49.5;
     public final double TURRET_RADIUS = 6.49;
     public double turretBearing = 0;
-    PIDF shooterpid = new PIDF(kP,kI,kD,kF, timer);
+    PIDF shooterpid = new PIDF(kP, kI, kD, kF, timer);
 
-    MotionProfile1D rampFunction = new MotionProfile1D(0.8,1, 0.4, timer);
+    MotionProfile1D rampFunction = new MotionProfile1D(0.8, 1, 0.4, timer);
+
     // list of colors and variables
-    public enum colors{ PURPLE, GREEN, UNKNOWN }
+    public enum colors {PURPLE, GREEN, UNKNOWN}
 
-    public enum side { BLUE, RED }
+    public enum side {BLUE, RED}
 
     public side currentSide = side.BLUE;
 
@@ -95,14 +96,14 @@ public class DriveOpMode extends OpMode {
     double target_aim = 0.78;
     double aprilTagBearingError = 0;
 
-    double[] cameraPos = {0,0};
+    double[] cameraPos = {0, 0};
 
 
     double[][] lookup = {
-            {33,-1800,0.95},
-            {46,-1900,0.95},
-            {58,-1950,0.81},
-            {78,-2200,0.71}
+            {33, -1800, 0.95},
+            {46, -1900, 0.95},
+            {58, -1950, 0.81},
+            {78, -2200, 0.71}
     };
     AprilTag aprilTag = new AprilTag();
 
@@ -113,7 +114,7 @@ public class DriveOpMode extends OpMode {
     public void init() {
         robot.init(hardwareMap, timer);
         robot.aim.setPosition(0.95);
-
+        robot.ballStop.setPosition(0.5);
         robot.localization.setPose(pose);
 
         dashboard = FtcDashboard.getInstance();
@@ -127,7 +128,11 @@ public class DriveOpMode extends OpMode {
         telemetry.update();
         aprilTag.init(hardwareMap, telemetry);
 
-        if (currentSide == side.BLUE) {shooter_target = 20;} else {shooter_target = 24;}
+        if (currentSide == side.BLUE) {
+            shooter_target = 20;
+        } else {
+            shooter_target = 24;
+        }
 
     }
 
@@ -144,18 +149,18 @@ public class DriveOpMode extends OpMode {
         previousGamepad2.copy(currentGamepad2);
         currentGamepad2.copy(gamepad2);
         prev_target_range = target_range;
-
+        double test = robot.ballStop.getPosition();
         robot.localization.update();
         pose = robot.localization.getPose2D();
 
         // gives robot loving parents
         shooterVelocity = shooterpid.loop(shooterSpeed, robot.shooter.getVelocity());
 
-        turretBearing = 360 * ((robot.spin.getCurrentPosition() / SPIN_MOTOR_TPR)/SPIN_GEAR_RATIO);
+        turretBearing = 360 * ((robot.spin.getCurrentPosition() / SPIN_MOTOR_TPR) / SPIN_GEAR_RATIO);
 
         //calculate the position of the camera from the straight-forward position
-        cameraPos[0] = TURRET_RADIUS*Math.sin(-Math.toRadians(turretBearing));
-        cameraPos[1] = TURRET_RADIUS*(-1+Math.cos(Math.toRadians(turretBearing)));
+        cameraPos[0] = TURRET_RADIUS * Math.sin(-Math.toRadians(turretBearing));
+        cameraPos[1] = TURRET_RADIUS * (-1 + Math.cos(Math.toRadians(turretBearing)));
 
         //calculating distance between cameraPosition and center of rotation, done with calculations on the robot
         double tempX = cameraPos[0] + 4.62 - 3.75 - (RoadrunnerThreeWheelLocalizer.PARAMS.perpXTicks * RoadrunnerThreeWheelLocalizer.inPerTick);
@@ -167,9 +172,13 @@ public class DriveOpMode extends OpMode {
         if (currentGamepad1.x && !previousGamepad1.x) {
             if (shooter != state.ON) {
                 shooter = state.ON;
+                if (robot.shooter.getVelocity() == shooterSpeed) {
+                    //robot.ballStop.setPosition(0.5)
+                }
             } else if (shooter != state.OFF) {
                 robot.shooter.setPower(0);
                 shooter = state.OFF;
+                //robot.ballStop.setPosition(1);
             }
         }
         if (currentGamepad1.b && !previousGamepad1.b) {
@@ -209,78 +218,83 @@ public class DriveOpMode extends OpMode {
                 robot.aim.setPosition(target_aim);
             }
         }
-        if (currentGamepad1.dpad_right && !previousGamepad1.dpad_right){
+        if (currentGamepad1.dpad_right && !previousGamepad1.dpad_right) {
             if (autoAim == state.OFF) {
                 autoAim = state.ON;
                 targetBearing = 0;
             }
 
-        }
 
-        double[] tempPose;
+            if (currentGamepad1.dpad_up && !previousGamepad1.dpad_up) {
+                robot.ballStop.setPosition(test + 0.01);
+            }
+            if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down) {
+                robot.ballStop.setPosition(test - 0.01);
+            }
+            double[] tempPose;
 
-        //AprilTag Detection: update target location
-        aprilTag.update();
-        //goal is the actual apriltag
-        AprilTagDetection goal = aprilTag.getTagByID(shooter_target);
-        if (goal != null && goal.ftcPose != null) {
-            target_range = goal.ftcPose.range;
-            aprilTagBearingError = goal.ftcPose.bearing;
-            for (double[] item : lookup) {
-                if (item[0] >= target_range) {
-                    target_spin = item[1];
-                    target_aim = item[2];
+            //AprilTag Detection: update target location
+            aprilTag.update();
+            //goal is the actual apriltag
+            AprilTagDetection goal = aprilTag.getTagByID(shooter_target);
+            if (goal != null && goal.ftcPose != null) {
+                target_range = goal.ftcPose.range;
+                aprilTagBearingError = goal.ftcPose.bearing;
+                for (double[] item : lookup) {
+                    if (item[0] >= target_range) {
+                        target_spin = item[1];
+                        target_aim = item[2];
+                    }
+                }
+                //take april tag robot pose and turn it into actual pose with the camera positions
+                //IMPORTANT: in this, x and y are switched because of the way the aprilTag calculates
+                tempPose = new double[]{
+                        goal.robotPose.getPosition().y,
+                        goal.robotPose.getPosition().x,
+                        goal.robotPose.getOrientation().getYaw()
+                };
+                Vector2d subtraction = tempsubtract.rotateBy(Math.toRadians(tempPose[2]));
+
+                pose = new Pose2d(
+                        tempPose[0] - subtraction.x,
+                        tempPose[1] - subtraction.y,
+                        Math.toRadians(tempPose[2] - turretBearing)
+                );
+
+                robot.aim.setPosition(target_aim);
+
+
+                //picking where to shoot aim and bearing
+                for (double[] item : lookup) {
+                    if (item[0] >= target_range) {
+                        target_spin = item[1];
+                        target_aim = item[2];
+                    }
+                }
+
+
+                targetBearing = turretBearing + aprilTagBearingError;
+
+                if (targetBearing > 30) {
+                    targetBearing = 30;
+                } else if (targetBearing < -30) {
+                    targetBearing = -30;
                 }
             }
-            //take april tag robot pose and turn it into actual pose with the camera positions
-            //IMPORTANT: in this, x and y are switched because of the way the aprilTag calculates
-            tempPose = new double[] {
-                    goal.robotPose.getPosition().y,
-                    goal.robotPose.getPosition().x,
-                    goal.robotPose.getOrientation().getYaw()
-            };
-            Vector2d subtraction = tempsubtract.rotateBy(Math.toRadians(tempPose[2]));
 
-            pose = new Pose2d(
-                    tempPose[0] - subtraction.x,
-                    tempPose[1] - subtraction.y,
-                    Math.toRadians(tempPose[2] - turretBearing)
-            );
-
-            robot.aim.setPosition(target_aim);
-
-
-            //picking where to shoot aim and bearing
-            for (double[] item : lookup) {
-                if (item[0] >= target_range) {
-                    target_spin = item[1];
-                    target_aim = item[2];
+            //toggling autoAim off
+            if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left) {
+                if (autoAim == state.ON) {
+                    autoAim = state.OFF;
                 }
             }
-
-
-            targetBearing = turretBearing + aprilTagBearingError;
-
-            if (targetBearing > 30) {
-                targetBearing = 30;
-            } else if (targetBearing < -30){
-                targetBearing = -30;
+            //toggle autoAim on
+            if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down) {
+                if (autoAim == state.OFF) {
+                    autoAim = state.ON;
+                    targetBearing = 0;
+                }
             }
-        }
-
-        //toggling autoAim off
-        if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left) {
-            if (autoAim == state.ON) {
-                autoAim = state.OFF;
-            }
-        }
-        //toggle autoAim on
-        if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down){
-            if (autoAim == state.OFF) {
-                autoAim = state.ON;
-                targetBearing = 0;
-            }
-        }
 
 //        double red = robot.ballColor.red();
 //        double green = robot.ballColor.green();
@@ -297,70 +311,71 @@ public class DriveOpMode extends OpMode {
 //        }
 
 
-        //ramp  function: if sebastian has just started moving, beat his ass.
-        //it basically prevents jerky movement by making sure it speeds up slower.
-        // This way also if the driver is making precise adjustments they can go slowly
-        if ((Math.abs(currentGamepad1.left_stick_x) > 0.05 || Math.abs(currentGamepad1.left_stick_y) > 0.05) && !(Math.abs(previousGamepad1.left_stick_x) > 0.05 || Math.abs(previousGamepad1.left_stick_y) > 0.05)) {
-            rampFunction.reset();
+            //ramp  function: if sebastian has just started moving, beat his ass.
+            //it basically prevents jerky movement by making sure it speeds up slower.
+            // This way also if the driver is making precise adjustments they can go slowly
+            if ((Math.abs(currentGamepad1.left_stick_x) > 0.05 || Math.abs(currentGamepad1.left_stick_y) > 0.05) && !(Math.abs(previousGamepad1.left_stick_x) > 0.05 || Math.abs(previousGamepad1.left_stick_y) > 0.05)) {
+                rampFunction.reset();
+            }
+
+            double bearingError = targetBearing - turretBearing;
+            if (Math.abs(bearingError) > 2) {
+                //robot.spin.setPower(0.015 * bearingError);
+            } else {
+                //  robot.spin.setPower(0);
+            }
+
+
+            // Gets power levels for each motor, using gamepad inputs as directions
+            // The third item in the array dictates which trigger is being pressed (=1 if left, =-1 if right, =0 if none or both).
+            motorPowers = MecanumKinematics.getPowerFromDirection(new double[]{
+                            -gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x),
+                            gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
+                            -(toInt(gamepad1.right_bumper) - toInt(gamepad1.left_bumper))
+                    },
+                    rampFunction.getTargetSpeed(), 1, //this all just correcting for our shitty weight distribution
+                    true
+            );
+
+            telemetry.addData("aimer position", hoodAngle);
+            telemetry.addData("gamepadx", currentGamepad1.left_stick_x);
+            telemetry.addData("gamepady", currentGamepad1.left_stick_y);
+            // Sets power levels
+            // Works because each index corresponds with the same wheel in both arrays
+            for (int i = 0; i < motorPowers.length; i++) {
+                robot.driveMotors[i].setPower(motorPowers[i]);
+            }
+
+            telemetry.addData("Encoder R", robot.getDeadwheel("parR").getTicks());
+            telemetry.addData("Encoder L", robot.getDeadwheel("parL").getTicks());
+            telemetry.addData("Encoder perp", robot.getDeadwheel("per").getTicks());
+
+            telemetry.addData("frontLeft", robot.frontLeft.getPower());
+            telemetry.addData("backLeft", robot.backLeft.getPower());
+            telemetry.addData("frontRight", robot.frontRight.getPower());
+            telemetry.addData("backRight", robot.backRight.getPower());
+            telemetry.addData("ballDetected", detectedColor);
+
+            telemetry.addData("range", target_range);
+
+            telemetry.addData("shooter", robot.shooter.getVelocity());
+            telemetry.addData("taim", target_aim);
+            telemetryA.addData("ourbearing", turretBearing);
+            telemetry.addData("target_bearing", targetBearing);
+            telemetry.addData("apriltagbearingerror", aprilTagBearingError);
+            telemetry.addData("autoAim", autoAim);
+            telemetryA.addData("cameraPos-x", cameraPos[0]);
+            telemetryA.addData("cameraPos-y", cameraPos[1]);
+            telemetryA.addData("x", pose.position.x);
+            telemetryA.addData("y", pose.position.y);
+            telemetryA.addData("angle", Math.atan2(pose.heading.real, pose.heading.imag));
+            telemetry.addData("number", robot.ballStop.getPosition());
+            telemetry.addData("aimpos", robot.aim.getPosition());
+
+            //These things MUST be at the end of each loop. DO NOT MOVE
+            telemetry.update();
+            telemetryA.update();
         }
 
-        double bearingError = targetBearing - turretBearing;
-        if(Math.abs(bearingError) > 2) {
-            //robot.spin.setPower(0.015 * bearingError);
-        } else {
-            //  robot.spin.setPower(0);
-        }
-
-
-
-        // Gets power levels for each motor, using gamepad inputs as directions
-        // The third item in the array dictates which trigger is being pressed (=1 if left, =-1 if right, =0 if none or both).
-        motorPowers = MecanumKinematics.getPowerFromDirection(new double[] {
-                        - gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x),
-                        gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
-                        - (toInt(gamepad1.right_bumper) - toInt(gamepad1.left_bumper))
-                },
-                rampFunction.getTargetSpeed(), 1, //this all just correcting for our shitty weight distribution
-                true
-        );
-
-        telemetry.addData("aimer position", hoodAngle);
-        telemetry.addData("gamepadx", currentGamepad1.left_stick_x);
-        telemetry.addData("gamepady", currentGamepad1.left_stick_y);
-        // Sets power levels
-        // Works because each index corresponds with the same wheel in both arrays
-        for (int i=0; i < motorPowers.length; i++) {
-            robot.driveMotors[i].setPower(motorPowers[i]);
-        }
-
-        telemetry.addData("Encoder R", robot.getDeadwheel("parR").getTicks());
-        telemetry.addData("Encoder L", robot.getDeadwheel("parL").getTicks());
-        telemetry.addData("Encoder perp", robot.getDeadwheel("per").getTicks());
-
-        telemetry.addData("frontLeft", robot.frontLeft.getPower());
-        telemetry.addData("backLeft", robot.backLeft.getPower());
-        telemetry.addData("frontRight", robot.frontRight.getPower());
-        telemetry.addData("backRight", robot.backRight.getPower());
-        telemetry.addData("ballDetected", detectedColor);
-
-        telemetry.addData("range", target_range);
-
-        telemetry.addData("shooter", robot.shooter.getVelocity());
-        telemetry.addData("taim", target_aim);
-        telemetryA.addData("ourbearing", turretBearing);
-        telemetry.addData("target_bearing", targetBearing);
-        telemetry.addData("apriltagbearingerror", aprilTagBearingError);
-        telemetry.addData("autoAim", autoAim);
-        telemetryA.addData("cameraPos-x", cameraPos[0]);
-        telemetryA.addData("cameraPos-y", cameraPos[1]);
-        telemetryA.addData("x", pose.position.x);
-        telemetryA.addData("y", pose.position.y);
-        telemetryA.addData("angle", Math.atan2(pose.heading.real, pose.heading.imag));
-
-
-        //These things MUST be at the end of each loop. DO NOT MOVE
-        telemetry.update();
-        telemetryA.update();
     }
-
 }

@@ -34,6 +34,7 @@ public class Robot {
     public DcMotorCombined shooter;
     public DcMotor intake;
     public Servo aim;
+    public Servo ballStop;
     public DcMotorEx spin;
     //parallel dead wheels (measuring x-coord and heading)
     DeadWheel parL;
@@ -78,6 +79,7 @@ public class Robot {
         shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
         shooter = new DcMotorCombined(shooter1, shooter2);
         aim = hardwareMap.get(Servo.class, "aim");
+        ballStop = hardwareMap.get(Servo.class, "ballStop");
         spin = hardwareMap.get(DcMotorEx.class, "spin");
         intake = hardwareMap.get(DcMotor.class, "intake");
         driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
