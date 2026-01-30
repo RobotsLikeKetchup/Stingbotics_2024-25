@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.pathing.PurePursuit;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.MovementFunctions;
 import org.firstinspires.ftc.teamcode.utilities.PIDF;
-import org.firstinspires.ftc.teamcode.utilities.Vector2d;
+import org.firstinspires.ftc.teamcode.utilities.Vector2Dim;
 
 import com.acmerobotics.dashboard.config.Config;
 
@@ -279,8 +279,8 @@ public class Robot {
         PIDF strafePID;
 
         double[] position;
-        Vector2d direction;
-        Vector2d rotatedDirection;
+        Vector2Dim direction;
+        Vector2Dim rotatedDirection;
 
         double[] robotDirection;
         double angleThreshold;
@@ -299,7 +299,7 @@ public class Robot {
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
             localization.update();
             position = localization.getPoseDouble();
-            direction = new Vector2d(pt[0] - position[0], pt[1] - position[1]);
+            direction = new Vector2Dim(pt[0] - position[0], pt[1] - position[1]);
             rotatedDirection = direction.rotateBy(position[2]);
 
             robotDirection = new double[]{

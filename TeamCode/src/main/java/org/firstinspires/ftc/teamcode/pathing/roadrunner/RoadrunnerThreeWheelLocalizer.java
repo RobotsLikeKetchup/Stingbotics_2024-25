@@ -17,8 +17,9 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.pathing.StingLocalizer;
-
+import org.firstinspires.ftc.teamcode.utilities.Vector2Dim;
 
 
 //This is the roadrunner three deadwheel localizer, I just adapted it for our code.
@@ -33,6 +34,8 @@ public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLoca
         public double par1YTicks = 619.4442806739024; // y position of the second parallel encoder (in tick units)
         public double perpXTicks = -446.1845844487434; // x position of the perpendicular encoder (in tick units)
     }
+
+    public static final double TURRET_RADIUS = 6.49;
 
     public static Params PARAMS = new Params();
 
@@ -133,6 +136,42 @@ public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLoca
     }
 
     public double[] getVelocity() {
-        return new double[] {velocity.linearVel.x, velocity.linearVel.y, velocity.angVel};
+        return new double[]{velocity.linearVel.x, velocity.linearVel.y, velocity.angVel};
+    }
+
+    //used for turning the camera lens pose to the robot's pose
+    //specific to 2025 bot
+    public static Pose2d cameraToRobotPose(Pose3D lensPose, double turretBearing){ //lens pose is from aprilTag
+        //calculate the position of the camera from the straight-forward position
+        double[] cameraPos = {
+                TURRET_RADIUS*Math.sin(-Math.toRadians(turretBearing)),
+                TURRET_RADIUS*(-1+Math.cos(Math.toRadians(turretBearing)))
+        };
+
+        //calculating distance between cameraPosition and center of rotation of the robot, done with calculations on the robot
+        double tempX = cameraPos[0] + 4.62 - 3.75 - (RoadrunnerThreeWheelLocalizer.PARAMS.perpXTicks * RoadrunnerThreeWheelLocalizer.inPerTick);
+        double tempY = RoadrunnerThreeWheelLocalizer.PARAMS.par1YTicks * RoadrunnerThreeWheelLocalizer.inPerTick;
+
+        Vector2Dim tempsubtract = new Vector2Dim(tempX, tempY);
+        //take april tag robot pose and turn it into actual pose with the camera positions
+        //IMPORTANT: in this, x and y are switched because of the way the aprilTag calculates
+
+        //a note on frame of reference: here, (0,0) is the center of the field. 0 heading is forward.
+        //y is positive towards the goals and negative away
+        //x is negative towards blue goal and positive towards red goal.
+        double[] tempPose = new double[] {
+                lensPose.getPosition().y,
+                - lensPose.getPosition().x,
+                lensPose.getOrientation().getYaw()
+        };
+        Vector2Dim subtraction = tempsubtract.rotateBy(Math.toRadians(tempPose[2]));
+
+        Pose2d pose = new Pose2d(
+                tempPose[0] - subtraction.x,
+                tempPose[1] - subtraction.y,
+                Math.toRadians(tempPose[2] - turretBearing)
+        );
+
+        return pose;
     }
 }
