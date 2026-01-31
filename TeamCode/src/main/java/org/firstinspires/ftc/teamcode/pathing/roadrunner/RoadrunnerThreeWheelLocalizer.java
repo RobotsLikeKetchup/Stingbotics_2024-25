@@ -30,9 +30,9 @@ import org.firstinspires.ftc.teamcode.utilities.Vector2Dim;
 @Config
 public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLocalizer {
     public static class Params {
-        public double par0YTicks = -409.9520267332982; // y position of the first parallel encoder (in tick units)
-        public double par1YTicks = 619.4442806739024; // y position of the second parallel encoder (in tick units)
-        public double perpXTicks = -446.1845844487434; // x position of the perpendicular encoder (in tick units)
+        public double par0YTicks = -424.7557453299647; // y position of the first parallel encoder (in tick units)
+        public double par1YTicks = 869.1622218341726; // y position of the second parallel encoder (in tick units)
+        public double perpXTicks = -607.8281435589206; // x position of the perpendicular encoder (in tick units)
     }
 
     public static final double TURRET_RADIUS = 6.49;
@@ -41,7 +41,7 @@ public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLoca
 
     public final Encoder par0, par1, perp;
 
-    public static double inPerTick =  0.00409623;
+    public static double inPerTick =  0.00456831003;
 
     private int lastPar0Pos, lastPar1Pos, lastPerpPos;
     private boolean initialized;
