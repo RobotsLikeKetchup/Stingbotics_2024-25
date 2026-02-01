@@ -15,6 +15,7 @@ import com.acmerobotics.roadrunner.ftc.OverflowEncoder;
 import com.acmerobotics.roadrunner.ftc.PositionVelocityPair;
 import com.acmerobotics.roadrunner.ftc.RawEncoder;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
@@ -40,6 +41,7 @@ public class RoadrunnerTwoWheelLocalizer implements StingLocalizer {
     private Rotation2d lastHeading;
 
     private final double inPerTick = 0.00456831003;
+    private final double lateralInPerTick = 0.00406819;
 
     private double lastRawHeadingVel, headingVelOffset;
     private boolean initialized;
@@ -53,7 +55,8 @@ public class RoadrunnerTwoWheelLocalizer implements StingLocalizer {
         perp = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "motor_bl")));
 
         // TODO: reverse encoder directions if needed
-        //   par.setDirection(DcMotorSimple.Direction.REVERSE);
+        par.setDirection(DcMotorSimple.Direction.REVERSE);
+        perp.setDirection(DcMotorSimple.Direction.REVERSE);
 
         this.imu = imu;
 
@@ -113,13 +116,14 @@ public class RoadrunnerTwoWheelLocalizer implements StingLocalizer {
         Twist2dDual<Time> twist = new Twist2dDual<>(
                 new Vector2dDual<>(
                         new DualNum<Time>(new double[] {
+                                //subtract the heading*radius of the deadwheel(cause it rotates when it turns the deadwheels)
                                 parPosDelta - PARAMS.parYTicks * headingDelta,
                                 parPosVel.velocity - PARAMS.parYTicks * headingVel,
                         }).times(inPerTick),
                         new DualNum<Time>(new double[] {
                                 perpPosDelta - PARAMS.perpXTicks * headingDelta,
                                 perpPosVel.velocity - PARAMS.perpXTicks * headingVel,
-                        }).times(inPerTick)
+                        }).times(lateralInPerTick)
                 ),
                 new DualNum<>(new double[] {
                         headingDelta,
