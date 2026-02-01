@@ -5,10 +5,12 @@ import androidx.annotation.NonNull;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -16,6 +18,7 @@ import org.firstinspires.ftc.teamcode.MecanumKinematics;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.PurePursuit;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
+import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerTwoWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.MovementFunctions;
 import org.firstinspires.ftc.teamcode.utilities.PIDF;
 import org.firstinspires.ftc.teamcode.utilities.Vector2Dim;
@@ -44,9 +47,15 @@ public class Robot {
 
     public DcMotor[] driveMotors;
 
-    public RoadrunnerThreeWheelLocalizer localization;
+    public RoadrunnerTwoWheelLocalizer localization;
 
     ElapsedTime timer;
+
+    IMU imu;
+
+    public final RevHubOrientationOnRobot.LogoFacingDirection logoFacingDirection = RevHubOrientationOnRobot.LogoFacingDirection.LEFT;
+    public final RevHubOrientationOnRobot.UsbFacingDirection usbFacingDirection = RevHubOrientationOnRobot.UsbFacingDirection.UP;
+
 
     //order of constants will be P, I, D, F
     public static double[] headingConstants = {0,0,0,0};
@@ -63,7 +72,18 @@ public class Robot {
 
     public void init(HardwareMap hardwareMap, ElapsedTime timer){
 
-        localization = new RoadrunnerThreeWheelLocalizer(hardwareMap, new Pose2d(0 ,0, 0));
+        imu = hardwareMap.get(IMU.class, "imu");
+        imu.initialize(
+                new IMU.Parameters(
+                        new RevHubOrientationOnRobot(
+                                logoFacingDirection,
+                                usbFacingDirection
+                        )
+                )
+        );
+        imu.resetYaw();
+
+        localization = new RoadrunnerTwoWheelLocalizer(hardwareMap, imu, new Pose2d(0 ,0, 0));
 
         this.timer = timer;
 
@@ -191,7 +211,7 @@ public class Robot {
                 telemetryPacket.addLine("initialized!");
             }
 
-            localization.updatePoseEstimate();
+            localization.update();
 
             pose = localization.getPoseDouble();
 
@@ -300,13 +320,17 @@ public class Robot {
             localization.update();
             position = localization.getPoseDouble();
             direction = new Vector2Dim(pt[0] - position[0], pt[1] - position[1]);
-            rotatedDirection = direction.rotateBy(position[2]);
+            rotatedDirection = direction.rotateBy(position[2] -  (Math.PI/2));
 
             robotDirection = new double[]{
-                    drivePID.loop(0, rotatedDirection.y),
-                    strafePID.loop(0, rotatedDirection.x),
+                    strafePID.loop(pt[0], rotatedDirection.x),
+                    drivePID.loop(pt[1], rotatedDirection.y),
                     headingPID.loop(pt[2], position[2])
             };
+
+            telemetryPacket.put("x-direction", robotDirection[0]);
+            telemetryPacket.put("y-direction", robotDirection[1]);
+            telemetryPacket.put("angle-direction", robotDirection[2]);
 
             setMotorPowers(MecanumKinematics.getPowerFromDirection(robotDirection, 1));
 

@@ -20,6 +20,7 @@ import org.firstinspires.ftc.teamcode.hardware.AprilTag;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
+import org.firstinspires.ftc.teamcode.utilities.MathFunctions;
 import org.firstinspires.ftc.teamcode.utilities.PIDF;
 import org.firstinspires.ftc.teamcode.utilities.Vector2Dim;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -157,8 +158,8 @@ public class DriveOpMode extends OpMode {
         currentGamepad2.copy(gamepad2);
         prev_target_range = target_range;
         double test = robot.ballStop.getPosition();
-        robot.localization.updatePoseEstimate();
-        pose = robot.localization.getPose2D();
+        robot.localization.update();
+        pose = robot.localization.getPose();
 
         // gives robot loving parents
         shooterVelocity = shooterpid.loop(shooterSpeed, robot.shooter.getVelocity());
@@ -223,16 +224,14 @@ public class DriveOpMode extends OpMode {
         //goal is the actual apriltag
         AprilTagDetection goal = aprilTag.getTagByID(shooter_target);
         if (goal != null && goal.ftcPose != null) {
+            telemetryA.addLine("aprilTag found!!");
+
             target_range = goal.ftcPose.range;
             aprilTagBearingError = goal.ftcPose.bearing;
-
 
             //convert the lens pose to the robot's pose
             pose = RoadrunnerThreeWheelLocalizer.cameraToRobotPose(goal.robotPose, turretBearing);
             robot.localization.setPose(pose);
-
-
-
 
 
             //picking where to shoot aim and bearing
@@ -265,18 +264,18 @@ public class DriveOpMode extends OpMode {
         //also, Math.atan2 accepts (y, x) <--- IMPORTANT that its not (x,y)
         double robotToGoalAngle = Math.atan2((-targetAprilTagPos.get(0)) - pose.position.y, targetAprilTagPos.get(1) - pose.position.x);
         //subtract robotToGoalAngle since its from x axis
-        targetBearing = Math.toDegrees(robotToGoalAngle - pose.heading.toDouble());
+        targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.heading.toDouble()));
 
         if (targetBearing < TURRET_LIMITS[0]) {
-
+            targetBearing = 360 + targetBearing;
         }
         if (targetBearing > TURRET_LIMITS[1]) {
-
+            targetBearing = -360 + targetBearing;
         }
 
         double bearingError = targetBearing - turretBearing;
         if (Math.abs(bearingError) > 2) {
-            robot.spin.setPower(0.015 * bearingError);
+            //robot.spin.setPower(0.015 * bearingError);
         } else {
             robot.spin.setPower(0);
         }
@@ -286,11 +285,10 @@ public class DriveOpMode extends OpMode {
         // The third item in the array dictates which trigger is being pressed (=1 if left, =-1 if right, =0 if none or both).
         motorPowers = MecanumKinematics.getPowerFromDirection(new double[]{
                         -gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x),
-                        gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
+                        -gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
                         -(toInt(gamepad1.right_bumper) - toInt(gamepad1.left_bumper))
                 },
-                rampFunction.getTargetSpeed(), 1, //this all just correcting for our shitty weight distribution
-                true
+                rampFunction.getTargetSpeed()
         );
 
         telemetry.addData("gamepadx", currentGamepad1.left_stick_x);
@@ -309,7 +307,6 @@ public class DriveOpMode extends OpMode {
         telemetry.addData("backLeft", robot.backLeft.getPower());
         telemetry.addData("frontRight", robot.frontRight.getPower());
         telemetry.addData("backRight", robot.backRight.getPower());
-        telemetry.addData("ballDetected", detectedColor);
 
         telemetry.addData("range", target_range);
 
@@ -323,7 +320,8 @@ public class DriveOpMode extends OpMode {
         telemetryA.addData("cameraPos-y", cameraPos[1]);
         telemetryA.addData("x", pose.position.x);
         telemetryA.addData("y", pose.position.y);
-        telemetryA.addData("angle", pose.heading.toDouble());
+        telemetryA.addData("angle", MathFunctions.angleWrap(pose.heading.toDouble()));
+
         telemetry.addData("number", robot.ballStop.getPosition());
         telemetry.addData("aimpos", robot.aim.getPosition());
 

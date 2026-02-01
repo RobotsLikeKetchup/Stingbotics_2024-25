@@ -13,10 +13,13 @@ import com.acmerobotics.roadrunner.ftc.FlightRecorder;
 import com.acmerobotics.roadrunner.ftc.OverflowEncoder;
 import com.acmerobotics.roadrunner.ftc.PositionVelocityPair;
 import com.acmerobotics.roadrunner.ftc.RawEncoder;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.IMU;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.pathing.StingLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.Vector2Dim;
@@ -50,6 +53,16 @@ public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLoca
 
     public PoseVelocity2d velocity;
 
+    public IMU imu;
+
+    public final RevHubOrientationOnRobot.LogoFacingDirection logoFacingDirection = RevHubOrientationOnRobot.LogoFacingDirection.LEFT;
+    public final RevHubOrientationOnRobot.UsbFacingDirection usbFacingDirection = RevHubOrientationOnRobot.UsbFacingDirection.UP;
+
+    public double[] imuAngle = {0,0};
+    double[] prevImuAngle = {0,0};
+    public boolean useImu = false;
+
+
     public RoadrunnerThreeWheelLocalizer(HardwareMap hardwareMap, Pose2d pose) {
         // TODO: make sure your config has **motors** with these names (or change them)
         //   the encoders should be plugged into the slot matching the named motor
@@ -64,12 +77,34 @@ public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLoca
         perp.setDirection(DcMotorSimple.Direction.REVERSE);
         par1.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        //init imu
+        imu = hardwareMap.get(IMU.class, "imu");
+        imu.initialize(
+                new IMU.Parameters(
+                        new RevHubOrientationOnRobot(
+                                logoFacingDirection,
+                                usbFacingDirection
+                        )
+                )
+        );
+        imu.resetYaw();
+
 
         this.pose = pose;
         FlightRecorder.write("THREE_DEAD_WHEEL_PARAMS", PARAMS);
     }
 
     public Twist2dDual<Time> update() {
+        //get imu value, if it hasn't updated fast enough revert to deadwheels
+        prevImuAngle = imuAngle;
+        imuAngle = new double[] {
+                imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS),
+                imu.getRobotAngularVelocity(AngleUnit.RADIANS).zRotationRate //according to ftc sdk docs, z is for yaw, since it rotates around z axis(pointing up)
+        };
+
+        // if the imu hasn't updated, revert to using deadwheels
+        if(prevImuAngle == imuAngle) {useImu = false; } else useImu = true;
+
         PositionVelocityPair par0PosVel = par0.getPositionAndVelocity();
         PositionVelocityPair par1PosVel = par1.getPositionAndVelocity();
         PositionVelocityPair perpPosVel = perp.getPositionAndVelocity();
@@ -93,6 +128,22 @@ public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLoca
         int par1PosDelta = par1PosVel.position - lastPar1Pos;
         int perpPosDelta = perpPosVel.position - lastPerpPos;
 
+
+        //setting the change in angle and the angular velocity depending on if the imu updated or not
+        DualNum<Time> angleNum;
+        if(useImu) {
+            angleNum = new DualNum<>(new double[]{
+                    imuAngle[0] - prevImuAngle[0],
+                    imuAngle[1]
+            });
+        } else {
+            angleNum = new DualNum<>(new double[] {
+                    //since you are dividing distance around center of rotation (arc length) by the radius, its in radians
+                    (par0PosDelta - par1PosDelta) / (PARAMS.par0YTicks - PARAMS.par1YTicks),
+                    (par0PosVel.velocity - par1PosVel.velocity) / (PARAMS.par0YTicks - PARAMS.par1YTicks),
+            });
+        }
+
         Twist2dDual<Time> twist = new Twist2dDual<>(
                 new Vector2dDual<>(
                         new DualNum<Time>(new double[] {
@@ -104,10 +155,7 @@ public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLoca
                                 (PARAMS.perpXTicks / (PARAMS.par0YTicks - PARAMS.par1YTicks) * (par1PosVel.velocity - par0PosVel.velocity) + perpPosVel.velocity),
                         }).times(inPerTick)
                 ),
-                new DualNum<>(new double[] {
-                        (par0PosDelta - par1PosDelta) / (PARAMS.par0YTicks - PARAMS.par1YTicks),
-                        (par0PosVel.velocity - par1PosVel.velocity) / (PARAMS.par0YTicks - PARAMS.par1YTicks),
-                })
+                angleNum
         );
 
         lastPar0Pos = par0PosVel.position;

@@ -1,9 +1,13 @@
 package org.firstinspires.ftc.teamcode.utilities;
 
+import static org.firstinspires.ftc.teamcode.utilities.MathFunctions.angleWrap;
+
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class PIDF {
     public double kP, kI, kD, kF, error, lastError, integralSum, derivative;
+    //if this is true, its for controlling direction, or rotation, where the math is more complex
+    boolean directional = false;
     ElapsedTime timer;
 
     public PIDF(double kP, double kI, double kD, ElapsedTime timer){
@@ -24,9 +28,24 @@ public class PIDF {
 
         lastError = 0;
     }
+    public PIDF(double kP, double kI, double kD, double kF, ElapsedTime timer, boolean directional){
+        this.kP = kP;
+        this.kI = kI;
+        this.kD = kD;
+        this.kF = kF;
+        this.timer = timer;
+        this.directional = directional;
+
+        lastError = 0;
+    }
 
     public double loop(double reference, double state){
-        error = reference - state;
+        if(directional == false) {
+            error = reference - state;
+        } else {
+            //for RADIANS!!!
+            error = angleWrap(reference - state);
+        }
 
         derivative = (error - lastError) / timer.seconds();
 
