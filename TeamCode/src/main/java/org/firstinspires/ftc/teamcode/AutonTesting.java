@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
@@ -17,6 +18,7 @@ import org.firstinspires.ftc.teamcode.utilities.PIDF;
 
 
 @Autonomous
+@Config
 public class AutonTesting extends OpMode {
     enum Steps {
         ACCELERATION,
@@ -28,13 +30,15 @@ public class AutonTesting extends OpMode {
     Robot robot = new Robot();
 
     ElapsedTime timer = new ElapsedTime();
-    RoadrunnerThreeWheelLocalizer localization;
+
     double[][] path = {
             {0,0},
             {0,20},
             {20,20},
             {20,0}
     };
+
+    public static double[] point =  {0,0,0};
 
 
     double[] pose = {0,0, Math.PI/2};
@@ -66,8 +70,6 @@ public class AutonTesting extends OpMode {
 
     @Override
     public void init() {
-        localization = new RoadrunnerThreeWheelLocalizer(hardwareMap, new Pose2d(0 ,0, Math.PI / 2));
-
         robot.init(hardwareMap, timer);
 
         dashboard = FtcDashboard.getInstance();
@@ -86,8 +88,8 @@ public class AutonTesting extends OpMode {
 
     @Override
     public void loop() {
-        localization.updatePoseEstimate();
-        pose = localization.getPoseDouble();
+        robot.localization.update();
+        pose = robot.localization.getPoseDouble();
 
         TelemetryPacket packet = new TelemetryPacket();
 
@@ -98,9 +100,9 @@ public class AutonTesting extends OpMode {
 
         dashboard.sendTelemetryPacket(packet);
 
-        telemetryA.addData("x: " , pose[0]);
-        telemetryA.addData("y: " , pose[1]);
-        telemetryA.addData("rotation: " , pose[2]);
+        telemetryA.addData("x" , pose[0]);
+        telemetryA.addData("y" , pose[1]);
+        telemetryA.addData("rotation" , pose[2]);
         telemetryA.addData("action running" , autoAction.run(packet));
         telemetryA.update();
 

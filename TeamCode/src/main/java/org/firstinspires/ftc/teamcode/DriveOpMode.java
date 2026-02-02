@@ -270,7 +270,7 @@ public class DriveOpMode extends OpMode {
 
         double bearingError = targetBearing - turretBearing;
         if (Math.abs(bearingError) > 2) {
-            //robot.spin.setPower(0.015 * bearingError);
+            robot.spin.setPower(0.015 * bearingError);
         } else {
             robot.spin.setPower(0);
         }

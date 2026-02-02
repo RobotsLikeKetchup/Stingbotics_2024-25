@@ -11,6 +11,6 @@ public class Vector2Dim {
 
     //counterclockwise rotation!!
     public Vector2Dim rotateBy(double angle){
-         return new Vector2Dim(x*Math.cos(angle)-y*Math.sin(angle), x*Math.sin(angle)+y*Math.cos(angle));
+         return new Vector2Dim((x*Math.cos(angle))-(y*Math.sin(angle)), (x*Math.sin(angle))+(y*Math.cos(angle)));
     }
 }

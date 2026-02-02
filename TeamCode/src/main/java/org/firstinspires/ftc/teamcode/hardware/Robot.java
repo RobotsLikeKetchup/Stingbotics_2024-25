@@ -19,6 +19,7 @@ import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.PurePursuit;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerTwoWheelLocalizer;
+import org.firstinspires.ftc.teamcode.utilities.MathFunctions;
 import org.firstinspires.ftc.teamcode.utilities.MovementFunctions;
 import org.firstinspires.ftc.teamcode.utilities.PIDF;
 import org.firstinspires.ftc.teamcode.utilities.Vector2Dim;
@@ -333,6 +334,7 @@ public class Robot {
         double[] position;
         Vector2Dim direction;
         Vector2Dim rotatedDirection;
+        double rotation;
 
         double[] robotDirection;
         double angleThreshold;
@@ -342,26 +344,32 @@ public class Robot {
             this.pt = pt;
             this.angleThreshold = angleThreshold;
             this.spaceThreshold = spaceThreshold;
-            headingPID = new PIDF(headingConstants[0], headingConstants[1], headingConstants[2], headingConstants[3], timer);
+            headingPID = new PIDF(headingConstants[0], headingConstants[1], headingConstants[2], headingConstants[3], timer, true);
             drivePID = new PIDF(driveConstants[0], driveConstants[1], driveConstants[2], driveConstants[3], timer);
             strafePID = new PIDF(strafeConstants[0], strafeConstants[1], strafeConstants[2], strafeConstants[3], timer);
         }
 
         @Override
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-            localization.update();
             position = localization.getPoseDouble();
             direction = new Vector2Dim(pt[0] - position[0], pt[1] - position[1]);
-            rotatedDirection = direction.rotateBy(position[2] -  (Math.PI/2));
+            rotation = - position[2];
+            rotatedDirection = direction.rotateBy(rotation);
 
+            //flip x and y, to simplify rotation
             robotDirection = new double[]{
-                    strafePID.loop(pt[0], rotatedDirection.x),
                     drivePID.loop(pt[1], rotatedDirection.y),
+                    strafePID.loop(pt[0], rotatedDirection.x),
                     headingPID.loop(pt[2], position[2])
             };
 
             telemetryPacket.put("x-direction", robotDirection[0]);
             telemetryPacket.put("y-direction", robotDirection[1]);
+            telemetryPacket.put("vector-rotation", rotation);
+            telemetryPacket.put("norotate-direction-x", direction.x);
+            telemetryPacket.put("norotate-direction-y", direction.y);
+            telemetryPacket.put("rotate-direction-x", rotatedDirection.x);
+            telemetryPacket.put("rotate-direction-y", rotatedDirection.y);
             telemetryPacket.put("angle-direction", robotDirection[2]);
 
             setMotorPowers(MecanumKinematics.getPowerFromDirection(robotDirection, 1));

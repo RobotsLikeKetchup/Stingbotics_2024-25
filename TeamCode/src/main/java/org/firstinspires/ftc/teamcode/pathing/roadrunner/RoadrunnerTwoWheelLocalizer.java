@@ -28,8 +28,8 @@ import org.firstinspires.ftc.teamcode.pathing.StingLocalizer;
 @Config
 public class RoadrunnerTwoWheelLocalizer implements StingLocalizer {
     public static class Params {
-        public double parYTicks = 0.0; // y position of the parallel encoder (in tick units)
-        public double perpXTicks = 0.0; // x position of the perpendicular encoder (in tick units)
+        public double parYTicks = -424.7557453299647; // y position of the parallel encoder (in tick units)
+        public double perpXTicks = -607.8281435589206; // x position of the perpendicular encoder (in tick units)
     }
 
     public static Params PARAMS = new Params();
