@@ -41,6 +41,7 @@ public class RoadrunnerTwoWheelLocalizer implements StingLocalizer {
     private Rotation2d lastHeading;
 
     private final double inPerTick = 0.00456831003;
+    private final double lateralInPerTick = 0.00406819;
 
     private double lastRawHeadingVel, headingVelOffset;
     private boolean initialized;
@@ -115,13 +116,14 @@ public class RoadrunnerTwoWheelLocalizer implements StingLocalizer {
         Twist2dDual<Time> twist = new Twist2dDual<>(
                 new Vector2dDual<>(
                         new DualNum<Time>(new double[] {
+                                //subtract the heading*radius of the deadwheel(cause it rotates when it turns the deadwheels)
                                 parPosDelta - PARAMS.parYTicks * headingDelta,
                                 parPosVel.velocity - PARAMS.parYTicks * headingVel,
                         }).times(inPerTick),
                         new DualNum<Time>(new double[] {
                                 perpPosDelta - PARAMS.perpXTicks * headingDelta,
                                 perpPosVel.velocity - PARAMS.perpXTicks * headingVel,
-                        }).times(inPerTick)
+                        }).times(lateralInPerTick)
                 ),
                 new DualNum<>(new double[] {
                         headingDelta,

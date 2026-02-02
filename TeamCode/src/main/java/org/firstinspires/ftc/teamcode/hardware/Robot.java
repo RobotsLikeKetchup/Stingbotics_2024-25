@@ -62,6 +62,7 @@ public class Robot {
     public static double[] driveConstants = {0,0,0,0};
     public static double[] strafeConstants = {0,0,0,0};
 
+    public static double[] shooterConstants = {0.0061, 0.00000023, 0.015, 0.00015};
 //    public AprilTagProcessor aprilTagProcessor;
 //
 //    public VisionPortal visionPortal;
@@ -278,18 +279,49 @@ public class Robot {
         return new followPath(path, optimalAngle, optimalAngleFieldReferenceFrame);
     }
 
-    //TODO: finish!
+
     public class Shoot implements Action {
         double velocity;
+        int ballNumber;
+        int ballIndex = 0;
+        double intakeStartTime;
+        double intakeTime = 1;
+        double revUpTime = 1;
+        PIDF shooterpid = new PIDF(shooterConstants, timer);
 
-        public Shoot(double velocity){
+        public Shoot(double velocity, int ballNumber){
             this.velocity = velocity;
+            this.ballNumber = ballNumber;
         }
 
         @Override
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-            return false;
+            shooter.setPower(shooterpid.loop(velocity, shooter.getVelocity()));
+            if(ballIndex == 0){
+                intakeStartTime = timer.seconds() + revUpTime;
+            }
+            if (timer.seconds() >= intakeStartTime + intakeTime){
+                ballIndex ++;
+                intakeStartTime = timer.seconds() + revUpTime;
+            }
+            if(timer.seconds() <= intakeStartTime){
+                intake.setPower(0);
+            } else {
+                intake.setPower(0.8);
+            }
+
+            if(ballIndex == ballNumber) {
+                shooter.setPower(0);
+                intake.setPower(0);
+                return false;
+            } else {
+                return true;
+            }
         }
+    }
+
+    public Action Shoot(double velocity, int ballNumber) {
+        return new Shoot(velocity, ballNumber);
     }
 
     public class PIDtoPt implements Action {
@@ -345,10 +377,11 @@ public class Robot {
         }
 
 
-        }
-
-        public Action PIDtoPt(double[] pt, double angleThreshold, double spaceThreshold) {
-            return new PIDtoPt(pt, angleThreshold, spaceThreshold);
-        }
     }
+
+    public Action PIDtoPt(double[] pt, double angleThreshold, double spaceThreshold) {
+        return new PIDtoPt(pt, angleThreshold, spaceThreshold);
+    }
+
+}
 

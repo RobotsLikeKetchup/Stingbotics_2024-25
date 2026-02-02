@@ -48,17 +48,12 @@ public class DriveOpMode extends OpMode {
     Gamepad previousGamepad2 = new Gamepad();
     Gamepad currentGamepad2 = new Gamepad();
 
-    public static double kP = 0.0061;
-    public static double kI = 0.00000023;
-    public static double kD = 0.015;
-    public static double kF = 0.00015;
-
     public final double SPIN_MOTOR_TPR = 537.7;
     public final double SPIN_GEAR_RATIO = 180 / 49.5;
     public final double TURRET_RADIUS = 6.49;
     public final double[] TURRET_LIMITS = {-180, 180};
     public double turretBearing = 0;
-    PIDF shooterpid = new PIDF(kP, kI, kD, kF, timer);
+    PIDF shooterpid = new PIDF(Robot.shooterConstants, timer);
 
     MotionProfile1D rampFunction = new MotionProfile1D(0.8, 1, 0.4, timer);
 
