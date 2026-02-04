@@ -31,14 +31,10 @@ public class AutonTesting extends OpMode {
 
     ElapsedTime timer = new ElapsedTime();
 
-    double[][] path = {
-            {0,0},
-            {0,20},
-            {20,20},
-            {20,0}
+    public static double[][] path = {
+            {-26.3, 44.3, 2.51},
+            {-16.3, 20, Math.PI}
     };
-
-    public static double[] point =  {0,0,0};
 
 
     double[] pose = {0,0, Math.PI/2};
@@ -71,13 +67,17 @@ public class AutonTesting extends OpMode {
     @Override
     public void init() {
         robot.init(hardwareMap, timer);
+        robot.localization.setPose(new Pose2d(-50.1,63.83,2.51));
 
         dashboard = FtcDashboard.getInstance();
         //this sends stuff to both Driver Station and ftc dashboard, for convenience
         telemetryA = new MultipleTelemetry(this.telemetry, dashboard.getTelemetry());
 
         autoAction = new SequentialAction(
-                robot.PIDtoPt(new double[]{20,0,0}, 0.1, 0.2)
+                robot.PIDtoPt(path[0], 0.1, 1),
+                robot.stop(),
+                robot.PIDtoPt(path[1], 0.1, 1),
+                robot.stop()
         );
     }
 

@@ -270,7 +270,7 @@ public class DriveOpMode extends OpMode {
 
         double bearingError = targetBearing - turretBearing;
         if (Math.abs(bearingError) > 2) {
-            robot.spin.setPower(0.015 * bearingError);
+            //robot.spin.setPower(0.015 * bearingError);
         } else {
             robot.spin.setPower(0);
         }
@@ -311,8 +311,6 @@ public class DriveOpMode extends OpMode {
         telemetryA.addData("target_bearing", targetBearing);
         telemetry.addData("apriltagbearingerror", aprilTagBearingError);
         telemetry.addData("autoAim", autoAim);
-        telemetryA.addData("cameraPos-x", cameraPos[0]);
-        telemetryA.addData("cameraPos-y", cameraPos[1]);
         telemetryA.addData("x", pose.position.x);
         telemetryA.addData("y", pose.position.y);
         telemetryA.addData("angle", MathFunctions.angleWrap(pose.heading.toDouble()));

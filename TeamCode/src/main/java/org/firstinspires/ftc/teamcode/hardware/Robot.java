@@ -59,9 +59,9 @@ public class Robot {
 
 
     //order of constants will be P, I, D, F
-    public static double[] headingConstants = {0,0,0,0};
-    public static double[] driveConstants = {0,0,0,0};
-    public static double[] strafeConstants = {0,0,0,0};
+    public static double[] headingConstants = {0.9,0,0,0};
+    public static double[] driveConstants = {0.065,0,-0.00016,0};
+    public static double[] strafeConstants = {-0.08,0,0,0};
 
     public static double[] shooterConstants = {0.0061, 0.00000023, 0.015, 0.00015};
 //    public AprilTagProcessor aprilTagProcessor;
@@ -353,13 +353,13 @@ public class Robot {
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
             position = localization.getPoseDouble();
             direction = new Vector2Dim(pt[0] - position[0], pt[1] - position[1]);
-            rotation = - position[2];
+            rotation = (Math.PI/2) - position[2];
             rotatedDirection = direction.rotateBy(rotation);
 
             //flip x and y, to simplify rotation
             robotDirection = new double[]{
-                    drivePID.loop(pt[1], rotatedDirection.y),
-                    strafePID.loop(pt[0], rotatedDirection.x),
+                    strafePID.loop(rotatedDirection.x),
+                    drivePID.loop(rotatedDirection.y),
                     headingPID.loop(pt[2], position[2])
             };
 
@@ -375,13 +375,11 @@ public class Robot {
             setMotorPowers(MecanumKinematics.getPowerFromDirection(robotDirection, 1));
 
 
-            // debuging problem with action running bool in auton testing
-            return true;
-            /*if (position[2] >= angleThreshold) {
+            if (Math.abs(pt[2] - position[2]) >= angleThreshold && Math.abs(direction.x) >= spaceThreshold && Math.abs(direction.y) >= spaceThreshold) {
                 return true;
             } else {
                 return false;
-            }*/
+            }
         }
 
 
@@ -390,6 +388,22 @@ public class Robot {
     public Action PIDtoPt(double[] pt, double angleThreshold, double spaceThreshold) {
         return new PIDtoPt(pt, angleThreshold, spaceThreshold);
     }
+
+    public class Stop implements Action {
+        public Stop(){}
+        @Override
+        public boolean run(TelemetryPacket packet) {
+            for(DcMotor motor : driveMotors){
+                motor.setPower(0);
+            }
+            shooter.setPower(0);
+            intake.setPower(0);
+
+            return false;
+        }
+    }
+
+    public Action stop() {return new Stop();}
 
 }
 

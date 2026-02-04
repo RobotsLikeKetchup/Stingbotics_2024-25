@@ -80,6 +80,30 @@ public class PIDF {
         return (kP * error) + (kD * derivative) + (kI * integralSum) + (kF * reference);
     }
 
+    public double loop(double error){
+        thisTime = timer.seconds();
+
+        //if its the first loop, just set the previous time to the current time
+        if(lastTime == null) {
+            lastTime = thisTime;
+        }
+
+        if(directional == false) {
+            this.error = error;
+        } else {
+            //for RADIANS!!!
+            this.error = angleWrap(error);
+        }
+
+        derivative = (error - lastError) / (thisTime - lastTime);
+
+        integralSum += error * (thisTime - lastTime);
+
+        lastTime = thisTime;
+
+        return (kP * error) + (kD * derivative) + (kI * integralSum) + kF;
+    }
+
     public void setConstants(double P, double I, double D, double F) {
         kP = P;
         kI = I;
