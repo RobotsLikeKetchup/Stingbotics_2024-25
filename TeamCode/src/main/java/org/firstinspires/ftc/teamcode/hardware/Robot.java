@@ -54,6 +54,8 @@ public class Robot {
 
     IMU imu;
 
+    public static final double[] TURRET_LIMITS = {-180, 180};
+
     public final RevHubOrientationOnRobot.LogoFacingDirection logoFacingDirection = RevHubOrientationOnRobot.LogoFacingDirection.LEFT;
     public final RevHubOrientationOnRobot.UsbFacingDirection usbFacingDirection = RevHubOrientationOnRobot.UsbFacingDirection.UP;
 
@@ -284,6 +286,7 @@ public class Robot {
     public class Shoot implements Action {
         double velocity;
         int ballNumber;
+        boolean init = false;
         int ballIndex = 0;
         double intakeStartTime;
         double intakeTime = 1;
@@ -298,8 +301,9 @@ public class Robot {
         @Override
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
             shooter.setPower(shooterpid.loop(velocity, shooter.getVelocity()));
-            if(ballIndex == 0){
+            if(!init){
                 intakeStartTime = timer.seconds() + revUpTime;
+                init = true;
             }
             if (timer.seconds() >= intakeStartTime + intakeTime){
                 ballIndex ++;
@@ -311,6 +315,10 @@ public class Robot {
                 intake.setPower(0.8);
             }
 
+            telemetryPacket.put("balli", ballIndex);
+            telemetryPacket.put("seconds", timer.seconds());
+            telemetryPacket.put("startTime", intakeStartTime);
+
             if(ballIndex == ballNumber) {
                 shooter.setPower(0);
                 intake.setPower(0);
@@ -321,7 +329,7 @@ public class Robot {
         }
     }
 
-    public Action Shoot(double velocity, int ballNumber) {
+    public Action shoot(double velocity, int ballNumber) {
         return new Shoot(velocity, ballNumber);
     }
 
@@ -375,7 +383,7 @@ public class Robot {
             setMotorPowers(MecanumKinematics.getPowerFromDirection(robotDirection, 1));
 
 
-            if (Math.abs(pt[2] - position[2]) >= angleThreshold && Math.abs(direction.x) >= spaceThreshold && Math.abs(direction.y) >= spaceThreshold) {
+            if (Math.abs(pt[2] - position[2]) >= angleThreshold | Math.abs(direction.x) >= spaceThreshold | Math.abs(direction.y) >= spaceThreshold) {
                 return true;
             } else {
                 return false;
@@ -404,6 +412,16 @@ public class Robot {
     }
 
     public Action stop() {return new Stop();}
+
+    public class Intake implements Action {
+        public Intake() {}
+        public Intake(double time) {}
+
+        public boolean run(@NonNull TelemetryPacket packet){
+            intake.setPower(0.8);
+            return true;
+        }
+    }
 
 }
 

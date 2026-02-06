@@ -7,24 +7,26 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
+import org.firstinspires.ftc.teamcode.hardware.AprilTag;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
+import org.firstinspires.ftc.teamcode.utilities.MathFunctions;
 import org.firstinspires.ftc.teamcode.utilities.PIDF;
+import org.firstinspires.ftc.teamcode.utilities.Vector2Dim;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 
 
 @Autonomous
 @Config
 public class AutonTesting extends OpMode {
-    enum Steps {
-        ACCELERATION,
-        DRIVE,
-        DECELERATION
-    };
 
     // Create variables
     Robot robot = new Robot();
@@ -37,31 +39,33 @@ public class AutonTesting extends OpMode {
     };
 
 
-    double[] pose = {0,0, Math.PI/2};
-
-    PIDF velocityControl = new PIDF(0.01, 0, 0, timer);
-
-    MotionProfile1D motionProfile = new MotionProfile1D(0.8, 0.4, timer);
-
-    double velocityCoeff;
+    Pose2d pose;
 
     MultipleTelemetry telemetryA;
-
-    enum Stages {DRIVING, ARM_UP, ARM_DOWN, RELEASE, COMPLETE};
-
-    Stages currentStage = Stages.DRIVING;
 
     //the robot width and r are just used for drawing the robot on FTC Dashboard
     final double robotWidth = 15;
     final double r = (robotWidth/2) * Math.sqrt(2);
 
-    int pathNumber = 1;
-    boolean endingPath = false;
-
     FtcDashboard dashboard;
     boolean actionRunning = true;
 
+    public enum side {BLUE, RED}
+    public DriveOpMode.side currentSide = DriveOpMode.side.BLUE;
+
+    public int shooter_target;
+
+    public VectorF targetAprilTagPos;
+
     Action autoAction;
+
+    double targetBearing = 0;
+    double turretBearing = 0;
+    public final double SPIN_MOTOR_TPR = 537.7;
+    public final double SPIN_GEAR_RATIO = 180 / 49.5;
+    AprilTag aprilTag = new AprilTag();
+
+
 // Create a new Builder
 
     @Override
@@ -74,11 +78,24 @@ public class AutonTesting extends OpMode {
         telemetryA = new MultipleTelemetry(this.telemetry, dashboard.getTelemetry());
 
         autoAction = new SequentialAction(
-                robot.PIDtoPt(path[0], 0.1, 1),
+                robot.PIDtoPt(path[0], 0.1, 2),
                 robot.stop(),
-                robot.PIDtoPt(path[1], 0.1, 1),
+                robot.shoot(-1700, 3),
+                robot.PIDtoPt(path[1], 0.1, 2),
                 robot.stop()
         );
+
+        if (currentSide == DriveOpMode.side.BLUE) {
+            shooter_target = 20;
+        } else {
+            shooter_target = 24;
+        }
+
+        aprilTag.init(hardwareMap, telemetry);
+
+        //get the location of the aprilTag on the field
+        targetAprilTagPos = AprilTagGameDatabase.getCurrentGameTagLibrary().lookupTag(shooter_target).fieldPosition;
+
     }
 
     @Override
@@ -89,25 +106,64 @@ public class AutonTesting extends OpMode {
     @Override
     public void loop() {
         robot.localization.update();
-        pose = robot.localization.getPoseDouble();
+        pose = robot.localization.getPose();
+        turretBearing = 360 * ((robot.spin.getCurrentPosition() / SPIN_MOTOR_TPR) / SPIN_GEAR_RATIO);
 
         TelemetryPacket packet = new TelemetryPacket();
 
+        //this is a little wack cause the ftc field coordinates are super different and weird
+        //also, Math.atan2 accepts (y, x) <--- IMPORTANT that its not (x,y)
+        double robotToGoalAngle = Math.atan2((-targetAprilTagPos.get(0)) - pose.position.y, targetAprilTagPos.get(1) - pose.position.x);
+        //subtract robotToGoalAngle since its from x axis
+        targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.heading.toDouble())) - 5;
+
+        if (targetBearing < Robot.TURRET_LIMITS[0]) {
+            targetBearing = 360 + targetBearing;
+        }
+        if (targetBearing > Robot.TURRET_LIMITS[1]) {
+            targetBearing = -360 + targetBearing;
+        }
+
+        double bearingError = targetBearing - turretBearing;
+        if (Math.abs(bearingError) > 2) {
+            robot.spin.setPower(0.015 * bearingError);
+        } else {
+            robot.spin.setPower(0);
+        }
+
+
+        //AprilTag Detection: update target location
+        aprilTag.update();
+        //goal is the actual apriltag
+        AprilTagDetection goal = aprilTag.getTagByID(shooter_target);
+        if (goal != null && goal.ftcPose != null) {
+            telemetryA.addLine("aprilTag found!!");
+
+            //convert the lens pose to the robot's pose
+            pose = RoadrunnerThreeWheelLocalizer.cameraToRobotPose(goal.robotPose, turretBearing);
+            robot.localization.setPose(pose);
+
+        }
+
         if(actionRunning){
             actionRunning = autoAction.run(packet);
-
         }
 
         dashboard.sendTelemetryPacket(packet);
 
-        telemetryA.addData("x" , pose[0]);
-        telemetryA.addData("y" , pose[1]);
-        telemetryA.addData("rotation" , pose[2]);
+        telemetryA.addData("x" , pose.position.x);
+        telemetryA.addData("y" , pose.position.y);
+        telemetryA.addData("rotation" , pose.heading.toDouble());
         telemetryA.addData("action running" , autoAction.run(packet));
         telemetryA.update();
 
     }
 
-
+    @Override
+    public void stop() {
+        Global.pose = pose;
+        Global.turretBearing = turretBearing;
+        super.stop();
+    }
 }
 

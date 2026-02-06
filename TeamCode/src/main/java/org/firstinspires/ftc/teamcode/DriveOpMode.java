@@ -51,7 +51,6 @@ public class DriveOpMode extends OpMode {
     public final double SPIN_MOTOR_TPR = 537.7;
     public final double SPIN_GEAR_RATIO = 180 / 49.5;
     public final double TURRET_RADIUS = 6.49;
-    public final double[] TURRET_LIMITS = {-180, 180};
     public double turretBearing = 0;
     PIDF shooterpid = new PIDF(Robot.shooterConstants, timer);
 
@@ -75,7 +74,7 @@ public class DriveOpMode extends OpMode {
     colors detectedColor = colors.UNKNOWN;
 
     public state shooter = state.OFF;
-    public state autoAim = state.OFF;
+    public state autoAim = state.ON;
 
 
     FtcDashboard dashboard;
@@ -109,6 +108,8 @@ public class DriveOpMode extends OpMode {
 
     VectorF targetAprilTagPos;
 
+    double prevTurret = 0;
+
     @Override
     // Set starting values for variable
     public void init() {
@@ -137,6 +138,13 @@ public class DriveOpMode extends OpMode {
         //get the location of the aprilTag on the field
         targetAprilTagPos = AprilTagGameDatabase.getCurrentGameTagLibrary().lookupTag(shooter_target).fieldPosition;
 
+        if(Global.pose != null) {
+            pose = Global.pose;
+            robot.localization.setPose(pose);
+        }
+        if(Global.turretBearing != null) {
+            prevTurret = Global.turretBearing;
+        }
     }
 
     /*@Override
@@ -159,7 +167,7 @@ public class DriveOpMode extends OpMode {
         // gives robot loving parents
         shooterVelocity = shooterpid.loop(shooterSpeed, robot.shooter.getVelocity());
 
-        turretBearing = 360 * ((robot.spin.getCurrentPosition() / SPIN_MOTOR_TPR) / SPIN_GEAR_RATIO);
+        turretBearing = 360 * ((robot.spin.getCurrentPosition() / SPIN_MOTOR_TPR) / SPIN_GEAR_RATIO) + prevTurret;
 
 
         //toggle shooter
@@ -228,22 +236,24 @@ public class DriveOpMode extends OpMode {
             pose = RoadrunnerThreeWheelLocalizer.cameraToRobotPose(goal.robotPose, turretBearing);
             robot.localization.setPose(pose);
 
-
-            //picking where to shoot aim and bearing
-            for (double[] item : lookup) {
-                if (item[0] >= target_range) {
-                    target_spin = item[1];
-                    target_aim = item[2];
-                }
-            }
-
         }
         robot.aim.setPosition(target_aim);
 
-        //toggling autoAim off
-        if (currentGamepad1.dpad_left && !previousGamepad1.dpad_left) {
+
+        //picking where to shoot aim and bearing
+        for (double[] item : lookup) {
+            if (item[0] >= target_range) {
+                target_spin = item[1];
+                target_aim = item[2];
+            }
+        }
+
+        //toggling autoAim
+        if (gamepad1.dpadUpWasPressed()) {
             if (autoAim == state.ON) {
                 autoAim = state.OFF;
+            } else {
+                autoAim = state.ON;
             }
         }
 
@@ -255,22 +265,25 @@ public class DriveOpMode extends OpMode {
             rampFunction.reset();
         }
 
-        //this is a little wack cause the ftc field coordinates are super different and weird
-        //also, Math.atan2 accepts (y, x) <--- IMPORTANT that its not (x,y)
-        double robotToGoalAngle = Math.atan2((-targetAprilTagPos.get(0)) - pose.position.y, targetAprilTagPos.get(1) - pose.position.x);
-        //subtract robotToGoalAngle since its from x axis
-        targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.heading.toDouble()));
-
-        if (targetBearing < TURRET_LIMITS[0]) {
+        if(autoAim == state.ON) {
+            //this is a little wack cause the ftc field coordinates are super different and weird
+            //also, Math.atan2 accepts (y, x) <--- IMPORTANT that its not (x,y)
+            double robotToGoalAngle = Math.atan2((-targetAprilTagPos.get(0)) - pose.position.y, targetAprilTagPos.get(1) - pose.position.x);
+            //subtract robotToGoalAngle since its from x axis
+            targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.heading.toDouble())) - 5; //5 degree offset for camera lens
+        } else{
+            targetBearing = 0;
+        }
+        if (targetBearing < Robot.TURRET_LIMITS[0]) {
             targetBearing = 360 + targetBearing;
         }
-        if (targetBearing > TURRET_LIMITS[1]) {
+        if (targetBearing > Robot.TURRET_LIMITS[1]) {
             targetBearing = -360 + targetBearing;
         }
 
         double bearingError = targetBearing - turretBearing;
         if (Math.abs(bearingError) > 2) {
-            //robot.spin.setPower(0.015 * bearingError);
+            robot.spin.setPower(0.015 * bearingError);
         } else {
             robot.spin.setPower(0);
         }
@@ -323,4 +336,8 @@ public class DriveOpMode extends OpMode {
         telemetryA.update();
     }
 
+    @Override
+    public void stop() {
+        super.stop();
+    }
 }
