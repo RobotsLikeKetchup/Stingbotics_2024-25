@@ -19,6 +19,7 @@ import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.teamcode.hardware.AprilTag;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
+import org.firstinspires.ftc.teamcode.pathing.PurePursuit;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.MathFunctions;
 import org.firstinspires.ftc.teamcode.utilities.PIDF;
@@ -97,8 +98,9 @@ public class DriveOpMode extends OpMode {
 
 
     double[][] lookup = {
-            {33, -1800, 0.95},
-            {46, -1900, 0.95},
+            {10, -1400, 1},
+            {33, -1800, 0.9},
+            {46, -1900, 0.9},
             {58, -1950, 0.81},
             {78, -2200, 0.71}
     };
@@ -229,9 +231,6 @@ public class DriveOpMode extends OpMode {
         if (goal != null && goal.ftcPose != null) {
             telemetryA.addLine("aprilTag found!!");
 
-            target_range = goal.ftcPose.range;
-            aprilTagBearingError = goal.ftcPose.bearing;
-
             //convert the lens pose to the robot's pose
             pose = RoadrunnerThreeWheelLocalizer.cameraToRobotPose(goal.robotPose, turretBearing);
             robot.localization.setPose(pose);
@@ -239,14 +238,6 @@ public class DriveOpMode extends OpMode {
         }
         robot.aim.setPosition(target_aim);
 
-
-        //picking where to shoot aim and bearing
-        for (double[] item : lookup) {
-            if (item[0] >= target_range) {
-                target_spin = item[1];
-                target_aim = item[2];
-            }
-        }
 
         //toggling autoAim
         if (gamepad1.dpadUpWasPressed()) {
@@ -269,8 +260,18 @@ public class DriveOpMode extends OpMode {
             //this is a little wack cause the ftc field coordinates are super different and weird
             //also, Math.atan2 accepts (y, x) <--- IMPORTANT that its not (x,y)
             double robotToGoalAngle = Math.atan2((-targetAprilTagPos.get(0)) - pose.position.y, targetAprilTagPos.get(1) - pose.position.x);
+            double distanceFromGoal = Math.hypot((-targetAprilTagPos.get(0)) - pose.position.y, targetAprilTagPos.get(1) - pose.position.x);
             //subtract robotToGoalAngle since its from x axis
             targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.heading.toDouble())) - 5; //5 degree offset for camera lens
+
+            //picking where to shoot aim and bearing
+            for (double[] item : lookup) {
+                if (item[0] >= distanceFromGoal) {
+                    target_spin = item[1];
+                    target_aim = item[2];
+                    break;
+                }
+            }
         } else{
             targetBearing = 0;
         }
