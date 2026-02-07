@@ -41,10 +41,10 @@ public class TestingOpMode extends OpMode {
 
     public double turretBearing = 0;
 
-    public static double kP = 0.0055;
-    public static double kI = 0.00000023;
-    public static double kD = 0.012;
-    public static double kF = 0.000012;
+    public static double kP = 0.00078;
+    public static double kI = 0.00002;
+    public static double kD = 0;
+    public static double kF = 0.00048;
 
     PIDF shooterpid = new PIDF(kP,kI,kD,kF, timer);
     public double shooterPower = 0;
@@ -66,7 +66,7 @@ public class TestingOpMode extends OpMode {
         localization = new RoadrunnerThreeWheelLocalizer(hardwareMap, new Pose2d(0 ,0, Math.PI / 2));
 
         robot.init(hardwareMap, timer);
-
+        robot.ballStop.setPosition(0);
         telemetryA.addLine("initialized!");
         telemetryA.update();
     }
@@ -119,9 +119,16 @@ public class TestingOpMode extends OpMode {
 
         double bearingError = targetBearing - turretBearing;
         if(Math.abs(bearingError) > 2) {
-            robot.spin.setPower(0.03 * bearingError);
+            //robot.spin.setPower(0.03 * bearingError);
         } else {
             robot.spin.setPower(0);
+        }
+
+        if (currentGamepad1.dpad_up) {
+            robot.ballStop.setPosition(robot.ballStop.getPosition() + 0.05);
+        }
+        if (currentGamepad1.dpad_down) {
+            robot.ballStop.setPosition(robot.ballStop.getPosition() - 0.05);
         }
 
         //int encoderValue = robot.driveMotors[3].getCurrentPosition();
@@ -139,6 +146,7 @@ public class TestingOpMode extends OpMode {
         telemetryA.addData("shooterpower", shooterPower);
         telemetryA.addData("aim position", robot.aim.getPosition());
         telemetryA.addData("aim target", ayush);
+        telemetryA.addData("ballStop pos", robot.ballStop.getPosition());
         telemetryA.addData("our bearing", turretBearing);
         //telemetry.addData("encoder value", encoderValue);
         telemetryA.update();
@@ -168,6 +176,11 @@ public class TestingOpMode extends OpMode {
 
 
 
+    }
+
+    @Override
+    public void stop(){
+        Global.turretBearing = turretBearing;
     }
 
 }

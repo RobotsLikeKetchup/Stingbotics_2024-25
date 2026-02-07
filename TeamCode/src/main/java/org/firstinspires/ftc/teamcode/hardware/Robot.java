@@ -17,9 +17,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.MecanumKinematics;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.PurePursuit;
-import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerTwoWheelLocalizer;
-import org.firstinspires.ftc.teamcode.utilities.MathFunctions;
 import org.firstinspires.ftc.teamcode.utilities.MovementFunctions;
 import org.firstinspires.ftc.teamcode.utilities.PIDF;
 import org.firstinspires.ftc.teamcode.utilities.Vector2Dim;
@@ -65,7 +63,16 @@ public class Robot {
     public static double[] driveConstants = {0.065,0,-0.00016,0};
     public static double[] strafeConstants = {-0.08,0,0,0};
 
-    public static double[] shooterConstants = {0.0061, 0.00000023, 0.015, 0.00015};
+    public static double[] shooterConstants = {0.00078, 0.00000023, 0.015, 0.00015};
+    public static double[][] lookup = {
+            {10, -1350, 0.9},
+            {20, -1350, 0.82},
+            {30, -1420, 0.82},
+            {40, -1500, 0.7},
+            {50, -1600, 0.67},
+            {60, -1650, 0.6},
+            {70, -1700, 0.55}
+    };
 //    public AprilTagProcessor aprilTagProcessor;
 //
 //    public VisionPortal visionPortal;
@@ -131,29 +138,6 @@ public class Robot {
         parR = new DeadWheel(inPerTick, frontRight);
         per = new DeadWheel(inPerTick, backLeft);
 
-        //create vision portal
-//        aprilTagProcessor = new AprilTagProcessor.Builder()
-//
-//                // The following default settings are available to un-comment and edit as needed.
-//                .setDrawAxes(false)
-//                //.setDrawCubeProjection(false)
-//                .setDrawTagOutline(true)
-//                .setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
-//                .setTagLibrary(AprilTagGameDatabase.getCurrentGameTagLibrary())
-//                .setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
-//
-//                .build();
-//        int cameraMoniterViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMoniterViewId", "id", hardwareMap.appContext.getPackageName());
-//        visionPortal = new VisionPortal.Builder()
-//                .setCamera(hardwareMap.get(WebcamName.class, "cameraOfDoom"))
-//                .addProcessor(aprilTagProcessor)
-//                .setCameraResolution(new Size(640, 480))
-//                .setStreamFormat(VisionPortal.StreamFormat.YUY2)
-//                .setLiveViewContainerId(cameraMoniterViewId)
-//                .setAutoStartStreamOnBuild(true)
-//                .build();
-//
-//        visionPortal.setProcessorEnabled(aprilTagProcessor, true);
 
     }
 
@@ -289,8 +273,9 @@ public class Robot {
         boolean init = false;
         int ballIndex = 0;
         double intakeStartTime;
-        double intakeTime = 1;
+        double intakeTime = 0.7;
         double revUpTime = 1;
+        double ballRevUpTime = 0.45;
         PIDF shooterpid = new PIDF(shooterConstants, timer);
 
         public Shoot(double velocity, int ballNumber){
@@ -307,12 +292,12 @@ public class Robot {
             }
             if (timer.seconds() >= intakeStartTime + intakeTime){
                 ballIndex ++;
-                intakeStartTime = timer.seconds() + revUpTime;
+                intakeStartTime = timer.seconds() + ballRevUpTime;
             }
             if(timer.seconds() <= intakeStartTime){
                 intake.setPower(0);
             } else {
-                intake.setPower(0.8);
+                intake.setPower(1);
             }
 
             telemetryPacket.put("balli", ballIndex);
@@ -338,6 +323,7 @@ public class Robot {
         PIDF headingPID;
         PIDF drivePID;
         PIDF strafePID;
+        double maxPower = 1;
 
         double[] position;
         Vector2Dim direction;
@@ -355,6 +341,15 @@ public class Robot {
             headingPID = new PIDF(headingConstants[0], headingConstants[1], headingConstants[2], headingConstants[3], timer, true);
             drivePID = new PIDF(driveConstants[0], driveConstants[1], driveConstants[2], driveConstants[3], timer);
             strafePID = new PIDF(strafeConstants[0], strafeConstants[1], strafeConstants[2], strafeConstants[3], timer);
+        }
+        public PIDtoPt(double[] pt, double angleThreshold, double spaceThreshold, double maxSpeed) {
+            this.pt = pt;
+            this.angleThreshold = angleThreshold;
+            this.spaceThreshold = spaceThreshold;
+            headingPID = new PIDF(headingConstants[0], headingConstants[1], headingConstants[2], headingConstants[3], timer, true);
+            drivePID = new PIDF(driveConstants[0], driveConstants[1], driveConstants[2], driveConstants[3], timer);
+            strafePID = new PIDF(strafeConstants[0], strafeConstants[1], strafeConstants[2], strafeConstants[3], timer);
+            this.maxPower = maxSpeed;
         }
 
         @Override
@@ -380,7 +375,7 @@ public class Robot {
             telemetryPacket.put("rotate-direction-y", rotatedDirection.y);
             telemetryPacket.put("angle-direction", robotDirection[2]);
 
-            setMotorPowers(MecanumKinematics.getPowerFromDirection(robotDirection, 1));
+            setMotorPowers(MecanumKinematics.getPowerFromDirection(robotDirection, maxPower));
 
 
             if (Math.abs(pt[2] - position[2]) >= angleThreshold | Math.abs(direction.x) >= spaceThreshold | Math.abs(direction.y) >= spaceThreshold) {
@@ -395,6 +390,9 @@ public class Robot {
 
     public Action PIDtoPt(double[] pt, double angleThreshold, double spaceThreshold) {
         return new PIDtoPt(pt, angleThreshold, spaceThreshold);
+    }
+    public Action PIDtoPt(double[] pt, double angleThreshold, double spaceThreshold, double maxPower) {
+        return new PIDtoPt(pt, angleThreshold, spaceThreshold, maxPower);
     }
 
     public class Stop implements Action {
@@ -413,15 +411,16 @@ public class Robot {
 
     public Action stop() {return new Stop();}
 
-    public class Intake implements Action {
-        public Intake() {}
-        public Intake(double time) {}
+    public class StartIntake implements Action {
+        public StartIntake() {}
 
         public boolean run(@NonNull TelemetryPacket packet){
             intake.setPower(0.8);
-            return true;
+            return false;
         }
     }
+
+    public Action startIntake() {return new StartIntake();}
 
 }
 

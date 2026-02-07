@@ -82,7 +82,7 @@ public class DriveOpMode extends OpMode {
     TelemetryPacket packet;
     public int shooter_target;
 
-    public double shooterSpeed = -1800;
+    public double shooterSpeed = -1500;
 
     public double targetBearing = 0;
     public double target_range = 30;
@@ -96,14 +96,6 @@ public class DriveOpMode extends OpMode {
 
     double[] cameraPos = {0, 0};
 
-
-    double[][] lookup = {
-            {10, -1400, 1},
-            {33, -1800, 0.9},
-            {46, -1900, 0.9},
-            {58, -1950, 0.81},
-            {78, -2200, 0.71}
-    };
     AprilTag aprilTag = new AprilTag();
 
     MultipleTelemetry telemetryA;
@@ -169,7 +161,7 @@ public class DriveOpMode extends OpMode {
         // gives robot loving parents
         shooterVelocity = shooterpid.loop(shooterSpeed, robot.shooter.getVelocity());
 
-        turretBearing = 360 * ((robot.spin.getCurrentPosition() / SPIN_MOTOR_TPR) / SPIN_GEAR_RATIO) + prevTurret;
+        turretBearing = (360 * ((robot.spin.getCurrentPosition() / SPIN_MOTOR_TPR) / SPIN_GEAR_RATIO)) + prevTurret;
 
 
         //toggle shooter
@@ -214,13 +206,6 @@ public class DriveOpMode extends OpMode {
         //hood angle
         double hoodAngle = robot.aim.getPosition();
 
-
-        if (currentGamepad1.dpad_up && !previousGamepad1.dpad_up) {
-            robot.ballStop.setPosition(test + 0.01);
-        }
-        if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down) {
-            robot.ballStop.setPosition(test - 0.01);
-        }
         double[] tempPose;
 
 
@@ -236,7 +221,6 @@ public class DriveOpMode extends OpMode {
             robot.localization.setPose(pose);
 
         }
-        robot.aim.setPosition(target_aim);
 
 
         //toggling autoAim
@@ -265,16 +249,22 @@ public class DriveOpMode extends OpMode {
             targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.heading.toDouble())) - 5; //5 degree offset for camera lens
 
             //picking where to shoot aim and bearing
-            for (double[] item : lookup) {
+            for (double[] item : Robot.lookup) {
                 if (item[0] >= distanceFromGoal) {
-                    target_spin = item[1];
+                    shooterSpeed = item[1];
                     target_aim = item[2];
                     break;
                 }
             }
         } else{
             targetBearing = 0;
+            shooterSpeed = -1500;
+            target_aim = 0.7;
         }
+
+        robot.aim.setPosition(target_aim);
+
+
         if (targetBearing < Robot.TURRET_LIMITS[0]) {
             targetBearing = 360 + targetBearing;
         }
@@ -322,9 +312,7 @@ public class DriveOpMode extends OpMode {
         telemetry.addData("shooter", robot.shooter.getVelocity());
         telemetry.addData("taim", target_aim);
         telemetryA.addData("ourbearing", turretBearing);
-        telemetryA.addData("target_bearing", targetBearing);
-        telemetry.addData("apriltagbearingerror", aprilTagBearingError);
-        telemetry.addData("autoAim", autoAim);
+        telemetryA.addData("prev(auton) bearing", prevTurret);
         telemetryA.addData("x", pose.position.x);
         telemetryA.addData("y", pose.position.y);
         telemetryA.addData("angle", MathFunctions.angleWrap(pose.heading.toDouble()));

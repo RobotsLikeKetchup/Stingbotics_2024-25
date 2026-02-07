@@ -8,7 +8,6 @@ import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -16,18 +15,15 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.teamcode.hardware.AprilTag;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
-import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.MathFunctions;
-import org.firstinspires.ftc.teamcode.utilities.PIDF;
-import org.firstinspires.ftc.teamcode.utilities.Vector2Dim;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 
 
 @Autonomous
 @Config
-public class AutonTesting extends OpMode {
+public class AutonRED extends OpMode {
 
     // Create variables
     Robot robot = new Robot();
@@ -35,14 +31,14 @@ public class AutonTesting extends OpMode {
     ElapsedTime timer = new ElapsedTime();
 
     public static double[][] path = {
-            {-28, 38, 2.51},
-            {-10, 20, Math.PI},
-            {-45, 20, Math.PI},
-            {-28, 38, 2.51},
-            {-10, 0, Math.PI},
-            {-45, 0, Math.PI},
-            {-28, 38, 2.51},
-            {-20, 20, Math.PI}
+            {44.32, 42.52, 0.58},
+            {25, 20, 0},
+            {58, 20, 0},
+            {44.32, 42.52, 0.58},
+            {23, 0, 0},
+            {58, 0, 0},
+            {44.32, 42.52, 0.58},
+            {35, 20, 0}
     };
 
 
@@ -58,7 +54,7 @@ public class AutonTesting extends OpMode {
     boolean actionRunning = true;
 
     public enum side {BLUE, RED}
-    public DriveOpMode.side currentSide = DriveOpMode.side.BLUE;
+    public side currentSide = side.RED;
 
     public int shooter_target;
 
@@ -81,7 +77,9 @@ public class AutonTesting extends OpMode {
     @Override
     public void init() {
         robot.init(hardwareMap, timer);
-        robot.localization.setPose(new Pose2d(-50.1,63.83,2.51));
+        robot.localization.setPose(new Pose2d(53.66,56.84,0.58));
+
+        robot.aim.setPosition(0.75);
 
         dashboard = FtcDashboard.getInstance();
         //this sends stuff to both Driver Station and ftc dashboard, for convenience
@@ -90,31 +88,31 @@ public class AutonTesting extends OpMode {
         autoAction = new SequentialAction(
                 robot.PIDtoPt(path[0], 0.1, 1.5),
                 robot.stop(),
-                robot.shoot(-1400, 3),
+                robot.shoot(-1450, 3),
                 robot.PIDtoPt(path[1], 0.1, 2),
                 robot.stop(),
                 new ParallelAction(
                         robot.startIntake(),
-                        robot.PIDtoPt(path[2], 0.1, 4, 0.6)
+                        robot.PIDtoPt(path[2], 0.1, 4, 0.5)
                 ),
                 robot.stop(),
                 robot.PIDtoPt(path[3], 0.1, 1.5),
                 robot.stop(),
-                robot.shoot(-1400, 3),
+                robot.shoot(-1450, 3),
                 robot.PIDtoPt(path[4], 0.1, 2),
                 robot.stop(),
                 new ParallelAction(
-                        robot.PIDtoPt(path[5], 0.1, 4, 0.6),
+                        robot.PIDtoPt(path[5], 0.1, 4, 0.5),
                         robot.startIntake()
                 ),
                 robot.stop(),
                 robot.PIDtoPt(path[6], 0.1, 1),
                 robot.stop(),
-                robot.shoot(-1400, 3),
+                robot.shoot(-1450, 3),
                 robot.PIDtoPt(path[7], 0.1, 2)
         );
 
-        if (currentSide == DriveOpMode.side.BLUE) {
+        if (currentSide == side.BLUE) {
             shooter_target = 20;
         } else {
             shooter_target = 24;
@@ -138,15 +136,13 @@ public class AutonTesting extends OpMode {
         pose = robot.localization.getPose();
         turretBearing = 360 * ((robot.spin.getCurrentPosition() / SPIN_MOTOR_TPR) / SPIN_GEAR_RATIO);
 
-        robot.aim.setPosition(0.8);
-
         TelemetryPacket packet = new TelemetryPacket();
 
         //this is a little wack cause the ftc field coordinates are super different and weird
         //also, Math.atan2 accepts (y, x) <--- IMPORTANT that its not (x,y)
         double robotToGoalAngle = Math.atan2((-targetAprilTagPos.get(0)) - pose.position.y, targetAprilTagPos.get(1) - pose.position.x);
         //subtract robotToGoalAngle since its from x axis
-        targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.heading.toDouble())) - 5;
+        targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.heading.toDouble())) - 7;
 
         if (targetBearing < Robot.TURRET_LIMITS[0]) {
             targetBearing = 360 + targetBearing;
