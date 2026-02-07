@@ -37,7 +37,7 @@ public class AutonTesting extends OpMode {
     public static double[][] path = {
             {-28, 38, 2.51},
             {-10, 20, Math.PI},
-            {-45, 20, Math.PI},
+            {-45, 20, Math .PI},
             {-28, 38, 2.51},
             {-10, 0, Math.PI},
             {-45, 0, Math.PI},
@@ -91,7 +91,7 @@ public class AutonTesting extends OpMode {
                 robot.PIDtoPt(path[0], 0.1, 1.5),
                 robot.stop(),
                 robot.shoot(-1400, 3),
-                robot.PIDtoPt(path[1], 0.1, 2),
+                robot.PIDtoPt(path[1], 0.1, 4),
                 robot.stop(),
                 new ParallelAction(
                         robot.startIntake(),

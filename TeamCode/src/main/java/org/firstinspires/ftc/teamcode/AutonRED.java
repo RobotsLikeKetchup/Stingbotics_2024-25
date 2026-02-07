@@ -7,6 +7,7 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.RaceAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -32,10 +33,10 @@ public class AutonRED extends OpMode {
 
     public static double[][] path = {
             {44.32, 42.52, 0.58},
-            {25, 20, 0},
-            {58, 20, 0},
+            {30, 17, 0},
+            {60, 17, 0},
             {44.32, 42.52, 0.58},
-            {23, 0, 0},
+            {28, 0, 0},
             {58, 0, 0},
             {44.32, 42.52, 0.58},
             {35, 20, 0}
@@ -88,27 +89,33 @@ public class AutonRED extends OpMode {
         autoAction = new SequentialAction(
                 robot.PIDtoPt(path[0], 0.1, 1.5),
                 robot.stop(),
-                robot.shoot(-1450, 3),
+                robot.shoot(-1400, 3),
                 robot.PIDtoPt(path[1], 0.1, 2),
                 robot.stop(),
-                new ParallelAction(
-                        robot.startIntake(),
-                        robot.PIDtoPt(path[2], 0.1, 4, 0.5)
+                new RaceAction(
+                        new ParallelAction(
+                                robot.startIntake(),
+                                robot.PIDtoPt(path[2], 0.1, 4, 0.5)
+                        ),
+                        robot.ballDown()
                 ),
                 robot.stop(),
                 robot.PIDtoPt(path[3], 0.1, 1.5),
                 robot.stop(),
-                robot.shoot(-1450, 3),
+                robot.shoot(-1400, 3),
                 robot.PIDtoPt(path[4], 0.1, 2),
                 robot.stop(),
-                new ParallelAction(
-                        robot.PIDtoPt(path[5], 0.1, 4, 0.5),
-                        robot.startIntake()
+                new RaceAction(
+                        new ParallelAction(
+                                robot.startIntake(),
+                                robot.PIDtoPt(path[5], 0.1, 4, 0.5)
+                        ),
+                        robot.ballDown()
                 ),
                 robot.stop(),
-                robot.PIDtoPt(path[6], 0.1, 1),
+                robot.PIDtoPt(path[6], 0.1, 1.5),
                 robot.stop(),
-                robot.shoot(-1450, 3),
+                robot.shoot(-1400, 3),
                 robot.PIDtoPt(path[7], 0.1, 2)
         );
 
@@ -142,7 +149,7 @@ public class AutonRED extends OpMode {
         //also, Math.atan2 accepts (y, x) <--- IMPORTANT that its not (x,y)
         double robotToGoalAngle = Math.atan2((-targetAprilTagPos.get(0)) - pose.position.y, targetAprilTagPos.get(1) - pose.position.x);
         //subtract robotToGoalAngle since its from x axis
-        targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.heading.toDouble())) - 7;
+        targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.heading.toDouble())) - 15;
 
         if (targetBearing < Robot.TURRET_LIMITS[0]) {
             targetBearing = 360 + targetBearing;

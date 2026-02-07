@@ -71,7 +71,10 @@ public class Robot {
             {40, -1500, 0.7},
             {50, -1600, 0.67},
             {60, -1650, 0.6},
-            {70, -1700, 0.55}
+            {70, -1750, 0.55},
+            {80, -1800, 0.5},
+            {90, -1900, 0.46},
+            {1000, -1900, 0.4}
     };
 //    public AprilTagProcessor aprilTagProcessor;
 //
@@ -274,7 +277,7 @@ public class Robot {
         int ballIndex = 0;
         double intakeStartTime;
         double intakeTime = 0.7;
-        double revUpTime = 1;
+        double revUpTime = 1.2;
         double ballRevUpTime = 0.45;
         PIDF shooterpid = new PIDF(shooterConstants, timer);
 
@@ -421,6 +424,19 @@ public class Robot {
     }
 
     public Action startIntake() {return new StartIntake();}
+
+    public class BallDown implements Action {
+        PIDF shooterPID = new PIDF(shooterConstants, timer);
+
+        public BallDown() {}
+        public boolean run (@NonNull TelemetryPacket packet) {
+            shooter.setPower(0.6);
+
+            return true;
+        }
+    }
+
+    public Action ballDown() {return new BallDown();}
 
 }
 

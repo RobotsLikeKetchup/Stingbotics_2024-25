@@ -19,11 +19,9 @@ import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.teamcode.hardware.AprilTag;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
-import org.firstinspires.ftc.teamcode.pathing.PurePursuit;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.MathFunctions;
 import org.firstinspires.ftc.teamcode.utilities.PIDF;
-import org.firstinspires.ftc.teamcode.utilities.Vector2Dim;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 
@@ -82,7 +80,7 @@ public class DriveOpModeRED extends OpMode {
     TelemetryPacket packet;
     public int shooter_target;
 
-    public double shooterSpeed = -1500;
+    public double autoSpeed = -1500;
 
     public double targetBearing = 0;
     public double target_range = 30;
@@ -109,7 +107,6 @@ public class DriveOpModeRED extends OpMode {
     public void init() {
         robot.init(hardwareMap, timer);
         robot.aim.setPosition(0.95);
-        robot.ballStop.setPosition(0.5);
         robot.localization.setPose(pose);
 
         dashboard = FtcDashboard.getInstance();
@@ -158,19 +155,13 @@ public class DriveOpModeRED extends OpMode {
         robot.localization.update();
         pose = robot.localization.getPose();
 
-        // gives robot loving parents
-        shooterVelocity = shooterpid.loop(shooterSpeed, robot.shooter.getVelocity());
-
-        turretBearing = 360 * ((robot.spin.getCurrentPosition() / SPIN_MOTOR_TPR) / SPIN_GEAR_RATIO) + prevTurret;
+        turretBearing = (360 * ((robot.spin.getCurrentPosition() / SPIN_MOTOR_TPR) / SPIN_GEAR_RATIO)) + prevTurret;
 
 
         //toggle shooter
         if (gamepad1.xWasPressed()) {
             if (shooter != state.ON) {
                 shooter = state.ON;
-                if (robot.shooter.getVelocity() == shooterSpeed) {
-                    //robot.ballStop.setPosition(0.5)
-                }
             } else if (shooter != state.OFF) {
                 robot.shooter.setPower(0);
                 shooter = state.OFF;
@@ -186,9 +177,9 @@ public class DriveOpModeRED extends OpMode {
         }
 
         //setting the target velocity
-        if (shooter == state.ON) shooterVelocity = target_spin;
+        if (shooter == state.ON) shooterVelocity = autoSpeed;
         else if (shooter == state.OFF) shooterVelocity = 0;
-        else if (shooter == state.REVERSE) shooterVelocity = -target_spin / 2;
+        else if (shooter == state.REVERSE) shooterVelocity = 900;
 
         //enacting the velocity
         if (shooterVelocity != 0) {
@@ -206,13 +197,6 @@ public class DriveOpModeRED extends OpMode {
         //hood angle
         double hoodAngle = robot.aim.getPosition();
 
-
-        if (currentGamepad1.dpad_up && !previousGamepad1.dpad_up) {
-            robot.ballStop.setPosition(test + 0.01);
-        }
-        if (currentGamepad1.dpad_down && !previousGamepad1.dpad_down) {
-            robot.ballStop.setPosition(test - 0.01);
-        }
         double[] tempPose;
 
 
@@ -258,14 +242,14 @@ public class DriveOpModeRED extends OpMode {
             //picking where to shoot aim and bearing
             for (double[] item : Robot.lookup) {
                 if (item[0] >= distanceFromGoal) {
-                    shooterSpeed = item[1];
+                    autoSpeed = item[1];
                     target_aim = item[2];
                     break;
                 }
             }
         } else{
             targetBearing = 0;
-            shooterSpeed = -1500;
+            autoSpeed = -1500;
             target_aim = 0.7;
         }
 
@@ -319,9 +303,7 @@ public class DriveOpModeRED extends OpMode {
         telemetry.addData("shooter", robot.shooter.getVelocity());
         telemetry.addData("taim", target_aim);
         telemetryA.addData("ourbearing", turretBearing);
-        telemetryA.addData("target_bearing", targetBearing);
-        telemetry.addData("apriltagbearingerror", aprilTagBearingError);
-        telemetry.addData("autoAim", autoAim);
+        telemetryA.addData("prev(auton) bearing", prevTurret);
         telemetryA.addData("x", pose.position.x);
         telemetryA.addData("y", pose.position.y);
         telemetryA.addData("angle", MathFunctions.angleWrap(pose.heading.toDouble()));
