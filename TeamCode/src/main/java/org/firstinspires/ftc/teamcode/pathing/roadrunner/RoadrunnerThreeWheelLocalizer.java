@@ -192,7 +192,7 @@ public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLoca
     public static Pose2d cameraToRobotPose(Pose3D lensPose, double turretBearing){ //lens pose is from aprilTag
         //calculate the position of the camera from the straight-forward position
         double[] cameraPos = {
-                TURRET_RADIUS*Math.sin(-Math.toRadians(turretBearing)),
+                TURRET_RADIUS*Math.sin(-Math.toRadians(turretBearing-3)),
                 TURRET_RADIUS*(-1+Math.cos(Math.toRadians(turretBearing)))
         };
 

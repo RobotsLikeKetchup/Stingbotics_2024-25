@@ -7,6 +7,7 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.RaceAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -36,13 +37,13 @@ public class AutonTesting extends OpMode {
 
     public static double[][] path = {
             {-28, 38, 2.51},
-            {-10, 20, Math.PI},
-            {-45, 20, Math .PI},
+            {-10, 18, Math.PI},
+            {-45, 18, Math .PI},
             {-28, 38, 2.51},
-            {-10, 0, Math.PI},
-            {-45, 0, Math.PI},
+            {-10, -5, Math.PI},
+            {-45, -5, Math.PI},
             {-28, 38, 2.51},
-            {-20, 20, Math.PI}
+            {-20, 10, Math.PI}
     };
 
 
@@ -93,9 +94,12 @@ public class AutonTesting extends OpMode {
                 robot.shoot(-1400, 3),
                 robot.PIDtoPt(path[1], 0.1, 4),
                 robot.stop(),
-                new ParallelAction(
-                        robot.startIntake(),
-                        robot.PIDtoPt(path[2], 0.1, 4, 0.6)
+                new RaceAction(
+                        new ParallelAction(
+                                robot.startIntake(),
+                                robot.PIDtoPt(path[2], 0.1, 5, 0.5)
+                        ),
+                        robot.ballDown()
                 ),
                 robot.stop(),
                 robot.PIDtoPt(path[3], 0.1, 1.5),
@@ -103,15 +107,19 @@ public class AutonTesting extends OpMode {
                 robot.shoot(-1400, 3),
                 robot.PIDtoPt(path[4], 0.1, 2),
                 robot.stop(),
-                new ParallelAction(
-                        robot.PIDtoPt(path[5], 0.1, 4, 0.6),
-                        robot.startIntake()
+                new RaceAction(
+                        new ParallelAction(
+                                robot.startIntake(),
+                                robot.PIDtoPt(path[5], 0.1, 5, 0.5)
+                        ),
+                        robot.ballDown()
                 ),
                 robot.stop(),
                 robot.PIDtoPt(path[6], 0.1, 1),
                 robot.stop(),
                 robot.shoot(-1400, 3),
-                robot.PIDtoPt(path[7], 0.1, 2)
+                robot.PIDtoPt(path[7], 0.1, 2),
+                robot.stop()
         );
 
         if (currentSide == DriveOpMode.side.BLUE) {
@@ -138,7 +146,7 @@ public class AutonTesting extends OpMode {
         pose = robot.localization.getPose();
         turretBearing = 360 * ((robot.spin.getCurrentPosition() / SPIN_MOTOR_TPR) / SPIN_GEAR_RATIO);
 
-        robot.aim.setPosition(0.8);
+        robot.aim.setPosition(0.81);
 
         TelemetryPacket packet = new TelemetryPacket();
 

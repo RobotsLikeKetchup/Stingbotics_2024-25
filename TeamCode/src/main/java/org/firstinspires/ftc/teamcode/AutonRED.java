@@ -33,8 +33,8 @@ public class AutonRED extends OpMode {
 
     public static double[][] path = {
             {44.32, 42.52, 0.58},
-            {30, 17, 0},
-            {60, 17, 0},
+            {30, 18, 0},
+            {580, 18, 0},
             {44.32, 42.52, 0.58},
             {28, 0, 0},
             {58, 0, 0},

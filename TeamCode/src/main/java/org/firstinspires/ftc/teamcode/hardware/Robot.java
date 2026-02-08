@@ -276,9 +276,9 @@ public class Robot {
         boolean init = false;
         int ballIndex = 0;
         double intakeStartTime;
-        double intakeTime = 0.7;
+        double intakeTime = 0.6;
         double revUpTime = 1.2;
-        double ballRevUpTime = 0.45;
+        double ballRevUpTime = 0.4;
         PIDF shooterpid = new PIDF(shooterConstants, timer);
 
         public Shoot(double velocity, int ballNumber){
