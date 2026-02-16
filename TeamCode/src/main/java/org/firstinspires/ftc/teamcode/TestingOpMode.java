@@ -66,7 +66,7 @@ public class TestingOpMode extends OpMode {
         localization = new RoadrunnerThreeWheelLocalizer(hardwareMap, new Pose2d(0 ,0, Math.PI / 2));
 
         robot.init(hardwareMap, timer);
-        robot.ballStop.setPosition(0);
+
         telemetryA.addLine("initialized!");
         telemetryA.update();
     }
@@ -124,12 +124,6 @@ public class TestingOpMode extends OpMode {
             robot.spin.setPower(0);
         }
 
-        if (currentGamepad1.dpad_up) {
-            robot.ballStop.setPosition(robot.ballStop.getPosition() + 0.05);
-        }
-        if (currentGamepad1.dpad_down) {
-            robot.ballStop.setPosition(robot.ballStop.getPosition() - 0.05);
-        }
 
         //int encoderValue = robot.driveMotors[3].getCurrentPosition();
         telemetry.addData("right stick x", gamepad1.right_stick_x);

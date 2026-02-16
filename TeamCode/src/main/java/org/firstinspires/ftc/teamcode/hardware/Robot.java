@@ -73,8 +73,8 @@ public class Robot {
             {60, -1650, 0.6},
             {70, -1750, 0.55},
             {80, -1800, 0.5},
-            {90, -1900, 0.46},
-            {1000, -1900, 0.4}
+            {90, -2100, 0.3},
+
     };
 //    public AprilTagProcessor aprilTagProcessor;
 //
@@ -119,6 +119,7 @@ public class Robot {
         driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
 
                 // Set universal wheel behaviors
+
         for (DcMotor i : driveMotors) {
             i.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             i.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);

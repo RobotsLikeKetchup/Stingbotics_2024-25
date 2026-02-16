@@ -288,7 +288,6 @@ public class DriveOpMode extends OpMode {
         for (int i = 0; i < motorPowers.length; i++) {
             robot.driveMotors[i].setPower(motorPowers[i]);
         }
-
         telemetry.addData("Encoder R", robot.getDeadwheel("parR").getTicks());
         telemetry.addData("Encoder L", robot.getDeadwheel("parL").getTicks());
         telemetry.addData("Encoder perp", robot.getDeadwheel("per").getTicks());
@@ -307,9 +306,9 @@ public class DriveOpMode extends OpMode {
         telemetryA.addData("x", pose.position.x);
         telemetryA.addData("y", pose.position.y);
         telemetryA.addData("angle", MathFunctions.angleWrap(pose.heading.toDouble()));
-
         telemetry.addData("number", robot.ballStop.getPosition());
         telemetry.addData("aimpos", robot.aim.getPosition());
+        telemetry.addData("AutoAim", autoAim);
 
         //These things MUST be at the end of each loop. DO NOT MOVE
         telemetry.update();
