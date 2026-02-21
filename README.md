@@ -2,19 +2,54 @@
 
 ## NOTICE
 
-This repository contains the public FTC SDK for the DECODE (2025-2026) competition season.
+This repository contains the public FTC SDK for the INTO THE DEEP (2024-2025) competition season.
 
-## Welcome to the Stingbotics 2024-25 Repo!
-## Get Started:
-Start by cloning the repo onto your computer- type `git clone https://github.com/RobotsLikeKetchup/Stingbotics_2024-25.git` to your bash shell (make sure you have [git installed](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)).
+## Welcome!
+This is a fork of the offical FTC SDK for the 24-25 season. It includes the source code for the FTC SDK, as well as the driver for the goBILDA Pinpoint Odometry Computer: https://www.gobilda.com/pinpoint-odometry-computer-imu-sensor-fusion-for-2-wheel-odometry/
 
-If you need help coding or want to know how git works, make sure to ask on of our club leaders on discord, email, or in person!
+This repo includes the FTC Driver, and example Opmodes showing how to use the goBILDA® Pinpoint Odometry Computer.
+The goBILDA Odometry Computer is a device designed to solve the Pose Exponential calculation
+commonly associated with Dead Wheel Odometry systems. It reads two encoders, and an integrated
+system of sensors to determine the robot's current heading, X position, and Y position.
+
+## How to use? 
+If you are already an Android Studio team, and are using git, you can add this repo as a git remote, and this will allow you to easily pull just the three files which this repo adds to the SDK. GoBildaPinpointDriver, SensorGoBildaPinpointExample, and Pose2D. You can add a remote to Android Studio by going to Git, then Manage Remotes in the navigation bar.
+
+If you do not already have a github project for your team/season, you can clone this repository. Just make sure to note that only the branch titled "goBILDA-Odometry-Driver" has the driver and example files.
+
+If you would like to just download the driver files and example code, you can find them here: just click the download button in the top right and put those three files in your teamcode folder.
+
+### Direct link to driver and example files:
+https://github.com/goBILDA-Official/goBILDA-Pinpoint-Odometry-Computer-FTC-Driver/tree/goBILDA-Odometry-Driver/TeamCode/src/main/java/org/firstinspires/ftc/teamcode
+
 
 ## Requirements
-To use this Android Studio project, you will need Android Studio Ladybug (2024.2) or later.
->>>>>>> upstream/master
+To use this Android Studio project, you will need Android Studio 2021.2 (codename Chipmunk) or later.
 
-**Below is the FTC standard README** 
+To program your robot in Blocks or OnBot Java, you do not need Android Studio.
+
+
+## Getting Started
+If you are new to robotics or new to the *FIRST* Tech Challenge, then you should consider reviewing the [FTC Blocks Tutorial](https://ftc-docs.firstinspires.org/programming_resources/blocks/Blocks-Tutorial.html) to get familiar with how to use the control system:
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[FTC Blocks Online Tutorial](https://ftc-docs.firstinspires.org/programming_resources/blocks/Blocks-Tutorial.html)
+
+Even if you are an advanced Java programmer, it is helpful to start with the [FTC Blocks tutorial](https://ftc-docs.firstinspires.org/programming_resources/blocks/Blocks-Tutorial.html), and then migrate to the [OnBot Java Tool](https://ftc-docs.firstinspires.org/programming_resources/onbot_java/OnBot-Java-Tutorial.html) or to [Android Studio](https://ftc-docs.firstinspires.org/programming_resources/android_studio_java/Android-Studio-Tutorial.html) afterwards.
+
+## Downloading the Project
+If you are an Android Studio programmer, there are several ways to download this repo.  Note that if you use the Blocks or OnBot Java Tool to program your robot, then you do not need to download this repository.
+
+* If you are a git user, you can clone the most current version of the repository:
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;git clone https://github.com/FIRST-Tech-Challenge/FtcRobotController.git</p>
+
+* Or, if you prefer, you can use the "Download Zip" button available through the main repository page.  Downloading the project as a .ZIP file will keep the size of the download manageable.
+
+* You can also download the project folder (as a .zip or .tar.gz archive file) from the Downloads subsection of the [Releases](https://github.com/FIRST-Tech-Challenge/FtcRobotController/releases) page for this repository.
+
+* The Releases page also contains prebuilt APKs.
+
+Once you have downloaded and uncompressed (if needed) your folder, you can use Android Studio to import the folder  ("Import project (Eclipse ADT, Gradle, etc.)").
 
 ## Getting Help
 ### User Documentation and Tutorials
@@ -25,7 +60,7 @@ To use this Android Studio project, you will need Android Studio Ladybug (2024.2
 Note that the online documentation is an "evergreen" document that is constantly being updated and edited.  It contains the most current information about the *FIRST* Tech Challenge software and control system.
 
 ### Javadoc Reference Material
-The Javadoc reference documentation for the FTC SDK is available online.  Click on the following link to view the FTC SDK Javadoc documentation as a live website:
+The Javadoc reference documentation for the FTC SDK is now available online.  Click on the following link to view the FTC SDK Javadoc documentation as a live website:
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[FTC Javadoc Documentation](https://javadoc.io/doc/org.firstinspires.ftc)
 
@@ -42,134 +77,6 @@ Samples Folder: &nbsp;&nbsp; [/FtcRobotController/src/main/java/org/firstinspire
 The readme.md file located in the [/TeamCode/src/main/java/org/firstinspires/ftc/teamcode](TeamCode/src/main/java/org/firstinspires/ftc/teamcode) folder contains an explanation of the sample naming convention, and instructions on how to copy them to your own project space.
 
 # Release Information
-
-## Version 11.1 (20251231-104637)
-
-### Enhancements
-
-* Gamepad triggers can now be accessed as booleans and have edge detection supported.
-* GoBildaPinpointDriver now supports Pinpoint v2 functionality
-* Adds webcam calibrations for goBILDA's USB camera.
-
-### Bug Fixes
-* Fixes issue [1654](https://github.com/FIRST-Tech-Challenge/FtcRobotController/issues/1654) in GoBildaPinpointDriver that caused error if resolution was set in other than MM
-* Fixes issue [1628](https://github.com/FIRST-Tech-Challenge/FtcRobotController/issues/1628) Blocks editor displays incorrect Java code for gamepad edge detection blocks.
-* Fixes possible race condition issue [1884](https://github.com/FIRST-Tech-Challenge/FtcRobotController/issues/1884) on Driver Station startup when Driver Station name doesn't match the Robot Controller name.
-* Fixes issue [1863](https://github.com/FIRST-Tech-Challenge/FtcRobotController/issues/1863) - Incorrect package paths in samples.
-* Fixes an issue where an OnBotJava filename that begins with a lowercase character would fail to properly rename the file if the user tried to rename it so that it begins with an uppercase character.
-
-## Version 11.0 (20250827-105138)
-
-### Enhancements
-
-* OnBotJava now has the concept of a project.  
-  A project is a collection of related files.  A project may be chosen by selecting 'Example Project'
-  from the 'File type:' dropdown.  Doing so will populate the dropdown to the immediate right with 
-  a list of projects to choose from.
-  When selecting a project all of the related files appear in the left pane of the workspace 
-  underneath a directory with the chosen project name.
-  This is useful for example for ConceptExternalHardwareClass which has a dependency upon
-  RobotHardware.  This feature simplifies the usage of this Concept example by automatically
-  pulling in dependent classes.
-* Adds support for AndyMark ToF, IMU, and Color sensors.
-* The Driver Station app indicates if WiFi is disabled on the device.
-* Adds several features to the Color Processing software:
-  * DECODE colors `ARTIFACT_GREEN` and `ARTIFACT_PURPLE`
-  * Choice of the order of pre-processing steps Erode and Dilate
-  * Best-fit preview shape called `circleFit`, an alternate to the existing `boxFit`
-  * Sample OpMode `ConceptVisionColorLocator_Circle`, an alternate to the renamed `ConceptVisionColorLocator_Rectangle`
-* The Driver Station app play button has a green background with a white play symbol if
-  * the driver station and robot controller are connected and have the same team number
-  * there is at least one gamepad attached
-  * the timer is enabled (for an Autonomous OpMode)
-* Updated AprilTag Library for DECODE. Notably, getCurrentGameTagLibrary() now returns DECODE tags.
-  * Since the AprilTags on the Obelisk should not be used for localization, the ConceptAprilTagLocalization samples only use those tags without the name 'Obelisk' in them.
-* OctoQuad I2C driver updated to support firmware v3.x 
-  * Adds support for odometry localizer on MK2 hardware revision
-  * Adds ability to track position for an absolute encoder across multiple rotations
-  * Note that some driver APIs have changed; minor updates to user software may be required
-  * Requires firmware v3.x. For instructions on updating firmware, see
-    https://github.com/DigitalChickenLabs/OctoQuad/blob/master/documentation/OctoQuadDatasheet_Rev_3.0C.pdf
-
-
-## Version 10.3 (20250625-090416)
-
-### Breaking Changes
-* The behavior of setGlobalErrorMsg() is changed.  Note that this is an SDK internal method that is not 
-  meant to be used by team software or third party libraries.  Teams or libraries using this method should
-  find another means to communicate failure.  The design intent of setGlobalErrorMsg() is to report an 
-  error and force the user to restart the robot, which in certain circumstances when used inappropriately
-  could cause a robot to continue running while Driver Station controls are disabled.  To prevent this,
-  processing of a call to setGlobalErrorMsg() is deferred until the robot is in a known safe state.  This may
-  mean that a call to setGlobalErrorMsg() that does not also result in stopping a running OpMode will appear
-  as though nothing happened until the robot is stopped, at which point, if clearGlobalErrorMsg() has not 
-  been called the message will appear on the Driver Station and a restart will be required.
-  Addresses issue [1381](https://github.com/FIRST-Tech-Challenge/FtcRobotController/issues/1381)
-* Fixes getLatestResult in Limelight3A so if the Limelight hasn't provided data yet, it still returns an LLResult but valid will be false
-  * If you previously used to check and see if this was `null` to see if the Limelight had been contacted, you now need to use `isValid()` on the result.  That is because now it always returns an LLResult even before it talks to the Limelight, but if it doesn't have valid data, the `isValid()` will be `false`.
-* Changed all omni samples to use front_left_drive, front_right_drive, back_left_drive, back_right_drive
-  * This is only breaking for you if you copy one of the changed samples to your own project and expect to use the same robot configuration as before.
-
-### Known Issues
-* The redesigned OnBotJava new file workflow allows the user to use a lowercase letter as the first character of a filename.
-  This is a regression from 10.2 which required the first character to be uppercase.  Software will build, but if the user tries
-  to rename the file, the rename will fail.
-
-### Enhancements
-* Improved the OBJ new file creation flow workflow. The new flow allows you to easily use samples, craft new custom OpModes and make new Java classes.
-* Added support for gamepad edge detection.
-  * A new sample program `ConceptGamepadEdgeDetection` demonstrates its use.
-* Adds a blackboard member to the Opmode that maintains state between opmodes (but not between robot resets).  See the ConceptBlackboard sample for how to use it.
-* Updated PredominantColorProcessor to also return the predominant color in RGB, HSV and YCrCb color spaces.  Updated ConceptVisionColorSensor sample OpMode to display the getAnalysis() result in all three color spaces.
-* Adds support for the GoBilda Pinpoint 
-  * Also adds `SensorGoBildaPinpoint` sample to show how to use it
-* Added `getArcLength()` and `getCircularity()` to ColorBlobLocatorProcessor.Blob.  Added BY_ARC_LENGTH and BY_CIRCULARITY as additional BlobCriteria.
-* Added `filterByCriteria()` and `sortByCriteria()` to ColorBlobLocatorProcessor.Util.
-  * The filter and sort methods for specific criteria have been deprecated.
-  * The updated sample program `ConceptVisionColorLocator` provides more details on the new syntax.
-* Add Help menu item and Help page that is available when connected to the robot controller via Program and Manage. The Help page has links to team resources such as [FTC Documentation](https://ftc-docs.firstinspires.org/), [FTC Discussion Forums](https://ftc-community.firstinspires.org), [Java FTC SDK API Documentation](https://javadoc.io/doc/org.firstinspires.ftc), and [FTC Game Information](https://ftc.game/).
-* Self inspection changes:
-  * List both the Driver Station Name and Robot Controller Name when inspecting the Driver Station.
-  * Report if the team number portion of the device names do not match.
-  * -rc is no longer valid as part of a Robot Controller name, must be -RC.
-  * Use Robot Controller Name or Driver Station Name labels on the inspection screens instead of WIFI Access Point or WIFI Direct Name.
-
-### Bug Fixes
-* Fixes issue [1478](https://github.com/FIRST-Tech-Challenge/FtcRobotController/issues/1478) in AnnotatedHooksClassFilter that ignored exceptions if they occur in one of the SDK app hooks.
-* Fix initialize in distance sensor (Rev 2m) to prevent bad data in first call to getDistance.
-* Fixes issue [1470](https://github.com/FIRST-Tech-Challenge/FtcRobotController/issues/1470) Scaling a servo range is now irrespective of reverse() being called.  For example, if you set the scale range to [0.0, 0.5] and the servo is reversed, it will be from 0.5 to 0.0, NOT 1.0 to 0.5.
-* Fixes issue [1232](https://github.com/FIRST-Tech-Challenge/FtcRobotController/issues/1232), a rare race condition where using the log rapidly along with other telemetry could cause a crash.
-
-## Version 10.2 (20250121-174034)
-
-### Enhancements
-* Add ability to upload the pipeline for Limelight3A which allows teams to version control their limelight pipelines.
-
-
-### Bug Fixes
-
-* Fix an internal bug where if the RUN_TO_POSITION run mode was specified before a target position, recovery would require a power cycle. A side effect of this fix is that a stack trace identifying the location of the error is always produced in the log. Fixes issue [1345](https://github.com/FIRST-Tech-Challenge/FtcRobotController/issues/1345).
-* Throws a helpful exception if region of interest is set to null when building a PredominantColorProcessor. Also sets the default RoI to the full frame. Addresses issue [1076](FIRST-Tech-Challenge/FtcRobotController#1076)
-* Throws a helpful exception if user tries to construct an ImageRegion with malformed boundaries.  Addresses issue [1078](FIRST-Tech-Challenge/FtcRobotController#1078)
-
-## Version 10.1.1 (20241102-092223)
-
-### Breaking Changes
-
-* Support for Android Studio Ladybug.  Requires Android Studio Ladybug.  
-
-### Known Issues
-
-* Android Studio Ladybug's bundled JDK is version 21.  JDK 21 has deprecated support for Java 1.8, and Ladybug will warn on this deprecation.
-  OnBotJava only supports Java 1.8, therefore, in order to ensure that software developed using Android Studio will 
-  run within the OnBotJava environment, the targetCompatibility and sourceCompatibility versions for the SDK have been left at VERSION_1_8.
-  FIRST has decided that until it can devote the resources to migrating OnBotJava to a newer version of Java, the deprecation is the 
-  lesser of two non-optimal situations.
-
-### Enhancements
-
-* Added `toString()` method to Pose2D
-* Added `toString()` method to SparkFunOTOS.Pose2D
 
 ## Version 10.1 (20240919-122750)
 
