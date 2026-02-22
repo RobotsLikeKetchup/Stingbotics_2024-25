@@ -187,9 +187,9 @@ public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLoca
         return new double[]{velocity.linearVel.x, velocity.linearVel.y, velocity.angVel};
     }
 
-    //used for turning the camera lens pose to the robot's pose
-    //specific to 2025 bot
-    public static Pose2d cameraToRobotPose(Pose3D lensPose, double turretBearing){ //lens pose is from aprilTag
+    //used for turning the camera lens pose to the robot's center of rotation
+    //specific to 2025 bot, only for use with roadrunner
+    public static Pose2d cameraToRobotCOR(Pose3D lensPose, double turretBearing){ //lens pose is from aprilTag
         //calculate the position of the camera from the straight-forward position
         double[] cameraPos = {
                 TURRET_RADIUS*Math.sin(-Math.toRadians(turretBearing-3)),

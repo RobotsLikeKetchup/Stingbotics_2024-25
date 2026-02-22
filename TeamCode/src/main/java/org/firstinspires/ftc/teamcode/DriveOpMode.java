@@ -16,6 +16,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import static org.firstinspires.ftc.teamcode.utilities.MathFunctions.toInt;
 
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.hardware.AprilTag;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
@@ -38,7 +41,7 @@ public class DriveOpMode extends OpMode {
     ElapsedTime timer = new ElapsedTime();
 
     //initial position of robot: MAKE SURE TO CHANGE FOR COMP
-    Pose2d pose = new Pose2d(0, 0, 0);
+    Pose2D pose = new Pose2D(DistanceUnit.INCH,0, 0, AngleUnit.RADIANS,0);
 
 
     Gamepad previousGamepad1 = new Gamepad();
@@ -107,7 +110,7 @@ public class DriveOpMode extends OpMode {
     public void init() {
         robot.init(hardwareMap, timer);
         robot.aim.setPosition(0.95);
-        robot.localization.setPose(pose);
+        robot.odometry.setPosition(pose);
 
         dashboard = FtcDashboard.getInstance();
 
@@ -131,7 +134,7 @@ public class DriveOpMode extends OpMode {
 
         if(Global.pose != null) {
             pose = Global.pose;
-            robot.localization.setPose(pose);
+            robot.odometry.setPosition(pose);
         }
         if(Global.turretBearing != null) {
             prevTurret = Global.turretBearing;
@@ -151,9 +154,8 @@ public class DriveOpMode extends OpMode {
         previousGamepad2.copy(currentGamepad2);
         currentGamepad2.copy(gamepad2);
         prev_target_range = target_range;
-        double test = robot.ballStop.getPosition();
-        robot.localization.update();
-        pose = robot.localization.getPose();
+        robot.odometry.update();
+        pose = robot.odometry.getPosition();
 
         turretBearing = (360 * ((robot.spin.getCurrentPosition() / SPIN_MOTOR_TPR) / SPIN_GEAR_RATIO)) + prevTurret;
 
@@ -208,8 +210,8 @@ public class DriveOpMode extends OpMode {
             telemetryA.addLine("aprilTag found!!");
 
             //convert the lens pose to the robot's pose
-            pose = RoadrunnerThreeWheelLocalizer.cameraToRobotPose(goal.robotPose, turretBearing);
-            robot.localization.setPose(pose);
+            pose = Robot.cameraPoseCalc(goal.robotPose, turretBearing);
+            robot.odometry.setPosition(pose);
 
         }
 
@@ -234,10 +236,10 @@ public class DriveOpMode extends OpMode {
         if(autoAim == state.ON) {
             //this is a little wack cause the ftc field coordinates are super different and weird
             //also, Math.atan2 accepts (y, x) <--- IMPORTANT that its not (x,y)
-            double robotToGoalAngle = Math.atan2((-targetAprilTagPos.get(0)) - pose.position.y, targetAprilTagPos.get(1) - pose.position.x);
-            double distanceFromGoal = Math.hypot((-targetAprilTagPos.get(0)) - pose.position.y, targetAprilTagPos.get(1) - pose.position.x);
+            double robotToGoalAngle = Math.atan2((-targetAprilTagPos.get(0)) - pose.getY(DistanceUnit.INCH), targetAprilTagPos.get(1) - pose.getX(DistanceUnit.INCH));
+            double distanceFromGoal = Math.hypot((-targetAprilTagPos.get(0)) - pose.getY(DistanceUnit.INCH), targetAprilTagPos.get(1) - pose.getX(DistanceUnit.INCH));
             //subtract robotToGoalAngle since its from x axis
-            targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.heading.toDouble())) - 5; //5 degree offset for camera lens
+            targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.getHeading(AngleUnit.RADIANS))) - 5; //5 degree offset for camera lens
 
             //picking where to shoot aim and bearing
             for (double[] item : Robot.lookup) {
@@ -303,11 +305,13 @@ public class DriveOpMode extends OpMode {
         telemetry.addData("taim", target_aim);
         telemetryA.addData("ourbearing", turretBearing);
         telemetryA.addData("prev(auton) bearing", prevTurret);
-        telemetryA.addData("x", pose.position.x);
-        telemetryA.addData("y", pose.position.y);
-        telemetryA.addData("angle", MathFunctions.angleWrap(pose.heading.toDouble()));
+        telemetryA.addData("x", pose.getX(DistanceUnit.INCH));
+        telemetryA.addData("y", pose.getY(DistanceUnit.INCH));
+        telemetryA.addData("angle", pose.getHeading(AngleUnit.DEGREES));
         telemetry.addData("number", robot.ballStop.getPosition());
         telemetry.addData("aimpos", robot.aim.getPosition());
+        telemetryA.addData("x-encoder", robot.odometry.getEncoderX());
+        telemetryA.addData("y-encoder", robot.odometry.getEncoderY());
         telemetry.addData("AutoAim", autoAim);
 
         //These things MUST be at the end of each loop. DO NOT MOVE

@@ -14,9 +14,16 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.teamcode.GoBildaPinpointDriver;
 import org.firstinspires.ftc.teamcode.MecanumKinematics;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.PurePursuit;
+import org.firstinspires.ftc.teamcode.pathing.StingLocalizer;
+import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerTwoWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.MovementFunctions;
 import org.firstinspires.ftc.teamcode.utilities.PIDF;
@@ -38,15 +45,22 @@ public class Robot {
     public Servo aim;
     public Servo ballStop;
     public DcMotorEx spin;
+    public GoBildaPinpointDriver odometry;
     //parallel dead wheels (measuring x-coord and heading)
     DeadWheel parL;
     DeadWheel parR;
     //perpendicular dead wheel (measuring y-coord)
     DeadWheel per;
 
+    public static final double TURRET_RADIUS = 6.49;
+
     public DcMotor[] driveMotors;
 
     public RoadrunnerTwoWheelLocalizer localization;
+
+    public enum localizationType {ROADRUNNER, PINPOINT}
+
+    public localizationType type = localizationType.PINPOINT;
 
     ElapsedTime timer;
 
@@ -86,18 +100,20 @@ public class Robot {
 
     public void init(HardwareMap hardwareMap, ElapsedTime timer){
 
-        imu = hardwareMap.get(IMU.class, "imu");
-        imu.initialize(
-                new IMU.Parameters(
-                        new RevHubOrientationOnRobot(
-                                logoFacingDirection,
-                                usbFacingDirection
-                        )
-                )
-        );
-        imu.resetYaw();
+        if(type == localizationType.ROADRUNNER) {
+            imu = hardwareMap.get(IMU.class, "imu");
+            imu.initialize(
+                    new IMU.Parameters(
+                            new RevHubOrientationOnRobot(
+                                    logoFacingDirection,
+                                    usbFacingDirection
+                            )
+                    )
+            );
+            imu.resetYaw();
 
-        localization = new RoadrunnerTwoWheelLocalizer(hardwareMap, imu, new Pose2d(0 ,0, 0));
+            localization = new RoadrunnerTwoWheelLocalizer(hardwareMap, imu, new Pose2d(0, 0, 0));
+        }
 
         this.timer = timer;
 
@@ -118,6 +134,15 @@ public class Robot {
         intake = hardwareMap.get(DcMotor.class, "intake");
         driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
 
+        if(type == localizationType.PINPOINT) {
+            odometry = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+            //these offsets are to the lens position at a zero turret bearing
+            odometry.setOffsets(5.1, -8.2, DistanceUnit.INCH);
+            odometry.setEncoderResolution(218.899, DistanceUnit.INCH);
+            odometry.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+            odometry.recalibrateIMU();
+            odometry.resetPosAndIMU();
+        }
                 // Set universal wheel behaviors
 
         for (DcMotor i : driveMotors) {
@@ -136,6 +161,7 @@ public class Robot {
 
         spin.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         spin.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
 
         //set deadwheel encoders
         parL = new DeadWheel(inPerTick, backRight);
@@ -173,6 +199,43 @@ public class Robot {
                 break;
         }
         return out;
+    }
+
+    //used for turning the camera lens pose to the location it would be if the turret was at zero
+    //specific to 2025 bot, for use with pinpoint
+    public static Pose2D cameraPoseCalc(Pose3D lensPose, double turretBearing){ //lens pose is from aprilTag
+        //calculate the position of the camera from the straight-forward position
+        double[] cameraPos = {
+                TURRET_RADIUS*Math.sin(-Math.toRadians(turretBearing)),
+                TURRET_RADIUS*(-1+Math.cos(Math.toRadians(turretBearing)))
+        };
+
+        Vector2Dim tempsubtract = new Vector2Dim(cameraPos[0], cameraPos[1]);
+
+
+        //take april tag robot pose and turn it into actual pose with the camera positions
+        //IMPORTANT: in this, x and y are switched because of the way the aprilTag calculates
+
+        //a note on frame of reference: here, (0,0) is the center of the field. 0 heading is forward.
+        //y is positive towards the goals and negative away
+        //x is negative towards blue goal and positive towards red goal.
+        //angle must be between x axis and front of robot
+        double[] tempPose = new double[] {
+                lensPose.getPosition().y,
+                - lensPose.getPosition().x,
+                lensPose.getOrientation().getYaw()
+        };
+        Vector2Dim subtraction = tempsubtract.rotateBy(Math.toRadians(tempPose[2]-90));
+
+        Pose2D pose = new Pose2D(
+                DistanceUnit.INCH,
+                tempPose[0] - subtraction.x,
+                tempPose[1] - subtraction.y,
+                AngleUnit.RADIANS,
+                Math.toRadians(tempPose[2] - turretBearing)
+        );
+
+        return pose;
     }
 
     //Actions!

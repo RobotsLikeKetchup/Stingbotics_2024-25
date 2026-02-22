@@ -9,19 +9,18 @@ import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.RaceAction;
 import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.hardware.AprilTag;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
-import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.MathFunctions;
-import org.firstinspires.ftc.teamcode.utilities.PIDF;
-import org.firstinspires.ftc.teamcode.utilities.Vector2Dim;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 
@@ -47,7 +46,7 @@ public class AutonTesting extends OpMode {
     };
 
 
-    Pose2d pose;
+    Pose2D pose;
 
     MultipleTelemetry telemetryA;
 
@@ -82,7 +81,7 @@ public class AutonTesting extends OpMode {
     @Override
     public void init() {
         robot.init(hardwareMap, timer);
-        robot.localization.setPose(new Pose2d(-50.1,63.83,2.51));
+        robot.odometry.setPosition(new Pose2D(DistanceUnit.INCH,-50.1,63.83, AngleUnit.RADIANS,2.51));
 
         dashboard = FtcDashboard.getInstance();
         //this sends stuff to both Driver Station and ftc dashboard, for convenience
@@ -142,8 +141,8 @@ public class AutonTesting extends OpMode {
 
     @Override
     public void loop() {
-        robot.localization.update();
-        pose = robot.localization.getPose();
+        robot.odometry.update();
+        pose = robot.odometry.getPosition();
         turretBearing = 360 * ((robot.spin.getCurrentPosition() / SPIN_MOTOR_TPR) / SPIN_GEAR_RATIO);
 
         robot.aim.setPosition(0.81);
@@ -152,9 +151,9 @@ public class AutonTesting extends OpMode {
 
         //this is a little wack cause the ftc field coordinates are super different and weird
         //also, Math.atan2 accepts (y, x) <--- IMPORTANT that its not (x,y)
-        double robotToGoalAngle = Math.atan2((-targetAprilTagPos.get(0)) - pose.position.y, targetAprilTagPos.get(1) - pose.position.x);
+        double robotToGoalAngle = Math.atan2((-targetAprilTagPos.get(0)) - pose.getY(DistanceUnit.INCH), targetAprilTagPos.get(1) - pose.getX(DistanceUnit.INCH));
         //subtract robotToGoalAngle since its from x axis
-        targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.heading.toDouble())) - 5;
+        targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.getHeading(AngleUnit.RADIANS))) - 5;
 
         if (targetBearing < Robot.TURRET_LIMITS[0]) {
             targetBearing = 360 + targetBearing;
@@ -179,8 +178,8 @@ public class AutonTesting extends OpMode {
             telemetryA.addLine("aprilTag found!!");
 
             //convert the lens pose to the robot's pose
-            pose = RoadrunnerThreeWheelLocalizer.cameraToRobotPose(goal.robotPose, turretBearing);
-            robot.localization.setPose(pose);
+            pose = Robot.cameraPoseCalc(goal.robotPose, turretBearing);
+            robot.odometry.setPosition(pose);
 
         }
 
@@ -190,9 +189,9 @@ public class AutonTesting extends OpMode {
 
         dashboard.sendTelemetryPacket(packet);
 
-        telemetryA.addData("x" , pose.position.x);
-        telemetryA.addData("y" , pose.position.y);
-        telemetryA.addData("rotation" , pose.heading.toDouble());
+        telemetryA.addData("x" , pose.getX(DistanceUnit.INCH));
+        telemetryA.addData("y" , pose.getY(DistanceUnit.INCH));
+        telemetryA.addData("rotation" , pose.getHeading(AngleUnit.RADIANS));
         telemetryA.addData("action running" , autoAction.run(packet));
         telemetryA.update();
 

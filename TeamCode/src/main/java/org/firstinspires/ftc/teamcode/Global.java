@@ -1,9 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.acmerobotics.roadrunner.Pose2d;
+
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 public class Global {
-    public static Pose2d pose;
+    public static Pose2D pose;
     public static Double turretBearing;
 
 

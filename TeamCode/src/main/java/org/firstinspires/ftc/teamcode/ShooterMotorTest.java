@@ -37,7 +37,7 @@ public class ShooterMotorTest extends OpMode {
         power = 1;
         dashboard = FtcDashboard.getInstance();
         packet = new TelemetryPacket();
-    }+
+    }
     @Override
     public void loop() {
         if(gamepad1.dpad_up) {

@@ -174,7 +174,7 @@ public class AutonRED extends OpMode {
             telemetryA.addLine("aprilTag found!!");
 
             //convert the lens pose to the robot's pose
-            pose = RoadrunnerThreeWheelLocalizer.cameraToRobotPose(goal.robotPose, turretBearing);
+            pose = RoadrunnerThreeWheelLocalizer.cameraToRobotCOR(goal.robotPose, turretBearing);
             robot.localization.setPose(pose);
 
         }
@@ -195,7 +195,7 @@ public class AutonRED extends OpMode {
 
     @Override
     public void stop() {
-        Global.pose = pose;
+        //Global.pose = pose;
         Global.turretBearing = turretBearing;
         super.stop();
     }
