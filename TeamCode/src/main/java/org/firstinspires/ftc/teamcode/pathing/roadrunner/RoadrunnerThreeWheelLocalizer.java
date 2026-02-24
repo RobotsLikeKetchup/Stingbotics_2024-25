@@ -29,9 +29,9 @@ import org.firstinspires.ftc.teamcode.utilities.Vector2Dim;
 //It does the math to see where the robot is any any point, based on deadwheel inputs
 //It is a lot more robust to issues like bad deadwheel placement and encoder readings overflowing
 //So until I am skilled enough to code my own and have enough time to test it, this is what we got.
-
+//TODO: Make it implement StingLocalizer-- BUT we don't need this for now so it's fine
 @Config
-public final class RoadrunnerThreeWheelLocalizer implements Localizer, StingLocalizer {
+public final class RoadrunnerThreeWheelLocalizer implements Localizer {
     public static class Params {
         public double par0YTicks = -424.7557453299647; // y position of the first parallel encoder (in tick units)
         public double par1YTicks = 869.1622218341726; // y position of the second parallel encoder (in tick units)

@@ -23,6 +23,7 @@ import org.firstinspires.ftc.teamcode.MecanumKinematics;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.PurePursuit;
 import org.firstinspires.ftc.teamcode.pathing.StingLocalizer;
+import org.firstinspires.ftc.teamcode.pathing.roadrunner.PinpointxRoadrunner;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerTwoWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.MovementFunctions;
@@ -56,11 +57,11 @@ public class Robot {
 
     public DcMotor[] driveMotors;
 
-    public RoadrunnerTwoWheelLocalizer localization;
+    public StingLocalizer localization;
 
-    public enum localizationType {ROADRUNNER, PINPOINT}
+    public enum localizationType {ROADRUNNER, PINPOINT, ROADRUNNERxPINPOINT}
 
-    public localizationType type = localizationType.PINPOINT;
+    public localizationType type = localizationType.ROADRUNNERxPINPOINT;
 
     ElapsedTime timer;
 
@@ -77,7 +78,7 @@ public class Robot {
     public static double[] driveConstants = {0.065,0,-0.00016,0};
     public static double[] strafeConstants = {-0.08,0,0,0};
 
-    public static double[] shooterConstants = {0.00078, 0.00000023, 0.015, 0.00015};
+    public static double[] shooterConstants = {0.00078, 0.00002, 0, 0.00048};
     public static double[][] lookup = {
             {10, -1350, 0.9},
             {20, -1350, 0.82},
@@ -143,7 +144,15 @@ public class Robot {
             odometry.recalibrateIMU();
             odometry.resetPosAndIMU();
         }
-                // Set universal wheel behaviors
+        if(type == localizationType.ROADRUNNERxPINPOINT) {
+            odometry = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+            odometry.recalibrateIMU();
+            odometry.resetPosAndIMU();
+
+            localization = new PinpointxRoadrunner(new Pose2d(0,0,0), odometry, timer);
+        }
+
+        // Set universal wheel behaviors
 
         for (DcMotor i : driveMotors) {
             i.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

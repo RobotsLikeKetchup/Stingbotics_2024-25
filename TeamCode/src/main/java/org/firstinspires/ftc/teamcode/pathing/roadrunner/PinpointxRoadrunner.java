@@ -18,6 +18,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
@@ -25,10 +26,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.teamcode.GoBildaPinpointDriver;
 import org.firstinspires.ftc.teamcode.pathing.StingLocalizer;
 
+
+//I'm using this localizer, with inputs as the pinpoint, because the pinpoint is just straight not working
+//annoying but this will work around it.
 @Config
-public class RoadrunnerTwoWheelLocalizer implements StingLocalizer {
+public class PinpointxRoadrunner implements StingLocalizer {
     public static class Params {
         public double parYTicks = -827.7072066692305; // y position of the parallel encoder (in tick units)
         public double perpXTicks = -256.4012498211663; // x position of the perpendicular encoder (in tick units)
@@ -36,10 +41,8 @@ public class RoadrunnerTwoWheelLocalizer implements StingLocalizer {
 
     public static Params PARAMS = new Params();
 
-    public final Encoder par, perp;
-    public final IMU imu;
-
     private int lastParPos, lastPerpPos;
+    private double lastTime;
     private Rotation2d lastHeading;
 
     private final double inPerTick = 0.004010101;
@@ -48,28 +51,23 @@ public class RoadrunnerTwoWheelLocalizer implements StingLocalizer {
     private double lastRawHeadingVel, headingVelOffset;
     private boolean initialized;
     private Pose2d pose;
+    private PoseVelocity2d poseVel;
 
-    PoseVelocity2d poseVel;
+    ElapsedTime timer;
+    public GoBildaPinpointDriver odometry;
 
-    public RoadrunnerTwoWheelLocalizer(HardwareMap hardwareMap, IMU imu, Pose2d initialPose) {
-        // TODO: make sure your config has **motors** with these names (or change them)
-        //   the encoders should be plugged into the slot matching the named motor
-        //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
-        par = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "motor_fl")));
-        perp = new OverflowEncoder(new RawEncoder(hardwareMap.get(DcMotorEx.class, "motor_br")));
+    public PinpointxRoadrunner(Pose2d initialPose, GoBildaPinpointDriver odometry, ElapsedTime timer) {
 
-        // TODO: reverse encoder directions if needed
-        par.setDirection(DcMotorSimple.Direction.REVERSE);
-        perp.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        this.imu = imu;
-
+        this.odometry = odometry;
+        this.timer = timer;
 
         FlightRecorder.write("TWO_DEAD_WHEEL_PARAMS", PARAMS);
 
         pose = initialPose;
     }
 
+    //for the get and setPose methods, I'm converting from the Roadrunner Pose2d to the FTC SDK Pose 2D, which is better and easier to use
+    //again, ideally I just code my own localizer but rn I don't have much time.
     public void setPose(Pose2D pose) {
         this.pose = new Pose2d(pose.getX(DistanceUnit.INCH), pose.getY(DistanceUnit.INCH), pose.getHeading(AngleUnit.RADIANS));
     }
@@ -79,55 +77,47 @@ public class RoadrunnerTwoWheelLocalizer implements StingLocalizer {
     }
 
     public void update() {
-        PositionVelocityPair parPosVel = par.getPositionAndVelocity();
-        PositionVelocityPair perpPosVel = perp.getPositionAndVelocity();
 
-        YawPitchRollAngles angles = imu.getRobotYawPitchRollAngles();
-        // Use degrees here to work around https://github.com/FIRST-Tech-Challenge/FtcRobotController/issues/1070
-        AngularVelocity angularVelocityDegrees = imu.getRobotAngularVelocity(AngleUnit.DEGREES);
-        AngularVelocity angularVelocity = new AngularVelocity(
-                UnnormalizedAngleUnit.RADIANS,
-                (float) Math.toRadians(angularVelocityDegrees.xRotationRate),
-                (float) Math.toRadians(angularVelocityDegrees.yRotationRate),
-                (float) Math.toRadians(angularVelocityDegrees.zRotationRate),
-                angularVelocityDegrees.acquisitionTime
-        );
+        //TODO: I've set these both negative, but reverse if needed...
+        int parTicks = -1 * odometry.getEncoderX();
+        int perpTicks = -1 * odometry.getEncoderY();
 
-        Rotation2d heading = Rotation2d.exp(angles.getYaw(AngleUnit.RADIANS));
+        Rotation2d heading = Rotation2d.exp(odometry.getHeading(AngleUnit.RADIANS));
 
-        // see https://github.com/FIRST-Tech-Challenge/FtcRobotController/issues/617
-        double rawHeadingVel = angularVelocity.zRotationRate;
-        if (Math.abs(rawHeadingVel - lastRawHeadingVel) > Math.PI) {
-            headingVelOffset -= Math.signum(rawHeadingVel) * 2 * Math.PI;
-        }
-        lastRawHeadingVel = rawHeadingVel;
-        double headingVel = headingVelOffset + rawHeadingVel;
+        double headingVel = odometry.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS);
 
         if (!initialized) {
             initialized = true;
 
-            lastParPos = parPosVel.position;
-            lastPerpPos = perpPosVel.position;
+            lastTime = timer.seconds();
+            lastParPos = parTicks;
+            lastPerpPos = perpTicks;
             lastHeading = heading;
 
             poseVel = new PoseVelocity2d(new Vector2d(0.0, 0.0), 0.0);
             return;
         }
 
-        int parPosDelta = parPosVel.position - lastParPos;
-        int perpPosDelta = perpPosVel.position - lastPerpPos;
+        double loopTime = timer.seconds() - lastTime;
+
+        int parPosDelta = parTicks - lastParPos;
+        int perpPosDelta = perpTicks - lastPerpPos;
         double headingDelta = heading.minus(lastHeading);
+
+        //this method of calculating velocity is kind of jank, I need to see if this actually is any good...
+        double parVelocity = parPosDelta / loopTime;
+        double perpVelocity = perpPosDelta / loopTime;
 
         Twist2dDual<Time> twist = new Twist2dDual<>(
                 new Vector2dDual<>(
                         new DualNum<Time>(new double[] {
                                 //subtract the heading*radius of the deadwheel(cause it rotates when it turns the deadwheels)
                                 parPosDelta - PARAMS.parYTicks * headingDelta,
-                                parPosVel.velocity - PARAMS.parYTicks * headingVel,
+                                parVelocity - PARAMS.parYTicks * headingVel,
                         }).times(inPerTick),
                         new DualNum<Time>(new double[] {
                                 perpPosDelta - PARAMS.perpXTicks * headingDelta,
-                                perpPosVel.velocity - PARAMS.perpXTicks * headingVel,
+                                perpVelocity - PARAMS.perpXTicks * headingVel,
                         }).times(lateralInPerTick)
                 ),
                 new DualNum<>(new double[] {
@@ -136,8 +126,8 @@ public class RoadrunnerTwoWheelLocalizer implements StingLocalizer {
                 })
         );
 
-        lastParPos = parPosVel.position;
-        lastPerpPos = perpPosVel.position;
+        lastParPos = parTicks;
+        lastPerpPos = perpTicks;
         lastHeading = heading;
 
         pose = pose.plus(twist.value());

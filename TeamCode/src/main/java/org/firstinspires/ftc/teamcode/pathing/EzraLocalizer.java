@@ -6,7 +6,8 @@ import org.firstinspires.ftc.teamcode.hardware.DeadWheel;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.utilities.MathFunctions;
 
-public class EzraLocalizer implements StingLocalizer{
+//TODO: this should implement StingLocalizer, but that's for Ezra to figure out next year!!
+public class EzraLocalizer{
     //fields
     Robot robot;
     //all values in inches or radians

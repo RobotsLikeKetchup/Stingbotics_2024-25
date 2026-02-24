@@ -14,6 +14,9 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.hardware.AprilTag;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
@@ -43,7 +46,7 @@ public class AutonRED extends OpMode {
     };
 
 
-    Pose2d pose;
+    Pose2D pose;
 
     MultipleTelemetry telemetryA;
 
@@ -78,7 +81,7 @@ public class AutonRED extends OpMode {
     @Override
     public void init() {
         robot.init(hardwareMap, timer);
-        robot.localization.setPose(new Pose2d(53.66,56.84,0.58));
+        robot.localization.setPose(new Pose2D(DistanceUnit.INCH,53.66,56.84, AngleUnit.RADIANS,0.58));
 
         robot.aim.setPosition(0.75);
 
@@ -147,9 +150,9 @@ public class AutonRED extends OpMode {
 
         //this is a little wack cause the ftc field coordinates are super different and weird
         //also, Math.atan2 accepts (y, x) <--- IMPORTANT that its not (x,y)
-        double robotToGoalAngle = Math.atan2((-targetAprilTagPos.get(0)) - pose.position.y, targetAprilTagPos.get(1) - pose.position.x);
+        double robotToGoalAngle = Math.atan2((-targetAprilTagPos.get(0)) - pose.getY(DistanceUnit.INCH), targetAprilTagPos.get(1) - pose.getX(DistanceUnit.INCH));
         //subtract robotToGoalAngle since its from x axis
-        targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.heading.toDouble())) - 15;
+        targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.getHeading(AngleUnit.RADIANS))) - 15;
 
         if (targetBearing < Robot.TURRET_LIMITS[0]) {
             targetBearing = 360 + targetBearing;
@@ -174,7 +177,7 @@ public class AutonRED extends OpMode {
             telemetryA.addLine("aprilTag found!!");
 
             //convert the lens pose to the robot's pose
-            pose = RoadrunnerThreeWheelLocalizer.cameraToRobotCOR(goal.robotPose, turretBearing);
+            pose = Robot.cameraPoseCalc(goal.robotPose, turretBearing);
             robot.localization.setPose(pose);
 
         }
@@ -185,9 +188,9 @@ public class AutonRED extends OpMode {
 
         dashboard.sendTelemetryPacket(packet);
 
-        telemetryA.addData("x" , pose.position.x);
-        telemetryA.addData("y" , pose.position.y);
-        telemetryA.addData("rotation" , pose.heading.toDouble());
+        telemetryA.addData("x" , pose.getX(DistanceUnit.INCH));
+        telemetryA.addData("y" , pose.getY(DistanceUnit.INCH));
+        telemetryA.addData("rotation" , pose.getHeading(AngleUnit.DEGREES));
         telemetryA.addData("action running" , autoAction.run(packet));
         telemetryA.update();
 
@@ -195,7 +198,7 @@ public class AutonRED extends OpMode {
 
     @Override
     public void stop() {
-        //Global.pose = pose;
+        Global.pose = pose;
         Global.turretBearing = turretBearing;
         super.stop();
     }

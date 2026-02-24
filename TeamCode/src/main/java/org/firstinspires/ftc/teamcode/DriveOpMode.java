@@ -76,7 +76,7 @@ public class DriveOpMode extends OpMode {
     colors detectedColor = colors.UNKNOWN;
 
     public state shooter = state.OFF;
-    public state autoAim = state.ON;
+    public state autoAim = state.OFF;
 
 
     FtcDashboard dashboard;
@@ -178,15 +178,17 @@ public class DriveOpMode extends OpMode {
             }
         }
 
-        //setting the target velocity
-        if (shooter == state.ON) shooterVelocity = autoSpeed;
-        else if (shooter == state.OFF) shooterVelocity = 0;
-        else if (shooter == state.REVERSE) shooterVelocity = 900;
 
-        //enacting the velocity
-        if (shooterVelocity != 0) {
-            robot.shooter.setPower(shooterpid.loop(shooterVelocity, robot.shooter.getVelocity()));
-        } else robot.shooter.setPower(0);
+        //if the shooter is on, use auto-aim PID
+        //otherwise, just set power to zero or have spin backwards slowly..
+        if (shooter == state.ON) {
+            robot.shooter.setPower(shooterpid.loop(autoSpeed, robot.shooter.getVelocity()));
+        } else if (shooter== state.OFF) {
+            robot.shooter.setPower(0);
+        } else if(shooter == state.REVERSE) {
+            robot.shooter.setPower(0.35);
+        }
+
 
         //setting intake power
         if (currentGamepad1.y) {
@@ -196,11 +198,6 @@ public class DriveOpMode extends OpMode {
         } else {
             robot.intake.setPower(0);
         }
-        //hood angle
-        double hoodAngle = robot.aim.getPosition();
-
-        double[] tempPose;
-
 
         //AprilTag Detection: update target location
         aprilTag.update();
@@ -305,9 +302,10 @@ public class DriveOpMode extends OpMode {
         telemetry.addData("taim", target_aim);
         telemetryA.addData("ourbearing", turretBearing);
         telemetryA.addData("prev(auton) bearing", prevTurret);
-        telemetryA.addData("x", pose.getX(DistanceUnit.INCH));
-        telemetryA.addData("y", pose.getY(DistanceUnit.INCH));
+        telemetryA.addData("x", robot.odometry.getPosX(DistanceUnit.INCH));
+        telemetryA.addData("y", robot.odometry.getPosY(DistanceUnit.INCH));
         telemetryA.addData("angle", pose.getHeading(AngleUnit.DEGREES));
+        telemetryA.addData("pinpointStatus", robot.odometry.getDeviceStatus());
         telemetry.addData("number", robot.ballStop.getPosition());
         telemetry.addData("aimpos", robot.aim.getPosition());
         telemetryA.addData("x-encoder", robot.odometry.getEncoderX());
