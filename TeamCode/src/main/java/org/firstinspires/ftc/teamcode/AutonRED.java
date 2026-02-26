@@ -19,7 +19,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.hardware.AprilTag;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
-import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.MathFunctions;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
@@ -81,7 +80,6 @@ public class AutonRED extends OpMode {
     @Override
     public void init() {
         robot.init(hardwareMap, timer);
-        robot.localization.setPose(new Pose2D(DistanceUnit.INCH,53.66,56.84, AngleUnit.RADIANS,0.58));
 
         robot.aim.setPosition(0.75);
 
@@ -137,13 +135,13 @@ public class AutonRED extends OpMode {
 
     @Override
     public void start() {
-
+        robot.odometry.setPosition(new Pose2D(DistanceUnit.INCH,53.66,56.84, AngleUnit.RADIANS,0.58));
     }
 
     @Override
     public void loop() {
-        robot.localization.update();
-        pose = robot.localization.getPose();
+        robot.odometry.update();
+        pose = robot.odometry.getPosition();
         turretBearing = 360 * ((robot.spin.getCurrentPosition() / SPIN_MOTOR_TPR) / SPIN_GEAR_RATIO);
 
         TelemetryPacket packet = new TelemetryPacket();
@@ -178,7 +176,7 @@ public class AutonRED extends OpMode {
 
             //convert the lens pose to the robot's pose
             pose = Robot.cameraPoseCalc(goal.robotPose, turretBearing);
-            robot.localization.setPose(pose);
+            robot.odometry.setPosition(pose);
 
         }
 

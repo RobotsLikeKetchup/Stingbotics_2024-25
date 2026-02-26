@@ -6,7 +6,6 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.ParallelAction;
-import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.RaceAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -19,7 +18,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.hardware.AprilTag;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
-import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.MathFunctions;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
@@ -27,7 +25,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 
 @Autonomous
 @Config
-public class AutonTesting extends OpMode {
+public class AutonBack extends OpMode {
 
     // Create variables
     Robot robot = new Robot();
@@ -35,14 +33,7 @@ public class AutonTesting extends OpMode {
     ElapsedTime timer = new ElapsedTime();
 
     public static double[][] path = {
-            {-28, 38, 2.51},
-            {-10, 18, Math.PI},
-            {-45, 18, Math .PI},
-            {-28, 38, 2.51},
-            {-10, -5, Math.PI},
-            {-45, -5, Math.PI},
-            {-28, 38, 2.51},
-            {-20, 10, Math.PI}
+            {10, 0, 0},
     };
 
 
@@ -87,36 +78,7 @@ public class AutonTesting extends OpMode {
         telemetryA = new MultipleTelemetry(this.telemetry, dashboard.getTelemetry());
 
         autoAction = new SequentialAction(
-                robot.PIDtoPt(path[0], 0.1, 1.5),
-                robot.stop(),
-                robot.shoot(-1400, 3),
-                robot.PIDtoPt(path[1], 0.1, 4),
-                robot.stop(),
-                new RaceAction(
-                        new ParallelAction(
-                                robot.startIntake(),
-                                robot.PIDtoPt(path[2], 0.1, 5, 0.5)
-                        ),
-                        robot.ballDown()
-                ),
-                robot.stop(),
-                robot.PIDtoPt(path[3], 0.1, 1.5),
-                robot.stop(),
-                robot.shoot(-1400, 3),
-                robot.PIDtoPt(path[4], 0.1, 2),
-                robot.stop(),
-                new RaceAction(
-                        new ParallelAction(
-                                robot.startIntake(),
-                                robot.PIDtoPt(path[5], 0.1, 5, 0.5)
-                        ),
-                        robot.ballDown()
-                ),
-                robot.stop(),
-                robot.PIDtoPt(path[6], 0.1, 1),
-                robot.stop(),
-                robot.shoot(-1400, 3),
-                robot.PIDtoPt(path[7], 0.1, 2),
+                robot.PIDtoPt(path[0], 0.1, 2),
                 robot.stop()
         );
 
@@ -135,7 +97,7 @@ public class AutonTesting extends OpMode {
 
     @Override
     public void start() {
-        robot.odometry.setPosition(new Pose2D(DistanceUnit.INCH,-50.1,63.83, AngleUnit.RADIANS,2.51));
+        robot.odometry.setPosition(new Pose2D(DistanceUnit.INCH,0,0, AngleUnit.RADIANS,0));
     }
 
     @Override
@@ -152,7 +114,7 @@ public class AutonTesting extends OpMode {
         //also, Math.atan2 accepts (y, x) <--- IMPORTANT that its not (x,y)
         double robotToGoalAngle = Math.atan2((-targetAprilTagPos.get(0)) - pose.getY(DistanceUnit.INCH), targetAprilTagPos.get(1) - pose.getX(DistanceUnit.INCH));
         //subtract robotToGoalAngle since its from x axis
-        targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.getHeading(AngleUnit.RADIANS))) - 5;
+        targetBearing = 0;
 
         if (targetBearing < Robot.TURRET_LIMITS[0]) {
             targetBearing = 360 + targetBearing;

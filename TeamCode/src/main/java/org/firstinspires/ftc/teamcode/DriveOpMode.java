@@ -25,6 +25,7 @@ import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.MathFunctions;
 import org.firstinspires.ftc.teamcode.utilities.PIDF;
+import org.firstinspires.ftc.teamcode.utilities.Vector2Dim;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 
@@ -105,6 +106,8 @@ public class DriveOpMode extends OpMode {
 
     double prevTurret = 0;
 
+    double distanceFromGoal = 0;
+
     @Override
     // Set starting values for variable
     public void init() {
@@ -183,20 +186,35 @@ public class DriveOpMode extends OpMode {
         //otherwise, just set power to zero or have spin backwards slowly..
         if (shooter == state.ON) {
             robot.shooter.setPower(shooterpid.loop(autoSpeed, robot.shooter.getVelocity()));
+            autoAim = state.ON;
         } else if (shooter== state.OFF) {
             robot.shooter.setPower(0);
+            shooterpid.resetIntegral();
+            autoAim = state.OFF;
         } else if(shooter == state.REVERSE) {
             robot.shooter.setPower(0.35);
+            autoAim = state.OFF;
         }
 
 
         //setting intake power
+        //if the shooter isn't on, then make the shooter go reverse to block the balls from spewing out the top
         if (currentGamepad1.y) {
             robot.intake.setPower(.8);
+            if (shooter != state.ON) {
+                shooter = state.REVERSE;
+            }
         } else if (currentGamepad1.a) {
             robot.intake.setPower(-.6);
+            if (shooter != state.ON) {
+                shooter = state.REVERSE;
+            }
         } else {
             robot.intake.setPower(0);
+        }
+
+        if (gamepad1.yWasReleased() | gamepad1.aWasReleased()) {
+            shooter = state.OFF;
         }
 
         //AprilTag Detection: update target location
@@ -212,17 +230,6 @@ public class DriveOpMode extends OpMode {
 
         }
 
-
-        //toggling autoAim
-        if (gamepad1.dpadUpWasPressed()) {
-            if (autoAim == state.ON) {
-                autoAim = state.OFF;
-            } else {
-                autoAim = state.ON;
-            }
-        }
-
-
         //ramp  function: if sebastian has just started moving, beat his ass.
         //it basically prevents jerky movement by making sure it speeds up slower.
         // This way also if the driver is making precise adjustments they can go slowly
@@ -234,9 +241,16 @@ public class DriveOpMode extends OpMode {
             //this is a little wack cause the ftc field coordinates are super different and weird
             //also, Math.atan2 accepts (y, x) <--- IMPORTANT that its not (x,y)
             double robotToGoalAngle = Math.atan2((-targetAprilTagPos.get(0)) - pose.getY(DistanceUnit.INCH), targetAprilTagPos.get(1) - pose.getX(DistanceUnit.INCH));
-            double distanceFromGoal = Math.hypot((-targetAprilTagPos.get(0)) - pose.getY(DistanceUnit.INCH), targetAprilTagPos.get(1) - pose.getX(DistanceUnit.INCH));
+            distanceFromGoal = Math.hypot((-targetAprilTagPos.get(0)) - pose.getY(DistanceUnit.INCH), targetAprilTagPos.get(1) - pose.getX(DistanceUnit.INCH));
+            if(distanceFromGoal <= 15) robotToGoalAngle = Math.toRadians(156);
+
             //subtract robotToGoalAngle since its from x axis
-            targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.getHeading(AngleUnit.RADIANS))) - 5; //5 degree offset for camera lens
+            targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.getHeading(AngleUnit.RADIANS))) + 2;
+
+            Vector2Dim fieldVelocity = new Vector2Dim(robot.odometry.getVelX(DistanceUnit.INCH), robot.odometry.getVelY(DistanceUnit.INCH));
+            Vector2Dim goalVelocity = fieldVelocity.rotateBy((currentSide==side.BLUE ? 1:-1) * (Math.PI - robotToGoalAngle));
+
+            targetBearing = targetBearing - ((distanceFromGoal * Robot.distanceConstantMultiplierX)*(goalVelocity.x*Robot.speedXConstant));
 
             //picking where to shoot aim and bearing
             for (double[] item : Robot.lookup) {
@@ -246,6 +260,9 @@ public class DriveOpMode extends OpMode {
                     break;
                 }
             }
+
+            target_aim = target_aim - ((distanceFromGoal * Robot.distanceConstantMultiplierY)*(goalVelocity.y * Robot.speedYConstant));
+
         } else{
             targetBearing = 0;
             autoSpeed = -1500;
@@ -296,16 +313,15 @@ public class DriveOpMode extends OpMode {
         telemetry.addData("frontRight", robot.frontRight.getPower());
         telemetry.addData("backRight", robot.backRight.getPower());
 
-        telemetry.addData("range", target_range);
+        telemetryA.addData("range", distanceFromGoal);
 
-        telemetry.addData("shooter", robot.shooter.getVelocity());
+        telemetryA.addData("shooter", robot.shooter.getVelocity());
         telemetry.addData("taim", target_aim);
         telemetryA.addData("ourbearing", turretBearing);
         telemetryA.addData("prev(auton) bearing", prevTurret);
-        telemetryA.addData("x", robot.odometry.getPosX(DistanceUnit.INCH));
-        telemetryA.addData("y", robot.odometry.getPosY(DistanceUnit.INCH));
+        telemetryA.addData("x", pose.getX(DistanceUnit.INCH));
+        telemetryA.addData("y", pose.getY(DistanceUnit.INCH));
         telemetryA.addData("angle", pose.getHeading(AngleUnit.DEGREES));
-        telemetryA.addData("pinpointStatus", robot.odometry.getDeviceStatus());
         telemetry.addData("number", robot.ballStop.getPosition());
         telemetry.addData("aimpos", robot.aim.getPosition());
         telemetryA.addData("x-encoder", robot.odometry.getEncoderX());

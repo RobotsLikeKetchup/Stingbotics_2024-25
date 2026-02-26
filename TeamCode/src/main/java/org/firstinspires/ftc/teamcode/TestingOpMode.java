@@ -12,6 +12,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.PIDF;
@@ -23,7 +26,6 @@ import java.util.Arrays;
 @Config
 public class TestingOpMode extends OpMode {
     double[] motorPowers;
-    RoadrunnerThreeWheelLocalizer localization;
 
     Robot robot = new Robot();
 
@@ -42,9 +44,9 @@ public class TestingOpMode extends OpMode {
     public double turretBearing = 0;
 
     public static double kP = 0.00078;
-    public static double kI = 0.00002;
+    public static double kI = 0.000002;
     public static double kD = 0;
-    public static double kF = 0.00048;
+    public static double kF = 0.00047;
 
     PIDF shooterpid = new PIDF(kP,kI,kD,kF, timer);
     public double shooterPower = 0;
@@ -63,8 +65,6 @@ public class TestingOpMode extends OpMode {
 
         telemetryA = new MultipleTelemetry(telemetry,dashboard.getTelemetry());
 
-        localization = new RoadrunnerThreeWheelLocalizer(hardwareMap, new Pose2d(0 ,0, Math.PI / 2));
-
         robot.init(hardwareMap, timer);
 
         telemetryA.addLine("initialized!");
@@ -75,7 +75,8 @@ public class TestingOpMode extends OpMode {
     public void loop() {
         shooterpid.setConstants(kP, kI, kD, kF);
 
-        localization.updatePoseEstimate();
+        robot.odometry.update();
+
         motorPowers = MecanumKinematics.getPowerFromDirection(new double[] {
                 gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x),
                 gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
@@ -103,11 +104,14 @@ public class TestingOpMode extends OpMode {
             }
         }
 
-        double[] pose = localization.getPoseDouble();
+        Pose2D pose = robot.odometry.getPosition();
 
         if(shooterRef != 0) {
             shooterPower = shooterpid.loop(shooterRef, robot.shooter.getVelocity());
-        } else shooterPower = 0;
+        } else {
+            shooterPower = 0;
+            shooterpid.resetIntegral();
+        };
 
         robot.shooter.setPower(shooterPower);
         
@@ -133,9 +137,11 @@ public class TestingOpMode extends OpMode {
 
         telemetryA.addLine("Encoder Positions: " + Arrays.toString(new double[]{robot.backRight.getCurrentPosition(), robot.frontLeft.getCurrentPosition(), robot.backLeft.getCurrentPosition()}));
 
-        telemetryA.addData("x", localization.getPoseDouble()[0]);
-        telemetryA.addData("y", localization.getPoseDouble()[1]);
-        telemetryA.addData("angle", Math.toDegrees(localization.getPoseDouble()[2]));
+        telemetryA.addData("x", pose.getX(DistanceUnit.INCH));
+        telemetryA.addData("y", pose.getY(DistanceUnit.INCH));
+        telemetryA.addData("angle", Math.toDegrees(pose.getHeading(AngleUnit.DEGREES)));
+        telemetryA.addData("odometry heading", robot.odometry.getHeading(AngleUnit.RADIANS));
+        telemetryA.addData("odometry par", robot.odometry.getEncoderX());
         telemetryA.addData("shooter", robot.shooter.getVelocity());
         telemetryA.addData("shooterpower", shooterPower);
         telemetryA.addData("aim position", robot.aim.getPosition());
@@ -150,15 +156,15 @@ public class TestingOpMode extends OpMode {
         packet.fieldOverlay()
                 .setFill("blue")
                 .fillPolygon(new double[] {
-                        pose[0] - (r * Math.sin(pose[2]+(Math.PI/4))),
-                        pose[0] - (r * Math.sin(pose[2]-(Math.PI/4))),
-                        pose[0] - (r * Math.sin(pose[2]-(3*Math.PI/4))),
-                        pose[0] - (r * Math.sin(pose[2]+(3*Math.PI/4)))
+                        pose.getX(DistanceUnit.INCH) - (r * Math.sin(pose.getHeading(AngleUnit.RADIANS)+(Math.PI/4))),
+                        pose.getX(DistanceUnit.INCH) - (r * Math.sin(pose.getHeading(AngleUnit.RADIANS)-(Math.PI/4))),
+                        pose.getX(DistanceUnit.INCH) - (r * Math.sin(pose.getHeading(AngleUnit.RADIANS)-(3*Math.PI/4))),
+                        pose.getX(DistanceUnit.INCH) - (r * Math.sin(pose.getHeading(AngleUnit.RADIANS)+(3*Math.PI/4)))
                 }, new double[] {
-                        pose[1] - (r*Math.cos(pose[2]+(Math.PI/4))),
-                        pose[1] - (r*Math.cos(pose[2]-(Math.PI/4))),
-                        pose[1] - (r*Math.cos(pose[2]-(3*Math.PI/4))),
-                        pose[1] - (r*Math.cos(pose[2]+(3*Math.PI/4)))
+                        pose.getY(DistanceUnit.INCH) - (r*Math.cos(pose.getHeading(AngleUnit.RADIANS)+(Math.PI/4))),
+                        pose.getY(DistanceUnit.INCH) - (r*Math.cos(pose.getHeading(AngleUnit.RADIANS)-(Math.PI/4))),
+                        pose.getY(DistanceUnit.INCH) - (r*Math.cos(pose.getHeading(AngleUnit.RADIANS)-(3*Math.PI/4))),
+                        pose.getY(DistanceUnit.INCH) - (r*Math.cos(pose.getHeading(AngleUnit.RADIANS)+(3*Math.PI/4)))
                 }); //all the stuff above are the points, rotated based on the robot's angle
 
 

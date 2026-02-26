@@ -49,7 +49,7 @@ import java.util.Arrays;
         description ="goBILDA® Pinpoint Odometry Computer (IMU Sensor Fusion for 2 Wheel Odometry)"
         )
 
-public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSimple> {
+public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSimple>{
 
     private int deviceStatus   = 0;
     private int loopTime       = 0;
@@ -638,7 +638,7 @@ public class GoBildaPinpointDriver extends I2cDeviceSynchDevice<I2cDeviceSynchSi
      * normalized heading is wrapped from -180°, to 180°.
      */
     public double getHeading(AngleUnit angleUnit){
-        return angleUnit.fromRadians((hOrientation + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
+        return angleUnit.fromRadians(((hOrientation + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI);
     }
 
     /**

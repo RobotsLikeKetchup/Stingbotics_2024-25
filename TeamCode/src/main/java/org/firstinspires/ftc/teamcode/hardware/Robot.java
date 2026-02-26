@@ -61,13 +61,13 @@ public class Robot {
 
     public enum localizationType {ROADRUNNER, PINPOINT, ROADRUNNERxPINPOINT}
 
-    public localizationType type = localizationType.ROADRUNNERxPINPOINT;
+    public localizationType type = localizationType.PINPOINT;
 
     ElapsedTime timer;
 
     IMU imu;
 
-    public static final double[] TURRET_LIMITS = {-180, 180};
+    public static final double[] TURRET_LIMITS = {-135, 180};
 
     public final RevHubOrientationOnRobot.LogoFacingDirection logoFacingDirection = RevHubOrientationOnRobot.LogoFacingDirection.LEFT;
     public final RevHubOrientationOnRobot.UsbFacingDirection usbFacingDirection = RevHubOrientationOnRobot.UsbFacingDirection.UP;
@@ -78,19 +78,26 @@ public class Robot {
     public static double[] driveConstants = {0.065,0,-0.00016,0};
     public static double[] strafeConstants = {-0.08,0,0,0};
 
-    public static double[] shooterConstants = {0.00078, 0.00002, 0, 0.00048};
+    public static double[] shooterConstants = {0.00078, 0, 0.0001, 0.00047};
     public static double[][] lookup = {
-            {10, -1350, 0.9},
-            {20, -1350, 0.82},
-            {30, -1420, 0.82},
-            {40, -1500, 0.7},
-            {50, -1600, 0.67},
-            {60, -1650, 0.6},
-            {70, -1750, 0.55},
-            {80, -1800, 0.5},
-            {90, -2100, 0.3},
+            {10, -1300, 0.9},
+            {20, -1300, 0.82},
+            {30, -1350, 0.82},
+            {40, -1450, 0.75},
+            {50, -1550, 0.65},
+            {60, -1680, 0.45},
+            {70, -1700, 0.4},
+            {80, -1750, 0.5},
+            {90, -2000, 0.4},
+            {110, -2100, 0.2}
 
     };
+
+    public static double speedXConstant = 0;
+    public static double speedYConstant = 0;
+    public static double distanceConstantMultiplierX = 0;
+    public static double distanceConstantMultiplierY = 0;
+
 //    public AprilTagProcessor aprilTagProcessor;
 //
 //    public VisionPortal visionPortal;
@@ -138,9 +145,9 @@ public class Robot {
         if(type == localizationType.PINPOINT) {
             odometry = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
             //these offsets are to the lens position at a zero turret bearing
-            odometry.setOffsets(5.1, -8.2, DistanceUnit.INCH);
-            odometry.setEncoderResolution(218.899, DistanceUnit.INCH);
-            odometry.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+            odometry.setOffsets(5.1*25.4, -2*25.4);
+            odometry.setEncoderResolution(8.61807);
+            odometry.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
             odometry.recalibrateIMU();
             odometry.resetPosAndIMU();
         }
@@ -216,7 +223,7 @@ public class Robot {
         //calculate the position of the camera from the straight-forward position
         double[] cameraPos = {
                 TURRET_RADIUS*Math.sin(-Math.toRadians(turretBearing)),
-                TURRET_RADIUS*(-1+Math.cos(Math.toRadians(turretBearing)))
+                TURRET_RADIUS*Math.cos(Math.toRadians(turretBearing))
         };
 
         Vector2Dim tempsubtract = new Vector2Dim(cameraPos[0], cameraPos[1]);
@@ -401,7 +408,7 @@ public class Robot {
         PIDF strafePID;
         double maxPower = 1;
 
-        double[] position;
+        Pose2D position;
         Vector2Dim direction;
         Vector2Dim rotatedDirection;
         double rotation;
@@ -430,16 +437,16 @@ public class Robot {
 
         @Override
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-            position = localization.getPoseDouble();
-            direction = new Vector2Dim(pt[0] - position[0], pt[1] - position[1]);
-            rotation = (Math.PI/2) - position[2];
+            position = odometry.getPosition();
+            direction = new Vector2Dim(pt[0] - position.getX(DistanceUnit.INCH), pt[1] - position.getY(DistanceUnit.INCH));
+            rotation = (Math.PI/2) - position.getHeading(AngleUnit.RADIANS);
             rotatedDirection = direction.rotateBy(rotation);
 
             //flip x and y, to simplify rotation
             robotDirection = new double[]{
                     strafePID.loop(rotatedDirection.x),
                     drivePID.loop(rotatedDirection.y),
-                    headingPID.loop(pt[2], position[2])
+                    headingPID.loop(pt[2], position.getHeading(AngleUnit.RADIANS))
             };
 
             telemetryPacket.put("x-direction", robotDirection[0]);
@@ -454,7 +461,7 @@ public class Robot {
             setMotorPowers(MecanumKinematics.getPowerFromDirection(robotDirection, maxPower));
 
 
-            if (Math.abs(pt[2] - position[2]) >= angleThreshold | Math.abs(direction.x) >= spaceThreshold | Math.abs(direction.y) >= spaceThreshold) {
+            if (Math.abs(pt[2] - position.getHeading(AngleUnit.RADIANS)) >= angleThreshold | Math.abs(direction.x) >= spaceThreshold | Math.abs(direction.y) >= spaceThreshold) {
                 return true;
             } else {
                 return false;

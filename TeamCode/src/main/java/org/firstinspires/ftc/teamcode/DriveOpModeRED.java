@@ -2,18 +2,16 @@
 package org.firstinspires.ftc.teamcode;
 // Import FTC classes
 
+import static org.firstinspires.ftc.teamcode.utilities.MathFunctions.toInt;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-// Import custom-made classes/methods
-import static org.firstinspires.ftc.teamcode.utilities.MathFunctions.toInt;
 
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -22,7 +20,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.hardware.AprilTag;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
-import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.MathFunctions;
 import org.firstinspires.ftc.teamcode.utilities.PIDF;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
@@ -32,7 +29,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 @TeleOp
 
 @Config
-public class DriveOpMode extends OpMode {
+public class DriveOpModeRED extends OpMode {
     // Create variables
     double[] motorPowers;
     //ur nt shkspr vro -sebastian
@@ -63,7 +60,7 @@ public class DriveOpMode extends OpMode {
 
     public enum side {BLUE, RED}
 
-    public side currentSide = side.BLUE;
+    public side currentSide = side.RED;
 
     public enum state {
         ON,
@@ -185,6 +182,7 @@ public class DriveOpMode extends OpMode {
             robot.shooter.setPower(shooterpid.loop(autoSpeed, robot.shooter.getVelocity()));
         } else if (shooter== state.OFF) {
             robot.shooter.setPower(0);
+            shooterpid.resetIntegral();
         } else if(shooter == state.REVERSE) {
             robot.shooter.setPower(0.35);
         }
@@ -237,7 +235,10 @@ public class DriveOpMode extends OpMode {
             double robotToGoalAngle = Math.atan2((-targetAprilTagPos.get(0)) - pose.getY(DistanceUnit.INCH), targetAprilTagPos.get(1) - pose.getX(DistanceUnit.INCH));
             distanceFromGoal = Math.hypot((-targetAprilTagPos.get(0)) - pose.getY(DistanceUnit.INCH), targetAprilTagPos.get(1) - pose.getX(DistanceUnit.INCH));
             //subtract robotToGoalAngle since its from x axis
+            if(distanceFromGoal <= 15) robotToGoalAngle = Math.toRadians(24);
+
             targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.getHeading(AngleUnit.RADIANS))) - 5; //5 degree offset for camera lens
+
 
             //picking where to shoot aim and bearing
             for (double[] item : Robot.lookup) {
@@ -297,7 +298,7 @@ public class DriveOpMode extends OpMode {
         telemetry.addData("frontRight", robot.frontRight.getPower());
         telemetry.addData("backRight", robot.backRight.getPower());
 
-        telemetry.addData("range", distanceFromGoal);
+        telemetryA.addData("range", distanceFromGoal);
 
         telemetry.addData("shooter", robot.shooter.getVelocity());
         telemetry.addData("taim", target_aim);

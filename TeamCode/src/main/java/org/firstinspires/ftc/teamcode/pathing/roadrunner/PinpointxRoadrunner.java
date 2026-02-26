@@ -78,9 +78,11 @@ public class PinpointxRoadrunner implements StingLocalizer {
 
     public void update() {
 
+        odometry.update();
+
         //TODO: I've set these both negative, but reverse if needed...
         int parTicks = -1 * odometry.getEncoderX();
-        int perpTicks = -1 * odometry.getEncoderY();
+        int perpTicks = odometry.getEncoderY();
 
         Rotation2d heading = Rotation2d.exp(odometry.getHeading(AngleUnit.RADIANS));
 

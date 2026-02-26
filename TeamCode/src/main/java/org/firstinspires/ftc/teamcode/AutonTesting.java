@@ -81,7 +81,6 @@ public class AutonTesting extends OpMode {
     @Override
     public void init() {
         robot.init(hardwareMap, timer);
-        robot.odometry.setPosition(new Pose2D(DistanceUnit.INCH,-50.1,63.83, AngleUnit.RADIANS,2.51));
 
         dashboard = FtcDashboard.getInstance();
         //this sends stuff to both Driver Station and ftc dashboard, for convenience
@@ -136,7 +135,7 @@ public class AutonTesting extends OpMode {
 
     @Override
     public void start() {
-
+        robot.odometry.setPosition(new Pose2D(DistanceUnit.INCH,-50.1,63.83, AngleUnit.RADIANS,2.51));
     }
 
     @Override
