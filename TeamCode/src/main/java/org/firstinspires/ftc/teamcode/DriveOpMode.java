@@ -28,6 +28,8 @@ import org.firstinspires.ftc.teamcode.utilities.PIDF;
 import org.firstinspires.ftc.teamcode.utilities.Vector2Dim;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
+import org.firstinspires.ftc.teamcode.GoBildaPinpointDriver;
+
 
 
 @TeleOp
@@ -112,7 +114,7 @@ public class DriveOpMode extends OpMode {
     // Set starting values for variable
     public void init() {
         robot.init(hardwareMap, timer);
-        robot.aim.setPosition(0.95);
+        robot.aim.setPosition(0.85);
         robot.odometry.setPosition(pose);
 
         dashboard = FtcDashboard.getInstance();

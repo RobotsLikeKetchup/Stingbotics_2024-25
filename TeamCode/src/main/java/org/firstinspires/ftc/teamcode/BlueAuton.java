@@ -5,9 +5,6 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.ParallelAction;
-import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.RaceAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -19,7 +16,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.hardware.AprilTag;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
-import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.MathFunctions;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
@@ -27,10 +23,11 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 
 @Autonomous
 @Config
-public class AutonTesting extends OpMode {
+public class BlueAuton extends OpMode {
 
     // Create variables
     Robot robot = new Robot();
+
 
     ElapsedTime timer = new ElapsedTime();
 
@@ -88,11 +85,12 @@ public class AutonTesting extends OpMode {
 
         autoAction = new SequentialAction(
                 robot.PIDtoPt(path[0], 0.1, 1.5),
-                robot.stop(),
-                robot.shoot(-1400, 3),
+
+                //robot.stop(),
+               // robot.shoot(-1400, 3),
                 robot.PIDtoPt(path[1], 0.1, 4),
-                robot.stop(),
-                new RaceAction(
+                robot.stop()
+                /*new RaceAction(
                         new ParallelAction(
                                 robot.startIntake(),
                                 robot.PIDtoPt(path[2], 0.1, 5, 0.5)
@@ -112,12 +110,9 @@ public class AutonTesting extends OpMode {
                         ),
                         robot.ballDown()
                 ),
-                robot.stop(),
-                robot.PIDtoPt(path[6], 0.1, 1),
-                robot.stop(),
-                robot.shoot(-1400, 3),
-                robot.PIDtoPt(path[7], 0.1, 2),
-                robot.stop()
+                robot.stop()*/
+
+
         );
 
         if (currentSide == DriveOpMode.side.BLUE) {
@@ -136,6 +131,8 @@ public class AutonTesting extends OpMode {
     @Override
     public void start() {
         robot.odometry.setPosition(new Pose2D(DistanceUnit.INCH,-50.1,63.83, AngleUnit.RADIANS,2.51));
+
+
     }
 
     @Override
