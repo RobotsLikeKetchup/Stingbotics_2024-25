@@ -194,7 +194,7 @@ public class DriveOpMode extends OpMode {
             shooterpid.resetIntegral();
             autoAim = state.OFF;
         } else if(shooter == state.REVERSE) {
-            robot.shooter.setPower(0.35);
+            robot.shooter.setPower(0.25);
             autoAim = state.OFF;
         }
 
