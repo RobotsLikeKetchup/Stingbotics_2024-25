@@ -188,7 +188,7 @@ public class BlueAuton extends OpMode {
         telemetryA.addData("x" , pose.getX(DistanceUnit.INCH));
         telemetryA.addData("y" , pose.getY(DistanceUnit.INCH));
         telemetryA.addData("rotation" , pose.getHeading(AngleUnit.RADIANS));
-        telemetryA.addData("action running" , autoAction.run(packet));
+        telemetryA.addData("action running" , actionRunning);
         telemetryA.update();
 
     }
