@@ -326,6 +326,7 @@ public class DriveOpMode extends OpMode {
         telemetryA.addData("angle", pose.getHeading(AngleUnit.DEGREES));
         telemetry.addData("number", robot.ballStop.getPosition());
         telemetry.addData("aimpos", robot.aim.getPosition());
+        telemetry.addData("spin position", robot.spin.getCurrentPosition());
         telemetryA.addData("x-encoder", robot.odometry.getEncoderX());
         telemetryA.addData("y-encoder", robot.odometry.getEncoderY());
         telemetry.addData("AutoAim", autoAim);
