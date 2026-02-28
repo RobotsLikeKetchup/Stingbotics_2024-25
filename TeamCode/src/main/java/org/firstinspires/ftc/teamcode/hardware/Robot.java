@@ -14,21 +14,22 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.teamcode.GoBildaPinpointDriver;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import org.firstinspires.ftc.teamcode.MecanumKinematics;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.PurePursuit;
 import org.firstinspires.ftc.teamcode.pathing.StingLocalizer;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.PinpointxRoadrunner;
-import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerTwoWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.MovementFunctions;
 import org.firstinspires.ftc.teamcode.utilities.PIDF;
 import org.firstinspires.ftc.teamcode.utilities.Vector2Dim;
+import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 
 import com.acmerobotics.dashboard.config.Config;
 
@@ -67,29 +68,30 @@ public class Robot {
 
     IMU imu;
 
-    public static final double[] TURRET_LIMITS = {-135, 180};
+    public static final double[] TURRET_LIMITS = {-162, 150};
 
     public final RevHubOrientationOnRobot.LogoFacingDirection logoFacingDirection = RevHubOrientationOnRobot.LogoFacingDirection.LEFT;
     public final RevHubOrientationOnRobot.UsbFacingDirection usbFacingDirection = RevHubOrientationOnRobot.UsbFacingDirection.UP;
 
 
     //order of constants will be P, I, D, F
-    public static double[] headingConstants = {0.9,0,0,0};
-    public static double[] driveConstants = {0.065,0,-0.00016,0};
-    public static double[] strafeConstants = {-0.08,0,0,0};
+    public static double[] headingConstants = {0.91,0,0,0};
+    public static double[] driveConstants = {0.067,0,-0.00016,0};
+    public static double[] strafeConstants = {-0.085,0,0,0};
 
-    public static double[] shooterConstants = {0.00078, 0, 0.0001, 0.00047};
+    public static double[] shooterConstants = {0.00076, 0.000003, 0.000085, 0.000445};
     public static double[][] lookup = {
-            {10, -1300, 0.9},
-            {20, -1300, 0.82},
-            {30, -1350, 0.82},
-            {40, -1450, 0.75},
-            {50, -1550, 0.65},
-            {60, -1680, 0.45},
-            {70, -1700, 0.4},
-            {80, -1750, 0.5},
-            {90, -2000, 0.4},
-            {110, -2100, 0.2}
+            {10, -1450, 0.95},
+            {20, -1380, 0.6},
+            {30, -1420, 0.3},
+            {40, -1450, 0.3},
+            {50, -1540, 0.25},
+            {60, -1560, 0.26},
+            {70, -1560, 0.26},
+            {80, -1650, 0.2},
+            {90, -1800, 0.25},
+            {120, -2080, 0.05},
+            {130, -2100, 0.2}
 
     };
 
@@ -145,8 +147,8 @@ public class Robot {
         if(type == localizationType.PINPOINT) {
             odometry = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
             //these offsets are to the lens position at a zero turret bearing
-            odometry.setOffsets(5.1*25.4, -2*25.4);
-            odometry.setEncoderResolution(8.61807);
+            odometry.setOffsets(5.1, -2, DistanceUnit.INCH);
+            odometry.setEncoderResolution(8.61807, DistanceUnit.MM);
             odometry.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
             odometry.recalibrateIMU();
             odometry.resetPosAndIMU();
@@ -177,6 +179,10 @@ public class Robot {
 
         spin.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         spin.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooter1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        shooter1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        shooter2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        shooter2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
         //set deadwheel encoders
@@ -217,16 +223,12 @@ public class Robot {
         return out;
     }
 
-    //used for turning the camera lens pose to the location it would be if the turret was at zero
+    //used for turning the camera lens pose to the center of the turret
     //specific to 2025 bot, for use with pinpoint
     public static Pose2D cameraPoseCalc(Pose3D lensPose, double turretBearing){ //lens pose is from aprilTag
         //calculate the position of the camera from the straight-forward position
-        double[] cameraPos = {
-                TURRET_RADIUS*Math.sin(-Math.toRadians(turretBearing)),
-                TURRET_RADIUS*Math.cos(Math.toRadians(turretBearing))
-        };
 
-        Vector2Dim tempsubtract = new Vector2Dim(cameraPos[0], cameraPos[1]);
+        Vector2Dim tempsubtract = new Vector2Dim(0.625, TURRET_RADIUS);
 
 
         //take april tag robot pose and turn it into actual pose with the camera positions
@@ -356,18 +358,34 @@ public class Robot {
         boolean init = false;
         int ballIndex = 0;
         double intakeStartTime;
-        double intakeTime = 0.6;
+        double intakeTime = 0.8;
         double revUpTime = 1.2;
-        double ballRevUpTime = 0.4;
+        double ballRevUpTime = 0.05;
         PIDF shooterpid = new PIDF(shooterConstants, timer);
+        boolean autoAim = true;
+        VectorF targetAprilTagPos;
 
-        public Shoot(double velocity, int ballNumber){
-            this.velocity = velocity;
+        public Shoot(int ballNumber, int shooterTarget){
             this.ballNumber = ballNumber;
+            targetAprilTagPos = AprilTagGameDatabase.getCurrentGameTagLibrary().lookupTag(shooterTarget).fieldPosition;
         }
 
         @Override
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            Pose2D pose = odometry.getPosition();
+            if (autoAim){
+                double aimPos = 0.7;
+                double distanceFromGoal = Math.hypot((-targetAprilTagPos.get(0)) - pose.getY(DistanceUnit.INCH), targetAprilTagPos.get(1) - pose.getX(DistanceUnit.INCH));
+                for (double[] item : lookup) {
+                    if (item[0] >= distanceFromGoal) {
+                        velocity = item[1];
+                        aimPos = item[2];
+                        break;
+                    }
+                }
+                aim.setPosition(aimPos);
+            }
+
             shooter.setPower(shooterpid.loop(velocity, shooter.getVelocity()));
             if(!init){
                 intakeStartTime = timer.seconds() + revUpTime;
@@ -397,8 +415,8 @@ public class Robot {
         }
     }
 
-    public Action shoot(double velocity, int ballNumber) {
-        return new Shoot(velocity, ballNumber);
+    public Action shoot(int ballNumber, int shooterTarget) {
+        return new Shoot(ballNumber, shooterTarget);
     }
 
     public class PIDtoPt implements Action {
@@ -487,12 +505,23 @@ public class Robot {
             }
             shooter.setPower(0);
             intake.setPower(0);
-
             return false;
         }
     }
 
     public Action stop() {return new Stop();}
+
+    public class StopTop implements Action {
+        public StopTop(){}
+        @Override
+        public boolean run(@NonNull TelemetryPacket packet) {
+            shooter.setPower(0);
+            intake.setPower(0);
+            return false;
+        }
+    }
+
+    public Action stopTop() {return new StopTop();}
 
     public class StartIntake implements Action {
         public StartIntake() {}
@@ -512,7 +541,7 @@ public class Robot {
         public boolean run (@NonNull TelemetryPacket packet) {
             shooter.setPower(0.6);
 
-            return true;
+            return false;
         }
     }
 

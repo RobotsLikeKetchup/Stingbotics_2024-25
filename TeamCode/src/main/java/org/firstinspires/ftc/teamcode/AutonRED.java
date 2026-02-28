@@ -9,6 +9,7 @@ import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.RaceAction;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -35,13 +36,13 @@ public class AutonRED extends OpMode {
 
     public static double[][] path = {
             {44.32, 42.52, 0.58},
-            {30, 18, 0},
-            {580, 18, 0},
+            {19, 10.5, 0},
+            {57, 10.5, 0},
             {44.32, 42.52, 0.58},
-            {28, 0, 0},
-            {58, 0, 0},
+            {25, -16, 0},
+            {56, -16, 0},
             {44.32, 42.52, 0.58},
-            {35, 20, 0}
+            {35, 10, 0}
     };
 
 
@@ -74,7 +75,7 @@ public class AutonRED extends OpMode {
     public double shooterVel;
     public double hoodPos;
 
-
+    int targetApriltag = 24;
 // Create a new Builder
 
     @Override
@@ -87,49 +88,48 @@ public class AutonRED extends OpMode {
         //this sends stuff to both Driver Station and ftc dashboard, for convenience
         telemetryA = new MultipleTelemetry(this.telemetry, dashboard.getTelemetry());
 
+        aprilTag.init(hardwareMap, telemetryA);
+
         autoAction = new SequentialAction(
-                robot.PIDtoPt(path[0], 0.1, 1.5),
+                robot.PIDtoPt(path[0], 0.1, 2),
+
                 robot.stop(),
-                robot.shoot(-1400, 3),
-                robot.PIDtoPt(path[1], 0.1, 2),
+                robot.shoot(3, targetApriltag),
+                robot.PIDtoPt(path[1], 0.1, 4),
                 robot.stop(),
-                new RaceAction(
-                        new ParallelAction(
-                                robot.startIntake(),
-                                robot.PIDtoPt(path[2], 0.1, 4, 0.5)
-                        ),
+                new ParallelAction(
+                        robot.startIntake(),
+                        robot.PIDtoPt(path[2], 0.2, 5, 0.7),
                         robot.ballDown()
                 ),
                 robot.stop(),
-                robot.PIDtoPt(path[3], 0.1, 1.5),
+                new ParallelAction(
+                        robot.PIDtoPt(path[3], 0.1, 1.5),
+                        new SequentialAction(
+                                robot.startIntake(),
+                                robot.ballDown(),
+                                new SleepAction(1),
+                                robot.stopTop()
+                        )
+                ),
                 robot.stop(),
-                robot.shoot(-1400, 3),
+                robot.shoot(3, targetApriltag),
                 robot.PIDtoPt(path[4], 0.1, 2),
                 robot.stop(),
-                new RaceAction(
-                        new ParallelAction(
-                                robot.startIntake(),
-                                robot.PIDtoPt(path[5], 0.1, 4, 0.5)
-                        ),
+                new ParallelAction(
+                        robot.startIntake(),
+                        robot.PIDtoPt(path[5], 0.2, 5, 0.7),
                         robot.ballDown()
                 ),
                 robot.stop(),
-                robot.PIDtoPt(path[6], 0.1, 1.5),
+                robot.PIDtoPt(path[6], 0.1, 2),
                 robot.stop(),
-                robot.shoot(-1400, 3),
-                robot.PIDtoPt(path[7], 0.1, 2)
+                robot.shoot(3, targetApriltag),
+                robot.PIDtoPt(path[7], 0.1, 2),
+                robot.stop()
         );
 
-        if (currentSide == side.BLUE) {
-            shooter_target = 20;
-        } else {
-            shooter_target = 24;
-        }
-
-        aprilTag.init(hardwareMap, telemetry);
-
-        //get the location of the aprilTag on the field
-        targetAprilTagPos = AprilTagGameDatabase.getCurrentGameTagLibrary().lookupTag(shooter_target).fieldPosition;
+        targetAprilTagPos = AprilTagGameDatabase.getCurrentGameTagLibrary().lookupTag(targetApriltag).fieldPosition;
 
     }
 

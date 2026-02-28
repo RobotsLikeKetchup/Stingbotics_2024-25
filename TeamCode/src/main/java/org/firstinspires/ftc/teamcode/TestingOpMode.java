@@ -15,6 +15,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
 import org.firstinspires.ftc.teamcode.utilities.PIDF;
@@ -32,6 +35,8 @@ public class TestingOpMode extends OpMode {
     ElapsedTime timer= new ElapsedTime();
 
     FtcDashboard dashboard;
+
+    public static double camYaw;
 
     public final double SPIN_MOTOR_TPR = 537.7;
     public final double SPIN_GEAR_RATIO = 180/49.5;
@@ -93,6 +98,8 @@ public class TestingOpMode extends OpMode {
 
         turretBearing = 360 * ((robot.spin.getCurrentPosition() / SPIN_MOTOR_TPR)/SPIN_GEAR_RATIO);
 
+        Pose2D cameraPos = Robot.cameraPoseCalc(new Pose3D(new Position(DistanceUnit.INCH, 0,0,0,0), new YawPitchRollAngles(AngleUnit.DEGREES, camYaw, 0, 0, 0)), turretBearing);
+
         if(currentGamepad1.y && !previousGamepad1.y){
             if(intCopy == DriveOpMode.state.OFF){
                 robot.intake.setPower(.8);
@@ -148,6 +155,8 @@ public class TestingOpMode extends OpMode {
         telemetryA.addData("aim target", ayush);
         telemetryA.addData("ballStop pos", robot.ballStop.getPosition());
         telemetryA.addData("our bearing", turretBearing);
+        telemetryA.addData("camx", cameraPos.getX(DistanceUnit.INCH));
+        telemetryA.addData("camy", cameraPos.getY(DistanceUnit.INCH));
         //telemetry.addData("encoder value", encoderValue);
         telemetryA.update();
 

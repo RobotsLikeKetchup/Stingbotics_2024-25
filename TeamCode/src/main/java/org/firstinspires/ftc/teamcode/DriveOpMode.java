@@ -28,8 +28,6 @@ import org.firstinspires.ftc.teamcode.utilities.PIDF;
 import org.firstinspires.ftc.teamcode.utilities.Vector2Dim;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
-import org.firstinspires.ftc.teamcode.GoBildaPinpointDriver;
-
 
 
 @TeleOp
@@ -216,7 +214,9 @@ public class DriveOpMode extends OpMode {
         }
 
         if (gamepad1.yWasReleased() | gamepad1.aWasReleased()) {
-            shooter = state.OFF;
+            if (shooter == state.REVERSE) {
+                shooter = state.OFF;
+            }
         }
 
         //AprilTag Detection: update target location
@@ -252,7 +252,7 @@ public class DriveOpMode extends OpMode {
             Vector2Dim fieldVelocity = new Vector2Dim(robot.odometry.getVelX(DistanceUnit.INCH), robot.odometry.getVelY(DistanceUnit.INCH));
             Vector2Dim goalVelocity = fieldVelocity.rotateBy((currentSide==side.BLUE ? 1:-1) * (Math.PI - robotToGoalAngle));
 
-            targetBearing = targetBearing - ((distanceFromGoal * Robot.distanceConstantMultiplierX)*(goalVelocity.x*Robot.speedXConstant));
+            targetBearing = targetBearing - ((distanceFromGoal * Robot.distanceConstantMultiplierX) + (goalVelocity.x*Robot.speedXConstant));
 
             //picking where to shoot aim and bearing
             for (double[] item : Robot.lookup) {
@@ -263,7 +263,7 @@ public class DriveOpMode extends OpMode {
                 }
             }
 
-            target_aim = target_aim - ((distanceFromGoal * Robot.distanceConstantMultiplierY)*(goalVelocity.y * Robot.speedYConstant));
+            target_aim = target_aim - ((distanceFromGoal * Robot.distanceConstantMultiplierY) + (goalVelocity.y * Robot.speedYConstant));
 
         } else{
             targetBearing = 0;
@@ -330,6 +330,7 @@ public class DriveOpMode extends OpMode {
         telemetryA.addData("x-encoder", robot.odometry.getEncoderX());
         telemetryA.addData("y-encoder", robot.odometry.getEncoderY());
         telemetry.addData("AutoAim", autoAim);
+        telemetryA.addData("shooterticks", robot.shooter1.getCurrentPosition());
 
         //These things MUST be at the end of each loop. DO NOT MOVE
         telemetry.update();

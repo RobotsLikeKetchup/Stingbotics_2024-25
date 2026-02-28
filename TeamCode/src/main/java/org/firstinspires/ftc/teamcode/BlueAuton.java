@@ -5,7 +5,10 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.ParallelAction;
+import com.acmerobotics.roadrunner.RaceAction;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -33,13 +36,13 @@ public class BlueAuton extends OpMode {
 
     public static double[][] path = {
             {-28, 38, 2.51},
-            {-10, 18, Math.PI},
-            {-45, 18, Math .PI},
+            {-25, 10, Math.PI},
+            {-54, 10, Math .PI},
             {-28, 38, 2.51},
-            {-10, -5, Math.PI},
-            {-45, -5, Math.PI},
+            {-25, -9, Math.PI},
+            {-54, -9, Math.PI},
             {-28, 38, 2.51},
-            {-20, 10, Math.PI}
+            {-30, 10, Math.PI}
     };
 
 
@@ -72,6 +75,8 @@ public class BlueAuton extends OpMode {
     public double shooterVel;
     public double hoodPos;
 
+    int targetApriltag = 20;
+
 
 // Create a new Builder
 
@@ -84,35 +89,42 @@ public class BlueAuton extends OpMode {
         telemetryA = new MultipleTelemetry(this.telemetry, dashboard.getTelemetry());
 
         autoAction = new SequentialAction(
-                robot.PIDtoPt(path[0], 0.1, 1.5),
+                robot.PIDtoPt(path[0], 0.1, 2),
 
-                //robot.stop(),
-               // robot.shoot(-1400, 3),
+                robot.stop(),
+                robot.shoot(3, targetApriltag),
                 robot.PIDtoPt(path[1], 0.1, 4),
-                robot.stop()
-                /*new RaceAction(
-                        new ParallelAction(
-                                robot.startIntake(),
-                                robot.PIDtoPt(path[2], 0.1, 5, 0.5)
-                        ),
+                robot.stop(),
+                new ParallelAction(
+                        robot.startIntake(),
+                        robot.PIDtoPt(path[2], 0.2, 5, 0.7),
                         robot.ballDown()
                 ),
                 robot.stop(),
-                robot.PIDtoPt(path[3], 0.1, 1.5),
+                new ParallelAction(
+                        robot.PIDtoPt(path[3], 0.1, 1.5),
+                        new SequentialAction(
+                                robot.startIntake(),
+                                robot.ballDown(),
+                                new SleepAction(1),
+                                robot.stopTop()
+                        )
+                ),
                 robot.stop(),
-                robot.shoot(-1400, 3),
+                robot.shoot(3, targetApriltag),
                 robot.PIDtoPt(path[4], 0.1, 2),
                 robot.stop(),
-                new RaceAction(
-                        new ParallelAction(
-                                robot.startIntake(),
-                                robot.PIDtoPt(path[5], 0.1, 5, 0.5)
-                        ),
+                new ParallelAction(
+                        robot.startIntake(),
+                        robot.PIDtoPt(path[5], 0.2, 5, 0.7),
                         robot.ballDown()
                 ),
-                robot.stop()*/
-
-
+                robot.stop(),
+                robot.PIDtoPt(path[6], 0.1, 2),
+                robot.stop(),
+                robot.shoot(3, targetApriltag),
+                robot.PIDtoPt(path[7], 0.1, 2),
+                robot.stop()
         );
 
         if (currentSide == DriveOpMode.side.BLUE) {
@@ -141,7 +153,7 @@ public class BlueAuton extends OpMode {
         pose = robot.odometry.getPosition();
         turretBearing = 360 * ((robot.spin.getCurrentPosition() / SPIN_MOTOR_TPR) / SPIN_GEAR_RATIO);
 
-        robot.aim.setPosition(0.81);
+        robot.aim.setPosition(0.7);
 
         TelemetryPacket packet = new TelemetryPacket();
 
@@ -149,7 +161,7 @@ public class BlueAuton extends OpMode {
         //also, Math.atan2 accepts (y, x) <--- IMPORTANT that its not (x,y)
         double robotToGoalAngle = Math.atan2((-targetAprilTagPos.get(0)) - pose.getY(DistanceUnit.INCH), targetAprilTagPos.get(1) - pose.getX(DistanceUnit.INCH));
         //subtract robotToGoalAngle since its from x axis
-        targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.getHeading(AngleUnit.RADIANS))) - 5;
+        targetBearing = Math.toDegrees(robotToGoalAngle - MathFunctions.angleWrap(pose.getHeading(AngleUnit.RADIANS))) + 2;
 
         if (targetBearing < Robot.TURRET_LIMITS[0]) {
             targetBearing = 360 + targetBearing;
@@ -189,6 +201,7 @@ public class BlueAuton extends OpMode {
         telemetryA.addData("y" , pose.getY(DistanceUnit.INCH));
         telemetryA.addData("rotation" , pose.getHeading(AngleUnit.RADIANS));
         telemetryA.addData("action running" , actionRunning);
+        telemetryA.addData("shooter", robot.shooter.getVelocity());
         telemetryA.update();
 
     }

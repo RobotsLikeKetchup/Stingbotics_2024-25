@@ -23,7 +23,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 
 @Autonomous
 @Config
-public class FARautonBLUE extends OpMode {
+public class FARautonRED extends OpMode {
 
     // Create variables
     Robot robot = new Robot();
@@ -32,7 +32,8 @@ public class FARautonBLUE extends OpMode {
     ElapsedTime timer = new ElapsedTime();
 
     public static double[][] path = {
-            {-12.2, -32.6, Math.PI/2},
+            {-10.4, -43.1, Math.PI/2},
+            {36, -36, 0}
     };
 
 
@@ -48,9 +49,9 @@ public class FARautonBLUE extends OpMode {
     boolean actionRunning = true;
 
     public enum side {BLUE, RED}
-    public DriveOpMode.side currentSide = DriveOpMode.side.BLUE;
+    public DriveOpMode.side currentSide = DriveOpMode.side.RED;
 
-    public int shooter_target = 20;
+    public int shooter_target = 24;
 
     public VectorF targetAprilTagPos;
 
@@ -125,7 +126,7 @@ public class FARautonBLUE extends OpMode {
 
     @Override
     public void start() {
-        robot.odometry.setPosition(new Pose2D(DistanceUnit.INCH,-19,-45, AngleUnit.RADIANS,Math.PI/2));
+        robot.odometry.setPosition(new Pose2D(DistanceUnit.INCH,16.7,-51.3, AngleUnit.RADIANS,Math.PI/2));
 
 
     }
