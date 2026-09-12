@@ -135,9 +135,9 @@ public class Robot {
         frontRight = hardwareMap.get(DcMotor.class, "motor_fr");
         backLeft = hardwareMap.get(DcMotor.class, "motor_bl");
         backRight = hardwareMap.get(DcMotor.class, "motor_br");
-        shooter1 = hardwareMap.get(DcMotorEx.class, "shooter");
-        shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
-        shooter = new DcMotorCombined(shooter1, shooter2);
+        //shooter1 = hardwareMap.get(DcMotorEx.class, "shooter");
+        //shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
+        //shooter = new DcMotorCombined(shooter1, shooter2);
         aim = hardwareMap.get(Servo.class, "aim");
         ballStop = hardwareMap.get(Servo.class, "ballStop");
         spin = hardwareMap.get(DcMotorEx.class, "spin");
