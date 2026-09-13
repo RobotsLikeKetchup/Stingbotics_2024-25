@@ -27,19 +27,6 @@ public class AprilTagExample extends OpMode {
         AprilTagDetection id20 = aprilTag.getTagByID(20);
         //display
         aprilTag.displayTelemetry(id20);
-        if(id20 != null && id20.ftcPose != null){
-            double bearingError = id20.ftcPose.bearing;
-            if(bearingError > 5){
-                robot.spin.setPower(0.3);
-            } else if (bearingError < -5) {
-                robot.spin.setPower(-0.3);
-            }else {
-                robot.spin.setPower(0);
-            }
-        }else{
-            robot.spin.setPower(0);
-        }
-
 
     }
 }

@@ -8,7 +8,7 @@ public class ClearGlobalVar extends OpMode {
 
     @Override
     public void init() {
-        Global.turretBearing = null;
+
         Global.pose = null;
     }
 

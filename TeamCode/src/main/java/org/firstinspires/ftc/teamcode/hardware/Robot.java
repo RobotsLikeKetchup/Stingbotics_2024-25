@@ -8,6 +8,7 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -40,14 +41,18 @@ public class Robot {
     public DcMotor frontLeft;
     public DcMotor backRight;
     public DcMotor backLeft;
-    public DcMotorEx shooter1;
-    public DcMotorEx shooter2;
-    public DcMotorCombined shooter;
+    public ColorSensor achintaSensor;
+
+    public Servo angle1;
+    public Servo angle2;
+    //public DcMotorEx shooter1;
+    //public DcMotorEx shooter2;
+    //public DcMotorCombined shooter;
     public DcMotor intake;
-    public Servo aim;
-    public Servo ballStop;
-    public DcMotorEx spin;
-    public GoBildaPinpointDriver odometry;
+    //public Servo aim;
+    //public Servo ballStop;
+    //public DcMotorEx spin;
+   // public GoBildaPinpointDriver odometry;
     //parallel dead wheels (measuring x-coord and heading)
     DeadWheel parL;
     DeadWheel parR;
@@ -135,16 +140,20 @@ public class Robot {
         frontRight = hardwareMap.get(DcMotor.class, "motor_fr");
         backLeft = hardwareMap.get(DcMotor.class, "motor_bl");
         backRight = hardwareMap.get(DcMotor.class, "motor_br");
+        achintaSensor = hardwareMap.get(ColorSensor.class, "achintaSensor");
+        angle1 = hardwareMap.get(Servo.class, "intakeangle1");
+        angle2 = hardwareMap.get(Servo.class, "intakeangle2");
+
         //shooter1 = hardwareMap.get(DcMotorEx.class, "shooter");
         //shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
         //shooter = new DcMotorCombined(shooter1, shooter2);
-        aim = hardwareMap.get(Servo.class, "aim");
-        ballStop = hardwareMap.get(Servo.class, "ballStop");
-        spin = hardwareMap.get(DcMotorEx.class, "spin");
-        intake = hardwareMap.get(DcMotor.class, "intake");
+        //aim = hardwareMap.get(Servo.class, "aim");
+        //ballStop = hardwareMap.get(Servo.class, "ballStop");
+        //spin = hardwareMap.get(DcMotorEx.class, "spin");
+        //intake = hardwareMap.get(DcMotor.class, "intake");
         driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
 
-        if(type == localizationType.PINPOINT) {
+        /*if(type == localizationType.PINPOINT) {
             odometry = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
             //these offsets are to the lens position at a zero turret bearing
             odometry.setOffsets(5.1, -2, DistanceUnit.INCH);
@@ -152,13 +161,13 @@ public class Robot {
             odometry.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
             odometry.recalibrateIMU();
             odometry.resetPosAndIMU();
-        }
+        }*/
         if(type == localizationType.ROADRUNNERxPINPOINT) {
-            odometry = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
-            odometry.recalibrateIMU();
-            odometry.resetPosAndIMU();
+           // odometry = hardwareMap.get(GoBildaPinpointDriver.class, "pinpoint");
+          //  odometry.recalibrateIMU();
+          //  odometry.resetPosAndIMU();
 
-            localization = new PinpointxRoadrunner(new Pose2d(0,0,0), odometry, timer);
+           // localization = new PinpointxRoadrunner(new Pose2d(0,0,0), odometry, timer);
         }
 
         // Set universal wheel behaviors
@@ -175,14 +184,14 @@ public class Robot {
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backRight.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        shooter2.setDirection(DcMotorSimple.Direction.REVERSE);
+        //shooter2.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        spin.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        spin.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        shooter1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        shooter1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        shooter2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        shooter2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        //spin.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        //spin.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        //shooter1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //shooter1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        //shooter2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //shooter2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
         //set deadwheel encoders
@@ -372,21 +381,21 @@ public class Robot {
 
         @Override
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-            Pose2D pose = odometry.getPosition();
-            if (autoAim){
-                double aimPos = 0.7;
-                double distanceFromGoal = Math.hypot((-targetAprilTagPos.get(0)) - pose.getY(DistanceUnit.INCH), targetAprilTagPos.get(1) - pose.getX(DistanceUnit.INCH));
-                for (double[] item : lookup) {
-                    if (item[0] >= distanceFromGoal) {
-                        velocity = item[1];
-                        aimPos = item[2];
-                        break;
-                    }
-                }
-                aim.setPosition(aimPos);
-            }
+            //Pose2D pose = odometry.getPosition();
+            //if (autoAim){
+                //double aimPos = 0.7;
+                //double distanceFromGoal = Math.hypot((-targetAprilTagPos.get(0)) - pose.getY(DistanceUnit.INCH), targetAprilTagPos.get(1) - pose.getX(DistanceUnit.INCH));
+                //for (double[] item : lookup) {
+                  //  if (item[0] >= distanceFromGoal) {
+                    //    velocity = item[1];
+                      //  aimPos = item[2];
+                        //break;
 
-            shooter.setPower(shooterpid.loop(velocity, shooter.getVelocity()));
+
+                //aim.setPosition(aimPos);
+
+
+            //shooter.setPower(shooterpid.loop(velocity, shooter.getVelocity()));
             if(!init){
                 intakeStartTime = timer.seconds() + revUpTime;
                 init = true;
@@ -406,7 +415,7 @@ public class Robot {
             telemetryPacket.put("startTime", intakeStartTime);
 
             if(ballIndex == ballNumber) {
-                shooter.setPower(0);
+                //shooter.setPower(0);
                 intake.setPower(0);
                 return false;
             } else {
@@ -455,7 +464,7 @@ public class Robot {
 
         @Override
         public boolean run(@NonNull TelemetryPacket telemetryPacket) {
-            position = odometry.getPosition();
+            //position = odometry.getPosition();
             direction = new Vector2Dim(pt[0] - position.getX(DistanceUnit.INCH), pt[1] - position.getY(DistanceUnit.INCH));
             rotation = (Math.PI/2) - position.getHeading(AngleUnit.RADIANS);
             rotatedDirection = direction.rotateBy(rotation);
@@ -503,7 +512,7 @@ public class Robot {
             for(DcMotor motor : driveMotors){
                 motor.setPower(0);
             }
-            shooter.setPower(0);
+            //shooter.setPower(0);
             intake.setPower(0);
             return false;
         }
@@ -515,7 +524,7 @@ public class Robot {
         public StopTop(){}
         @Override
         public boolean run(@NonNull TelemetryPacket packet) {
-            shooter.setPower(0);
+            //shooter.setPower(0);
             intake.setPower(0);
             return false;
         }
@@ -539,7 +548,7 @@ public class Robot {
 
         public BallDown() {}
         public boolean run (@NonNull TelemetryPacket packet) {
-            shooter.setPower(0.6);
+            //shooter.setPower(0.6);
 
             return false;
         }
