@@ -124,17 +124,17 @@ public class DriveOpMode extends OpMode {
         previousGamepad2.copy(currentGamepad2);
         currentGamepad2.copy(gamepad2);
         if(shooterState == state.ON){
-            robot.shooter.setPower(-.8);
+            robot.shooter.setPower(.4);
         }else if(shooterState == state.REVERSE){
-            robot.shooter.setPower(-.8);
+            robot.shooter.setPower(-.94);
         }else{
             robot.shooter.setPower(0);
         }
 
         if(intakeState == state.ON){
-            robot.intake.setPower(.8);
+            robot.intake.setPower(.65);
         }else if(intakeState == state.REVERSE){
-            robot.intake.setPower(-.8);
+            robot.intake.setPower(-.65);
         }else{
             robot.intake.setPower(0);
         }
@@ -172,37 +172,30 @@ public class DriveOpMode extends OpMode {
             detectedColor = colors.UNKNOWN;
         }
 
-        if (gamepad1.x) {
+        if (currentGamepad1.b && !previousGamepad1.b) {
             if (shooterState != state.REVERSE) {
                 shooterState = state.REVERSE;
-                intakeState = state.REVERSE;
             } else {
                 shooterState = state.OFF;
-                intakeState = state.OFF;
             }
         }
-        if (gamepad1.a){
-            if (intakeState != state.ON) {
-                intakeState = state.REVERSE;
-                shooterState = state.ON;
-            } else {
-                intakeState = state.OFF;
-                shooterState = state.OFF;;
-            }
-
-        }
-        if (gamepad1.y){
+        if (currentGamepad1.y && !previousGamepad1.y){
             if(intakeState != state.REVERSE){
                 intakeState = state.REVERSE;
             }else{
                 intakeState = state.OFF;
             }
         }
-
+        if(currentGamepad1.a &&!previousGamepad1.a){
+            if (intakeState != state.ON){
+                intakeState = state.ON;
+            }else{
+                intakeState = state.OFF;
+            }
+        }
         // Gets power levels for each motor, using gamepad inputs as directions
         // The third item in the array dictates which trigger is being pressed (=1 if left, =-1 if right, =0 if none or both).
-        motorPowers = MecanumKinematics.getPowerFromDirection(new double[]{
-                        -gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x),
+        motorPowers = MecanumKinematics.getPowerFromDirection(new double[]{                        -gamepad1.left_stick_x * Math.abs(gamepad1.left_stick_x),
                         -gamepad1.left_stick_y * Math.abs(gamepad1.left_stick_y),
                         -(toInt(gamepad1.right_bumper) - toInt(gamepad1.left_bumper))
                 },
