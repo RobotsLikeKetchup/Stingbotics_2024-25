@@ -41,13 +41,13 @@ public class Robot {
     public DcMotor frontLeft;
     public DcMotor backRight;
     public DcMotor backLeft;
+
     public ColorSensor achintaSensor;
 
     public Servo angle1;
     public Servo angle2;
-    //public DcMotorEx shooter1;
-    //public DcMotorEx shooter2;
-    //public DcMotorCombined shooter;
+
+    public DcMotor shooter;
     public DcMotor intake;
     //public Servo aim;
     //public Servo ballStop;
@@ -143,14 +143,9 @@ public class Robot {
         achintaSensor = hardwareMap.get(ColorSensor.class, "achintaSensor");
         angle1 = hardwareMap.get(Servo.class, "intakeangle1");
         angle2 = hardwareMap.get(Servo.class, "intakeangle2");
+        shooter = hardwareMap.get(DcMotor.class, "shooter");
 
-        //shooter1 = hardwareMap.get(DcMotorEx.class, "shooter");
-        //shooter2 = hardwareMap.get(DcMotorEx.class, "shooter2");
-        //shooter = new DcMotorCombined(shooter1, shooter2);
-        //aim = hardwareMap.get(Servo.class, "aim");
-        //ballStop = hardwareMap.get(Servo.class, "ballStop");
-        //spin = hardwareMap.get(DcMotorEx.class, "spin");
-        //intake = hardwareMap.get(DcMotor.class, "intake");
+        intake = hardwareMap.get(DcMotor.class, "intake");
         driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
 
         /*if(type == localizationType.PINPOINT) {

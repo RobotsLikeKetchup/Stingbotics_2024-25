@@ -156,6 +156,19 @@ public class DriveOpMode extends OpMode {
             detectedColor = colors.UNKNOWN;
         }
 
+        if (gamepad1.x){
+            robot.shooter.setPower(0.8);
+
+        } else{
+            robot.shooter.setPower(0);
+        }
+
+        if (gamepad1.a){
+            robot.intake.setPower(1);
+        } else{
+            robot.intake.setPower(0);
+        }
+
 
         // Gets power levels for each motor, using gamepad inputs as directions
         // The third item in the array dictates which trigger is being pressed (=1 if left, =-1 if right, =0 if none or both).
