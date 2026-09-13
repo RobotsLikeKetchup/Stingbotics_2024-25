@@ -124,7 +124,7 @@ public class DriveOpMode extends OpMode {
         previousGamepad2.copy(currentGamepad2);
         currentGamepad2.copy(gamepad2);
         if(shooterState == state.ON){
-            robot.shooter.setPower(.8);
+            robot.shooter.setPower(-.8);
         }else if(shooterState == state.REVERSE){
             robot.shooter.setPower(-.8);
         }else{
@@ -134,7 +134,7 @@ public class DriveOpMode extends OpMode {
         if(intakeState == state.ON){
             robot.intake.setPower(.8);
         }else if(intakeState == state.REVERSE){
-            robot.intake.setPower(-.4);
+            robot.intake.setPower(-.8);
         }else{
             robot.intake.setPower(0);
         }
@@ -173,9 +173,9 @@ public class DriveOpMode extends OpMode {
         }
 
         if (gamepad1.x) {
-            if (shooterState != state.ON) {
-                shooterState = state.ON;
-                intakeState = state.ON;
+            if (shooterState != state.REVERSE) {
+                shooterState = state.REVERSE;
+                intakeState = state.REVERSE;
             } else {
                 shooterState = state.OFF;
                 intakeState = state.OFF;
@@ -183,8 +183,8 @@ public class DriveOpMode extends OpMode {
         }
         if (gamepad1.a){
             if (intakeState != state.ON) {
-                intakeState = state.ON;
-                shooterState = state.REVERSE;
+                intakeState = state.REVERSE;
+                shooterState = state.ON;
             } else {
                 intakeState = state.OFF;
                 shooterState = state.OFF;;
