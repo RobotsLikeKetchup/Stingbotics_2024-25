@@ -19,7 +19,7 @@ import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 //import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.teamcode.hardware.AprilTag;
+//import org.firstinspires.ftc.teamcode.hardware.AprilTag;
 import org.firstinspires.ftc.teamcode.hardware.Robot;
 import org.firstinspires.ftc.teamcode.pathing.MotionProfile1D;
 import org.firstinspires.ftc.teamcode.pathing.roadrunner.RoadrunnerThreeWheelLocalizer;
@@ -75,7 +75,8 @@ public class DriveOpMode extends OpMode {
     //I am NOT unemployed
 
     colors detectedColor = colors.UNKNOWN;
-
+    state shooterState = state.OFF;
+    state intakeState = state.OFF;
     public double blueVal;
     public double greenVal;
     public double redVal;
@@ -83,7 +84,7 @@ public class DriveOpMode extends OpMode {
     FtcDashboard dashboard;
     TelemetryPacket packet;
 
-    AprilTag aprilTag = new AprilTag();
+ //   AprilTag aprilTag = new AprilTag();
 
     MultipleTelemetry telemetryA;
 
@@ -106,7 +107,7 @@ public class DriveOpMode extends OpMode {
         telemetry.addLine("Initialized!");
         telemetry.update();
 
-        aprilTag.init(hardwareMap, telemetry);
+       // aprilTag.init(hardwareMap, telemetry);
         //get the location of the Tag on the field
 
     }
@@ -122,6 +123,21 @@ public class DriveOpMode extends OpMode {
         currentGamepad1.copy(gamepad1);
         previousGamepad2.copy(currentGamepad2);
         currentGamepad2.copy(gamepad2);
+        if(shooterState == state.ON){
+            robot.shooter.setPower(.8);
+        }else if(shooterState == state.REVERSE){
+            robot.shooter.setPower(-.8);
+        }else{
+            robot.shooter.setPower(0);
+        }
+
+        if(intakeState == state.ON){
+            robot.intake.setPower(.8);
+        }else if(intakeState == state.REVERSE){
+            robot.intake.setPower(-.4);
+        }else{
+            robot.intake.setPower(0);
+        }
        // robot.odometry.update();
       //  pose = robot.odometry.getPosition();
         redVal = robot.achintaSensor.red()+0.0000000000000001;
@@ -135,7 +151,7 @@ public class DriveOpMode extends OpMode {
         if ((Math.abs(currentGamepad1.left_stick_x) > 0.05 || Math.abs(currentGamepad1.left_stick_y) > 0.05) && !(Math.abs(previousGamepad1.left_stick_x) > 0.05 || Math.abs(previousGamepad1.left_stick_y) > 0.05)) {
             rampFunction.reset();
         }
-        robot.angle1.setPosition(position);
+
         if (gamepad1.dpad_left){
             position += .1;
         }
@@ -156,19 +172,32 @@ public class DriveOpMode extends OpMode {
             detectedColor = colors.UNKNOWN;
         }
 
-        if (gamepad1.x){
-            robot.shooter.setPower(0.8);
-
-        } else{
-            robot.shooter.setPower(0);
+        if (gamepad1.x) {
+            if (shooterState != state.ON) {
+                shooterState = state.ON;
+                intakeState = state.ON;
+            } else {
+                shooterState = state.OFF;
+                intakeState = state.OFF;
+            }
         }
-
         if (gamepad1.a){
-            robot.intake.setPower(1);
-        } else{
-            robot.intake.setPower(0);
-        }
+            if (intakeState != state.ON) {
+                intakeState = state.ON;
+                shooterState = state.REVERSE;
+            } else {
+                intakeState = state.OFF;
+                shooterState = state.OFF;;
+            }
 
+        }
+        if (gamepad1.y){
+            if(intakeState != state.REVERSE){
+                intakeState = state.REVERSE;
+            }else{
+                intakeState = state.OFF;
+            }
+        }
 
         // Gets power levels for each motor, using gamepad inputs as directions
         // The third item in the array dictates which trigger is being pressed (=1 if left, =-1 if right, =0 if none or both).

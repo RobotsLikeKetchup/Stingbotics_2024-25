@@ -44,8 +44,8 @@ public class Robot {
 
     public ColorSensor achintaSensor;
 
-    public Servo angle1;
-    public Servo angle2;
+    //public Servo angle1;
+    //public Servo angle2;
 
     public DcMotor shooter;
     public DcMotor intake;
@@ -141,10 +141,9 @@ public class Robot {
         backLeft = hardwareMap.get(DcMotor.class, "motor_bl");
         backRight = hardwareMap.get(DcMotor.class, "motor_br");
         achintaSensor = hardwareMap.get(ColorSensor.class, "achintaSensor");
-        angle1 = hardwareMap.get(Servo.class, "intakeangle1");
-        angle2 = hardwareMap.get(Servo.class, "intakeangle2");
+        //angle1 = hardwareMap.get(Servo.class, "intakeangle1");
+        //angle2 = hardwareMap.get(Servo.class, "intakeangle2");
         shooter = hardwareMap.get(DcMotor.class, "shooter");
-
         intake = hardwareMap.get(DcMotor.class, "intake");
         driveMotors = new DcMotor[]{frontLeft, frontRight, backLeft, backRight};
 
