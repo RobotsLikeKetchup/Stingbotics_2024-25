@@ -170,6 +170,7 @@ public class DriveOpMode extends OpMode {
             detectedColor = colors.RED;
         }else{
             detectedColor = colors.UNKNOWN;
+
         }
 
         if (currentGamepad1.b && !previousGamepad1.b) {
