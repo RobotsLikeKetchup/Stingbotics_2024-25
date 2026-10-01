@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.hardware.Robot;
@@ -10,9 +11,11 @@ public class IndividualMotorTest extends OpMode {
     Robot robot =  new Robot();
     ElapsedTime timer = new ElapsedTime();
 
+    private DcMotor frontLeft;
+
     @Override
     public void init() {
-        robot.init(hardwareMap, timer);
+        frontLeft = hardwareMap.get(DcMotor.class,"motor_fl");
     }
 
     @Override
