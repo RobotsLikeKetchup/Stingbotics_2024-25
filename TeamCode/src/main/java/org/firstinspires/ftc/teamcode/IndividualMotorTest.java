@@ -58,8 +58,8 @@ public class IndividualMotorTest extends OpMode {
         currentGamepad2.copy(gamepad2);
 
         if(gamepad1.x){
-            robot.frontLeft.setPower(0.8);
-        } else robot.frontLeft.setPower(0);
+            frontLeft.setPower(0.8);
+        } else frontLeft.setPower(0);
         //if(gamepad1.a){
         //    robot.backLeft.setPower(0.4);
         //} else robot.backLeft.setPower(0);
